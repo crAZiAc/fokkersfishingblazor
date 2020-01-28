@@ -5,9 +5,14 @@ VisualStudioVersion = 16.0.29411.108
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FokkersFishing.Shared", "FokkersFishing.Shared\FokkersFishing.Shared.csproj", "{3EFC4B11-8F21-412C-879D-058618F70892}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FokkersFishing.Client", "FokkersFishing.Client\FokkersFishing.Client.csproj", "{4DCDA195-42F4-4295-B421-9890B2D6DE8C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FokkersFishing.Server", "FokkersFishing.Server\FokkersFishing.Server.csproj", "{C4EB6E83-8D50-4E9D-9535-50387B647F0C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FokkersFishing.Server", "FokkersFishing.Server\FokkersFishing.Server.csproj", "{C4EB6E83-8D50-4E9D-9535-50387B647F0C}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{EB053BB9-E835-453A-AE9D-5D0C82AF5446}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FokkersFishing.Client", "FokkersFishing.Client\FokkersFishing.Client.csproj", "{656AD2BC-3DB1-440E-939C-35C51044E7D7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,14 +24,14 @@ Global
 		{3EFC4B11-8F21-412C-879D-058618F70892}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3EFC4B11-8F21-412C-879D-058618F70892}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3EFC4B11-8F21-412C-879D-058618F70892}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4DCDA195-42F4-4295-B421-9890B2D6DE8C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4DCDA195-42F4-4295-B421-9890B2D6DE8C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4DCDA195-42F4-4295-B421-9890B2D6DE8C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4DCDA195-42F4-4295-B421-9890B2D6DE8C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C4EB6E83-8D50-4E9D-9535-50387B647F0C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C4EB6E83-8D50-4E9D-9535-50387B647F0C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C4EB6E83-8D50-4E9D-9535-50387B647F0C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C4EB6E83-8D50-4E9D-9535-50387B647F0C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{656AD2BC-3DB1-440E-939C-35C51044E7D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{656AD2BC-3DB1-440E-939C-35C51044E7D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{656AD2BC-3DB1-440E-939C-35C51044E7D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{656AD2BC-3DB1-440E-939C-35C51044E7D7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

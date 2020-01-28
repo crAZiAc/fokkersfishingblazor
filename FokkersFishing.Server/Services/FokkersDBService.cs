@@ -11,11 +11,11 @@ using FokkersFishing.Shared.Models;
 
 namespace FokkersFishing.Services
 {
-    public class FokkdersDbService : IFokkersDbService
+    public class FokkersDbService : IFokkersDbService
     {
         private Container _container;
 
-        public FokkdersDbService(
+        public FokkersDbService(
             CosmosClient dbClient,
             string databaseName,
             string containerName)

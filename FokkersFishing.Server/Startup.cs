@@ -52,8 +52,6 @@ namespace FokkersFishing
 
             services.AddSingleton<IFokkersDbService>(InitializeCosmosClientInstanceAsync(section).GetAwaiter().GetResult());
 
-
-
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlite(
                     Configuration.GetConnectionString("DefaultConnection")));
@@ -90,7 +88,7 @@ namespace FokkersFishing
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseDatabaseErrorPage();
+                //app.UseDatabaseErrorPage();
                 app.UseBlazorDebugging();
             }
             else
@@ -101,11 +99,13 @@ namespace FokkersFishing
             }
 
             app.UseStaticFiles();
+            app.UseClientSideBlazorFiles<Client.Startup>();
+            
             app.UseRouting();
             
-            app.UseAuthentication();
-            app.UseAuthorization();
-            app.UseClientSideBlazorFiles<Client.Startup>();
+            //app.UseAuthentication();
+            //app.UseAuthorization();
+            
 
             app.UseEndpoints(endpoints =>
             {
@@ -113,8 +113,8 @@ namespace FokkersFishing
                 endpoints.MapFallbackToClientSideBlazor<Client.Startup>("index.html");
             });
 
-            app.UseHttpsRedirection();
-            app.UseIdentityServer();
+            //app.UseHttpsRedirection();
+            //app.UseIdentityServer();
 
         }
 
@@ -122,7 +122,7 @@ namespace FokkersFishing
         /// Creates a Cosmos DB database and a container with the specified partition key. 
         /// </summary>
         /// <returns></returns>
-        private static async Task<FokkdersDbService> InitializeCosmosClientInstanceAsync(IConfigurationSection configurationSection)
+        private static async Task<FokkersDbService> InitializeCosmosClientInstanceAsync(IConfigurationSection configurationSection)
         {
             string databaseName = configurationSection.GetSection("DatabaseName").Value;
             string containerName = configurationSection.GetSection("ContainerName").Value;
@@ -132,7 +132,7 @@ namespace FokkersFishing
             CosmosClient client = clientBuilder
                                 .WithConnectionModeDirect()
                                 .Build();
-            FokkdersDbService cosmosDbService = new FokkdersDbService(client, databaseName, containerName);
+            FokkersDbService cosmosDbService = new FokkersDbService(client, databaseName, containerName);
             DatabaseResponse database = await client.CreateDatabaseIfNotExistsAsync(databaseName);
             await database.Database.CreateContainerIfNotExistsAsync(containerName, "/id");
 
