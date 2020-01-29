@@ -14,7 +14,7 @@ using FokkersFishing.Shared.Models;
 
 namespace FokkersFishing.Controllers
 {
-    [Authorize]
+    //[Authorize]
     [ApiController]
     [Route("[controller]")]
     public class CatchController : Controller
@@ -37,10 +37,10 @@ namespace FokkersFishing.Controllers
         public IEnumerable<Catch> Get()
         {
             // Check incoming ID and get username
-            var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
-            ApplicationUser user = _dbContext.Users.FirstOrDefault(c => c.Id == userId);
-            Task<IEnumerable<Catch>> catchesMade = _fokkersDbService.GetItemsAsync("select * from c where c.userName = '" + user.Email + "'");
-
+            //var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            //ApplicationUser user = _dbContext.Users.FirstOrDefault(c => c.Id == userId);
+            //Task<IEnumerable<Catch>> catchesMade = _fokkersDbService.GetItemsAsync("select * from c where c.userName = '" + user.Email + "'");
+            Task<IEnumerable<Catch>> catchesMade = _fokkersDbService.GetItemsAsync("select * from c");
             return catchesMade.Result.ToList();
         }
         [HttpGet("{id}")]

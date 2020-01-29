@@ -1,7 +1,64 @@
 ﻿@page "/"
+@inject HttpClient HttpClient
+@using BlazorTable
+@using System.ComponentModel
 
-<h1>Hello, world!</h1>
+<h1>Welkom, Fokkers!</h1>
 
-Welcome to your new app.
+Welkom bij de Fokkers Vis Registratie (FVS)
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+<div class="main">
+
+    @if (catches == null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else
+    {
+        @*<table class="table table-striped table-hover" aria-labelledby="tabelLabel">
+                <thead>
+                    <tr>
+                        <th>Catch Number</th>
+                        <th>Catch date</th>
+                        <th>Fish</th>
+                        <th>Length</th>
+                        <th>Logged on</th>
+                        <th>Command</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var catchMade in catches)
+                    {
+                        <tr key=@catchMade.Id>
+                            <td>@catchMade.CatchNumber</td>
+                            <td>@catchMade.CatchDate</td>
+                            <td>@catchMade.Fish</td>
+                            <td>@catchMade.Length</td>
+                            <td>@catchMade.LogDate</td>
+                            <td><button class="btn btn-info">Edit</button></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>*@
+        <Table TableItem="Catch" Items="catches" PageSize="15">
+            <Column TableItem="Catch" Title="Fish" Field="@(x => x.Fish)" Sortable="true" Filterable="true" Width="10%" />
+            <Pager ShowPageNumber="true" ShowTotalCount="true" />
+        </Table>
+    }
+</div>
+
+
+
+
+@code {
+
+    //https://github.com/IvanJosipovic/BlazorTable/blob/master/src/BlazorTable.Sample.Shared/Pages/Index.razor
+
+    List<Catch> catches;
+
+    protected async override Task OnInitializedAsync()
+    {
+        catches = await HttpClient.GetJsonAsync<List<Catch>>("catch");
+    }
+
+}
