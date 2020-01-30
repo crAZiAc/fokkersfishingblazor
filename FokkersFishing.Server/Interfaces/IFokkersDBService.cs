@@ -15,5 +15,6 @@ namespace FokkersFishing.Interfaces
         Task UpdateItemAsync(string id, Catch item);
         Task DeleteItemAsync(string id);
         Task<int> GetCatchNumberCount();
+        Task<int> GetGlobalCatchNumberCount();
     } // end i
 } // end ns

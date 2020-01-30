@@ -68,6 +68,7 @@ namespace FokkersFishing.Controllers
             catchMade.CatchDate = DateTime.Now;
             catchMade.LogDate = DateTime.Now;
             catchMade.CatchNumber = _fokkersDbService.GetCatchNumberCount().Result + 1;
+            catchMade.GlobalCatchNumber = _fokkersDbService.GetGlobalCatchNumberCount().Result + 1;
             catchMade.UserName = user.Email;
 
             _fokkersDbService.AddItemAsync(catchMade);

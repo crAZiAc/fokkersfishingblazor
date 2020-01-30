@@ -75,6 +75,20 @@ namespace FokkersFishing.Services
             return results.FirstOrDefault().CatchNumber;
         }
 
+        public async Task<int> GetGlobalCatchNumberCount()
+        {
+            string queryString = "SELECT top 1 c.globalCatchNumber FROM c order by c.globalCatchNumber DESC";
+            var query = this._container.GetItemQueryIterator<Catch>(new QueryDefinition(queryString));
+            List<Catch> results = new List<Catch>();
+            while (query.HasMoreResults)
+            {
+                var response = await query.ReadNextAsync();
+
+                results.AddRange(response.ToList());
+            }
+            return results.FirstOrDefault().GlobalCatchNumber;
+        }
+
         public async Task UpdateItemAsync(string id, Catch item)
         {
             await this._container.UpsertItemAsync<Catch>(item, new PartitionKey(id));

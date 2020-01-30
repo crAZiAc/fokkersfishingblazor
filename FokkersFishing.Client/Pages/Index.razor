@@ -3,6 +3,7 @@
 @using BlazorTable
 @using System.ComponentModel
 
+
 <h1>Welkom, Fokkers!</h1>
 
 Welkom bij de Fokkers Vis Registratie (FVS)
@@ -15,39 +16,33 @@ Welkom bij de Fokkers Vis Registratie (FVS)
     }
     else
     {
-        @*<table class="table table-striped table-hover" aria-labelledby="tabelLabel">
-                <thead>
-                    <tr>
-                        <th>Catch Number</th>
-                        <th>Catch date</th>
-                        <th>Fish</th>
-                        <th>Length</th>
-                        <th>Logged on</th>
-                        <th>Command</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var catchMade in catches)
-                    {
-                        <tr key=@catchMade.Id>
-                            <td>@catchMade.CatchNumber</td>
-                            <td>@catchMade.CatchDate</td>
-                            <td>@catchMade.Fish</td>
-                            <td>@catchMade.Length</td>
-                            <td>@catchMade.LogDate</td>
-                            <td><button class="btn btn-info">Edit</button></td>
-                        </tr>
-                    }
-                </tbody>
-            </table>*@
-        <Table TableItem="Catch" Items="catches" PageSize="15">
-            <Column TableItem="Catch" Title="Fish" Field="@(x => x.Fish)" Sortable="true" Filterable="true" Width="10%" />
+        <button class="btn btn-sm btn-danger" title="Toggle Edit Mode" @onclick="@((x) => ToggleEdit())">Toggle Edit Mode</button>
+        <Table TableItem="Catch" Items="catches" PageSize="15" @ref="Table">
+            <Column TableItem="Catch" Title="Catch Number" Field="@(x => x.CatchNumber)" Sortable="true" Filterable="true" Width="10%" />
+            <Column TableItem="Catch" Title="Catch Date" Field="@(x => x.CatchDate)" Sortable="true" Filterable="true" Width="10%">
+                <EditTemplate>
+                    <input type="datetime-local" @bind-value="@context.CatchDate" class="form-control" />
+                </EditTemplate>
+            </Column>
+
+            <Column TableItem="Catch" Title="Fish" Field="@(x => x.Fish)" Sortable="true" Filterable="true" Width="10%">
+                <EditTemplate>
+                    <EditForm Model="@context" Context="myContext">
+                        <InputSelect id="fishSelect" @bind-Value="@context.Fish" class="form-control">
+                            @foreach (Fish fish in fishOptions)
+                                {
+                                <option value="@fish.Name">@fish.Name</option>
+                                }
+                        </InputSelect>
+                    </EditForm>
+                </EditTemplate>
+            </Column>
+            <Column TableItem="Catch" Title="Fish Length" Field="@(x => x.Length)" Sortable="true" Filterable="true" Width="10%" />
+            <Column TableItem="Catch" Title="Log Date" Field="@(x => x.LogDate)" Sortable="true" Filterable="true" Width="10%" />
             <Pager ShowPageNumber="true" ShowTotalCount="true" />
         </Table>
     }
 </div>
-
-
 
 
 @code {
@@ -55,10 +50,22 @@ Welkom bij de Fokkers Vis Registratie (FVS)
     //https://github.com/IvanJosipovic/BlazorTable/blob/master/src/BlazorTable.Sample.Shared/Pages/Index.razor
 
     List<Catch> catches;
+    private ITable<Catch> Table;
+    List<Fish> fishOptions = new List<Fish>
+{
+        new Fish() { Name = "Pike"},
+        new Fish() { Name = "Zander"},
+        new Fish() { Name = "Bass"}
+    };
 
     protected async override Task OnInitializedAsync()
     {
         catches = await HttpClient.GetJsonAsync<List<Catch>>("catch");
     }
+    private void ToggleEdit()
+    {
+        Table.ToggleEditMode();
+    }
+
 
 }
