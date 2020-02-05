@@ -30,6 +30,7 @@ namespace FokkersFishing.Server
                 redirectUri = "/";
             }
 
+            // TODO: Check IDPs
             await HttpContext.ChallengeAsync(
                 TwitterDefaults.AuthenticationScheme,
                 new AuthenticationProperties { RedirectUri = redirectUri });
