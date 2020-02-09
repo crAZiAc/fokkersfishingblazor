@@ -1,6 +1,7 @@
 ﻿using FokkersFishing.Shared.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Facebook;
 using Microsoft.AspNetCore.Authentication.Twitter;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -30,9 +31,12 @@ namespace FokkersFishing.Server
                 redirectUri = "/";
             }
 
-            // TODO: Check IDPs
+            //await HttpContext.ChallengeAsync(
+            //    TwitterDefaults.AuthenticationScheme,
+            //    new AuthenticationProperties { RedirectUri = redirectUri });
+
             await HttpContext.ChallengeAsync(
-                TwitterDefaults.AuthenticationScheme,
+                FacebookDefaults.AuthenticationScheme,
                 new AuthenticationProperties { RedirectUri = redirectUri });
         }
 

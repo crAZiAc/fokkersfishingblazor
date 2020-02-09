@@ -1,71 +1,8 @@
 ﻿@page "/"
 @inject HttpClient HttpClient
-@using BlazorTable
-@using System.ComponentModel
 
 
 <h1>Welkom, Fokkers!</h1>
 
 Welkom bij de Fokkers Vis Registratie (FVS)
 
-<div class="main">
-
-    @if (catches == null)
-    {
-        <p><em>Loading...</em></p>
-    }
-    else
-    {
-        <button class="btn btn-sm btn-danger" title="Toggle Edit Mode" @onclick="@((x) => ToggleEdit())">Toggle Edit Mode</button>
-        <Table TableItem="Catch" Items="catches" PageSize="15" @ref="Table">
-            <Column TableItem="Catch" Title="Catch Number" Field="@(x => x.CatchNumber)" Sortable="true" Filterable="true" Width="10%" />
-            <Column TableItem="Catch" Title="Catch Date" Field="@(x => x.CatchDate)" Sortable="true" Filterable="true" Width="10%">
-                <EditTemplate>
-                    <input type="datetime-local" @bind-value="@context.CatchDate" class="form-control" />
-                </EditTemplate>
-            </Column>
-
-            <Column TableItem="Catch" Title="Fish" Field="@(x => x.Fish)" Sortable="true" Filterable="true" Width="10%">
-                <EditTemplate>
-                    <EditForm Model="@context" Context="myContext">
-                        <InputSelect id="fishSelect" @bind-Value="@context.Fish" class="form-control">
-                            @foreach (Fish fish in fishOptions)
-                                {
-                                <option value="@fish.Name">@fish.Name</option>
-                                }
-                        </InputSelect>
-                    </EditForm>
-                </EditTemplate>
-            </Column>
-            <Column TableItem="Catch" Title="Fish Length" Field="@(x => x.Length)" Sortable="true" Filterable="true" Width="10%" />
-            <Column TableItem="Catch" Title="Log Date" Field="@(x => x.LogDate)" Sortable="true" Filterable="true" Width="10%" />
-            <Pager ShowPageNumber="true" ShowTotalCount="true" />
-        </Table>
-    }
-</div>
-
-
-@code {
-
-    //https://github.com/IvanJosipovic/BlazorTable/blob/master/src/BlazorTable.Sample.Shared/Pages/Index.razor
-
-    List<Catch> catches;
-    private ITable<Catch> Table;
-    List<Fish> fishOptions = new List<Fish>
-{
-        new Fish() { Name = "Pike"},
-        new Fish() { Name = "Zander"},
-        new Fish() { Name = "Bass"}
-    };
-
-    protected async override Task OnInitializedAsync()
-    {
-        catches = await HttpClient.GetJsonAsync<List<Catch>>("catch");
-    }
-    private void ToggleEdit()
-    {
-        Table.ToggleEditMode();
-    }
-
-
-}

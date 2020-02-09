@@ -21,6 +21,7 @@ using FokkersFishing.Helpers;
 using Microsoft.AspNetCore.ResponseCompression;
 using System.Net.Mime;
 using System.Linq;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace FokkersFishing
 {
@@ -52,22 +53,19 @@ namespace FokkersFishing
 
             services.AddSingleton<IFokkersDbService>(InitializeCosmosClientInstanceAsync(section).GetAwaiter().GetResult());
 
-            services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlite(
-                    Configuration.GetConnectionString("DefaultConnection")));
-
-            services.AddDefaultIdentity<ApplicationUser>()
-                .AddEntityFrameworkStores<ApplicationDbContext>();
-
-            services.AddIdentityServer()
-                .AddApiAuthorization<ApplicationUser, ApplicationDbContext>()
-                .AddSigningCredential(CertHelper.GetCert());
-
-            services.AddAuthentication()
+            services.AddAuthentication(options =>
+            {
+                options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+            })
+                .AddCookie()
                 .AddFacebook(facebookOptions =>
                 {
                     facebookOptions.AppId = Configuration["Authentication:Facebook:AppId"];
                     facebookOptions.AppSecret = Configuration["Authentication:Facebook:AppSecret"];
+                    facebookOptions.Scope.Add("email");
+                    facebookOptions.Fields.Add("name");
+                    facebookOptions.Fields.Add("email");
+                    facebookOptions.SaveTokens = true;
                 })
                 .AddMicrosoftAccount(microsoftOptions =>
                 {
@@ -78,9 +76,8 @@ namespace FokkersFishing
                   {
                       googleOptions.ClientId = Configuration["Authentication:Google:ClientId"];
                       googleOptions.ClientSecret = Configuration["Authentication:Google:ClientSecret"];
-                  })
-                .AddIdentityServerJwt();
-        }
+                  });
+        } //end f
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -88,7 +85,7 @@ namespace FokkersFishing
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                //app.UseDatabaseErrorPage();
+                app.UseDatabaseErrorPage();
                 app.UseBlazorDebugging();
             }
             else
@@ -98,14 +95,15 @@ namespace FokkersFishing
                 app.UseHsts();
             }
 
+            app.UseHttpsRedirection();
             app.UseStaticFiles();
-            app.UseClientSideBlazorFiles<Client.Startup>();
-            
+
             app.UseRouting();
-            
-            //app.UseAuthentication();
-            //app.UseAuthorization();
-            
+
+            app.UseAuthentication();
+            app.UseAuthorization();
+            app.UseClientSideBlazorFiles<Client.Startup>();
+
 
             app.UseEndpoints(endpoints =>
             {
@@ -113,8 +111,6 @@ namespace FokkersFishing
                 endpoints.MapFallbackToClientSideBlazor<Client.Startup>("index.html");
             });
 
-            //app.UseHttpsRedirection();
-            //app.UseIdentityServer();
 
         }
 
