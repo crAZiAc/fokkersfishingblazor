@@ -9,5 +9,9 @@ namespace FokkersFishing.Shared.Models
         public bool IsAuthenticated { get; set; }
 
         public string Name { get; set; }
+
+        public string Id { get; set; }
+
+        public string IdentityProvider { get; set; }
     } // end c
 } // end ns

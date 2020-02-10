@@ -48,6 +48,10 @@ namespace FokkersFishing
                     new[] { MediaTypeNames.Application.Octet });
             });
 
+            services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseSqlite(
+                    Configuration.GetConnectionString("DefaultConnection")));
+
             ConfigurationSection section = Configuration.GetSection("CosmosDb") as ConfigurationSection;
             section["Key"] = Configuration["Authentication:Cosmos:Key"];
 
@@ -62,7 +66,6 @@ namespace FokkersFishing
                 {
                     facebookOptions.AppId = Configuration["Authentication:Facebook:AppId"];
                     facebookOptions.AppSecret = Configuration["Authentication:Facebook:AppSecret"];
-                    facebookOptions.Scope.Add("email");
                     facebookOptions.Fields.Add("name");
                     facebookOptions.Fields.Add("email");
                     facebookOptions.SaveTokens = true;
@@ -71,11 +74,13 @@ namespace FokkersFishing
                 {
                     microsoftOptions.ClientId = Configuration["Authentication:Microsoft:ClientId"];
                     microsoftOptions.ClientSecret = Configuration["Authentication:Microsoft:ClientSecret"];
+                    microsoftOptions.SaveTokens = true;
                 })
                   .AddGoogle(googleOptions =>
                   {
                       googleOptions.ClientId = Configuration["Authentication:Google:ClientId"];
                       googleOptions.ClientSecret = Configuration["Authentication:Google:ClientSecret"];
+                      googleOptions.SaveTokens = true;
                   });
         } //end f
 

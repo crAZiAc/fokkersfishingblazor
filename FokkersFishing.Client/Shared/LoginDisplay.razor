@@ -1,17 +1,31 @@
-﻿<div class="user-info">
+﻿@using System.Security.Claims
+
+<div class="user-info">
     <AuthorizeView>
         <Authorizing>
             <text>...</text>
         </Authorizing>
         <Authorized>
-            <img src="img/user.svg" />
             <div>
-                <span class="username">@context.User.Identity.Name</span>
+                @if (context.User.Identity.AuthenticationType.ToLower() == "facebook")
+                {
+                    string id = context.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                    <img src="https://graph.facebook.com/@id/picture" />
+                }
+                else
+                {
+                    <img src="img/user.svg"  height="32"/>
+                }
+
+                <span class="username">@context.User.Identity.Name, using @context.User.Identity.AuthenticationType</span>
+
                 <a class="sign-out" href="user/signout">Sign out</a>
             </div>
         </Authorized>
         <NotAuthorized>
-            <a class="sign-in" href="user/signin">Sign in</a>
+            <a class="sign-in" href="user/signin?idp=facebook">Sign in using Facebook</a>
+            <a class="sign-in" href="user/signin?idp=google">Sign in using Google</a>
+            <a class="sign-in" href="user/signin?idp=microsoft">Sign in using Microsoft</a>
         </NotAuthorized>
     </AuthorizeView>
 </div>

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using FokkersFishing.Shared.Models;
+using System;
 
 namespace FokkersFishing.Client
 {
@@ -20,9 +21,15 @@ namespace FokkersFishing.Client
         {
             var userInfo = await _httpClient.GetJsonAsync<UserInfo>("user");
 
-            var identity = userInfo.IsAuthenticated
-                ? new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, userInfo.Name) }, "serverauth")
-                : new ClaimsIdentity();
+            ClaimsIdentity identity;
+            if (userInfo.IsAuthenticated)
+            {
+                identity = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, userInfo.Name), new Claim(ClaimTypes.NameIdentifier, userInfo.Id) }, userInfo.IdentityProvider);
+            }
+            else
+            {
+                identity = new ClaimsIdentity();
+            }
 
             return new AuthenticationState(new ClaimsPrincipal(identity));
         }

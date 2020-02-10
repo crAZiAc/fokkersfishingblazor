@@ -11,10 +11,11 @@ using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 using FokkersFishing.Data;
 using FokkersFishing.Shared.Models;
+using FokkersFishing.Server.Helpers;
 
 namespace FokkersFishing.Controllers
 {
-    //[Authorize]
+    [Authorize]
     [ApiController]
     [Route("[controller]")]
     public class CatchController : Controller
@@ -23,6 +24,7 @@ namespace FokkersFishing.Controllers
         private readonly IFokkersDbService _fokkersDbService;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ApplicationDbContext _dbContext;
+        private UserHelper _userHelper;
 
 
         public CatchController(ILogger<CatchController> logger, IFokkersDbService cosmosDbService, IHttpContextAccessor httpContextAccessor, ApplicationDbContext dbContext)
@@ -31,18 +33,19 @@ namespace FokkersFishing.Controllers
             _fokkersDbService = cosmosDbService;
             _httpContextAccessor = httpContextAccessor;
             _dbContext = dbContext;
+            _userHelper = new UserHelper(_httpContextAccessor, _dbContext);
         }
 
         [HttpGet]
         public IEnumerable<Catch> Get()
         {
             // Check incoming ID and get username
-            //var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
-            //ApplicationUser user = _dbContext.Users.FirstOrDefault(c => c.Id == userId);
-            //Task<IEnumerable<Catch>> catchesMade = _fokkersDbService.GetItemsAsync("select * from c where c.userName = '" + user.Email + "'");
-            Task<IEnumerable<Catch>> catchesMade = _fokkersDbService.GetItemsAsync("select * from c");
+            ApplicationUser user = _userHelper.GetUser();
+            Task<IEnumerable<Catch>> catchesMade = null;
+            catchesMade = _fokkersDbService.GetItemsAsync("select * from c where c.userName = '" + user.Email + "'");
             return catchesMade.Result.ToList();
         }
+
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<Catch> GetById(string id)
@@ -61,9 +64,7 @@ namespace FokkersFishing.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult<Catch> Create(Catch catchMade)
         {
-            var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
-            ApplicationUser user = _dbContext.Users.FirstOrDefault(c => c.Id == userId);
-
+            ApplicationUser user = _userHelper.GetUser();
             catchMade.Id = Guid.NewGuid();
             catchMade.CatchDate = DateTime.Now;
             catchMade.LogDate = DateTime.Now;
