@@ -24,7 +24,10 @@ namespace FokkersFishing.Shared.Models
         public double Length { get; set; }
 
         [JsonProperty(PropertyName = "catchDate")]
-        public DateTime CatchDate { get; set; }
+        public DateTime CatchDate
+        {
+            get; set;
+        }
 
         [JsonProperty(PropertyName = "logDate")]
         public DateTime LogDate { get; set; }

@@ -1,0 +1,36 @@
+﻿
+
+<EditForm Model="currentCatch">
+    <div className="input-group input-group-sm mb-3">
+        <div className="input-group-prepend">
+            <span className="input-group-text">Catch #</span>
+        </div>
+        <input type="text" value="@currentCatch.CatchNumber" readOnly class="form-control" />
+    </div>
+
+    <div className="input-group input-group-sm mb-3">
+        <div className="input-group-prepend">
+            <span className="input-group-text">Log date</span>
+        </div>
+        <input type="text" value="@currentCatch.LogDate" readOnly class="form-control" />
+    </div>
+
+    <div className="input-group mb-3">
+        <div className="input-group-prepend">
+            <span className="input-group-text">Catch date</span>
+        </div>
+        <input type="datetime-local" bind="@currentCatch.CatchDate" class="form-control" />
+    </div>
+    <button type="submit" class="checkout-button btn btn-secondary">Save</button>
+
+</EditForm>
+
+@code {
+    [Parameter] public Catch currentCatch { get; set; }
+    
+
+    private async Task SaveCatch()
+    {
+        Console.WriteLine(currentCatch.Id);
+    }
+}
