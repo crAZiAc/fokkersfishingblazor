@@ -72,7 +72,15 @@ namespace FokkersFishing.Services
 
                 results.AddRange(response.ToList());
             }
-            return results.FirstOrDefault().CatchNumber;
+            try
+            {
+                return results.FirstOrDefault().CatchNumber;
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return 0;
         }
 
         public async Task<int> GetGlobalCatchNumberCount()
@@ -86,7 +94,15 @@ namespace FokkersFishing.Services
 
                 results.AddRange(response.ToList());
             }
-            return results.FirstOrDefault().GlobalCatchNumber;
+            try
+            {
+                return results.FirstOrDefault().GlobalCatchNumber;
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return 0;
         }
 
         public async Task UpdateItemAsync(string id, Catch item)

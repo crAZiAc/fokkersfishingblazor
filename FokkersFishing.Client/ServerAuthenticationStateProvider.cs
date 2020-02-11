@@ -24,7 +24,11 @@ namespace FokkersFishing.Client
             ClaimsIdentity identity;
             if (userInfo.IsAuthenticated)
             {
-                identity = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, userInfo.Name), new Claim(ClaimTypes.NameIdentifier, userInfo.Id) }, userInfo.IdentityProvider);
+                identity = new ClaimsIdentity(new[]
+                {   new Claim(ClaimTypes.Name, userInfo.Name),
+                    new Claim(ClaimTypes.NameIdentifier, userInfo.Id),
+                    new Claim(ClaimTypes.Email, userInfo.Email)},
+                    userInfo.IdentityProvider);
             }
             else
             {
@@ -33,5 +37,7 @@ namespace FokkersFishing.Client
 
             return new AuthenticationState(new ClaimsPrincipal(identity));
         }
+
+
     } // end c
 } // end ns

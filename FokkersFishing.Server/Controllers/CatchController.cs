@@ -26,7 +26,6 @@ namespace FokkersFishing.Controllers
         private readonly ApplicationDbContext _dbContext;
         private UserHelper _userHelper;
 
-
         public CatchController(ILogger<CatchController> logger, IFokkersDbService cosmosDbService, IHttpContextAccessor httpContextAccessor, ApplicationDbContext dbContext)
         {
             _logger = logger;
@@ -37,32 +36,32 @@ namespace FokkersFishing.Controllers
         }
 
         [HttpGet]
-        public IEnumerable<Catch> Get()
+        public async Task<IEnumerable<Catch>> Get()
         {
             // Check incoming ID and get username
             ApplicationUser user = _userHelper.GetUser();
-            Task<IEnumerable<Catch>> catchesMade = null;
-            catchesMade = _fokkersDbService.GetItemsAsync("select * from c where c.userName = '" + user.Email + "'");
-            return catchesMade.Result.ToList();
+            IEnumerable<Catch> catchesMade = null;
+            catchesMade = await _fokkersDbService.GetItemsAsync("select * from c where c.userName = '" + user.Email + "'");
+            return catchesMade.ToList();
         }
 
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<Catch> GetById(string id)
+        public async Task<ActionResult<Catch>> GetById(string id)
         {
-            var catchMade = _fokkersDbService.GetItemAsync(id);
+            var catchMade = await _fokkersDbService.GetItemAsync(id);
 
-            if (catchMade.Result == null)
+            if (catchMade == null)
             {
                 return NotFound();
             }
-            return catchMade.Result;
+            return catchMade;
         }
 
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<Catch> Create(Catch catchMade)
+        public async Task<ActionResult<Catch>> Create(Catch catchMade)
         {
             ApplicationUser user = _userHelper.GetUser();
             catchMade.Id = Guid.NewGuid();
@@ -72,8 +71,7 @@ namespace FokkersFishing.Controllers
             catchMade.GlobalCatchNumber = _fokkersDbService.GetGlobalCatchNumberCount().Result + 1;
             catchMade.UserName = user.Email;
 
-            _fokkersDbService.AddItemAsync(catchMade);
-
+            await _fokkersDbService.AddItemAsync(catchMade);
             return CreatedAtAction(nameof(GetById), new { id = catchMade.Id }, catchMade);
         }
 
@@ -81,10 +79,10 @@ namespace FokkersFishing.Controllers
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<Catch> Put(Guid id, Catch catchMade)
+        public async Task<ActionResult<Catch>> Put(Guid id, Catch catchMade)
         {
             catchMade.EditDate = DateTime.Now;
-            _fokkersDbService.UpdateItemAsync(id.ToString(), catchMade);
+            await _fokkersDbService.UpdateItemAsync(id.ToString(), catchMade);
             return NoContent();
         }
 

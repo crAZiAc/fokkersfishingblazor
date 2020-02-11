@@ -14,7 +14,7 @@
                 }
                 else
                 {
-                    <img src="img/user.svg"  height="32"/>
+                    <img src="img/user.svg" height="32" />
                 }
 
                 <span class="username">@context.User.Identity.Name, using @context.User.Identity.AuthenticationType</span>
@@ -23,9 +23,12 @@
             </div>
         </Authorized>
         <NotAuthorized>
-            <a class="sign-in" href="user/signin?idp=facebook">Sign in using Facebook</a>
-            <a class="sign-in" href="user/signin?idp=google">Sign in using Google</a>
-            <a class="sign-in" href="user/signin?idp=microsoft">Sign in using Microsoft</a>
+            <div class="container">
+                <span>Log in: </span>
+                <a class="btn btn-primary mr-1" href="user/signin?idp=facebook">Facebook</a>
+                <a class="btn btn-primary mr-1" href="user/signin?idp=google">Google</a>
+                <a class="btn btn-primary mr-1" href="user/signin?idp=microsoft">Microsoft</a>
+            </div>
         </NotAuthorized>
     </AuthorizeView>
 </div>
