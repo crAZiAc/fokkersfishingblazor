@@ -1,7 +1,7 @@
 ﻿@page "/catches"
 @inject HttpClient HttpClient
-@using BlazorTable
 @using System.ComponentModel
+
 
 <div class="main">
 
@@ -12,30 +12,35 @@
     else
     {
         <button type="button" class="btn btn-primary" @onclick="@((x) => AddNewCatch())">Add</button>
-        <Table TableItem="Catch" Items="catches" PageSize="15" @ref="Table">
-            <Column TableItem="Catch" Title="Catch Number" Field="@(x => x.CatchNumber)" Sortable="true" Filterable="true" Width="10%" DefaultSortColumn="true" />
-            <Column TableItem="Catch" Title="Global Catch Number" Field="@(x => x.GlobalCatchNumber)" Sortable="true" Filterable="true" Width="10%" />
-            <Column TableItem="Catch" Title="Catch Date" Field="@(x => x.CatchDate)" Sortable="true" Filterable="true" Width="10%" />
-            <Column TableItem="Catch" Title="Fish" Field="@(x => x.Fish)" Sortable="true" Filterable="true" Width="10%" />
-            <Column TableItem="Catch" Title="Fish Length" Field="@(x => x.Length)" Sortable="true" Filterable="true" Width="10%" />
-            <Column TableItem="Catch" Title="Log Date" Field="@(x => x.LogDate)" Sortable="true" Filterable="true" Width="10%" />
-            <Column TableItem="Catch" Title="Edit" Field="@(x => x.Id)" Width="10%">
-                <Template>
-                    <button type="button" class="btn btn-primary btn-sm" @onclick="@((x) => EditCatch(@context.Id))">Edit</button>
-                </Template>
-            </Column>
-            <Pager ShowPageNumber="true" ShowTotalCount="true" />
-        </Table>
-        <EditCatch currentCatch="@currentCatch"/>
+        <MatTable Items="@catches" class="mat-elevation-z5" Striped="true" RowClass="tester" SortBy="CatchNumber" PageSize="10">
+            <MatTableHeader>
+                <th width="10%">Catch #</th>
+                <th width="10%">Global Catch #</th>
+                <th width="10%">Catch Date</th>
+                <th width="10%">Fish</th>
+                <th width="10%">Fish Length</th>
+                <th width="10%">Log Date</th>
+                <th width="10%">Commands</th>
+            </MatTableHeader>
+            <MatTableRow>
+                <td>@context.CatchNumber</td>
+                <td>@context.GlobalCatchNumber</td>
+                <td>@context.CatchDate</td>
+                <td>@context.Fish</td>
+                <td>@context.Length</td>
+                <td>@context.LogDate</td>
+                <td>
+                    <button class="btn btn-primary" @onclick="@(() => EditCatch(context.Id))">Edit</button>
+                    <button class="btn btn-warning" @onclick="@(() => DeleteCatch(context.Id))">Delete</button>
+                </td>
+            </MatTableRow>
+        </MatTable>
+        <EditCatch currentCatch="@currentCatch" fishOptions="@fishOptions" OnSubmit="@CatchSaved" />
     }
 </div>
 
-
 @code {
-    //https://github.com/IvanJosipovic/BlazorTable/blob/master/src/BlazorTable.Sample.Shared/Pages/Index.razor
-
     List<Catch> catches;
-    private ITable<Catch> Table;
     public Catch currentCatch;
 
     // TODO: get from db
@@ -49,7 +54,15 @@
     protected async override Task OnInitializedAsync()
     {
         catches = await HttpClient.GetJsonAsync<List<Catch>>("catch");
-        currentCatch = catches.FirstOrDefault();
+        if (catches.Count > 0)
+        {
+            currentCatch = catches.FirstOrDefault();
+            EditCatch(currentCatch.Id);
+        }
+        else
+        {
+            currentCatch = new Catch();
+        }
     }
 
     private async void AddNewCatch()
@@ -57,23 +70,32 @@
         Catch newCatch = new Catch
         {
             Length = 0,
-            Fish = "Pike"
+            Fish = "Pike",
+            CatchDate = DateTime.Now
         };
 
         newCatch = await HttpClient.PostJsonAsync<Catch>("catch", newCatch);
         catches.Add(newCatch);
-        Table.Items = catches;
-        Table.Update();
+        currentCatch = newCatch;
+        StateHasChanged();
     }
 
     private void EditCatch(Guid id)
     {
         currentCatch = catches.FirstOrDefault(x => x.Id == id);
-        Console.WriteLine(currentCatch.CatchNumber);
+        StateHasChanged();
     }
 
+    private void CatchSaved()
+    {
+        StateHasChanged();
+    }
 
-
-
-
+    private void DeleteCatch(Guid id)
+    {
+        HttpClient.DeleteAsync("catch/" + id);
+        Catch catchToBeDeleted = catches.FirstOrDefault(e => e.Id == id);
+        catches.Remove(catchToBeDeleted);
+        StateHasChanged();
+    }
 }

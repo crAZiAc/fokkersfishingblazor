@@ -8,6 +8,8 @@ namespace FokkersFishing.Shared.Models
 {
     public class Catch
     {
+        private DateTime m_catchDate;
+
         [JsonProperty(PropertyName = "id")]
         public Guid Id { get; set; }
 
@@ -26,7 +28,14 @@ namespace FokkersFishing.Shared.Models
         [JsonProperty(PropertyName = "catchDate")]
         public DateTime CatchDate
         {
-            get; set;
+            get
+            {
+                return m_catchDate.ToLocalTime();
+            }
+            set
+            {
+                m_catchDate = value;
+            }
         }
 
         [JsonProperty(PropertyName = "logDate")]
@@ -37,6 +46,7 @@ namespace FokkersFishing.Shared.Models
 
         [JsonProperty(PropertyName = "globalCatchNumber")]
         public int GlobalCatchNumber { get; set; }
+
 
     } // end c
 } // end ns

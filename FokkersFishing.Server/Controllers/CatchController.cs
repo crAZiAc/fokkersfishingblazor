@@ -65,9 +65,8 @@ namespace FokkersFishing.Controllers
         {
             ApplicationUser user = _userHelper.GetUser();
             catchMade.Id = Guid.NewGuid();
-            catchMade.CatchDate = DateTime.Now;
             catchMade.LogDate = DateTime.Now;
-            catchMade.CatchNumber = _fokkersDbService.GetCatchNumberCount().Result + 1;
+            catchMade.CatchNumber = _fokkersDbService.GetCatchNumberCount(user.Email).Result + 1;
             catchMade.GlobalCatchNumber = _fokkersDbService.GetGlobalCatchNumberCount().Result + 1;
             catchMade.UserName = user.Email;
 
@@ -75,14 +74,21 @@ namespace FokkersFishing.Controllers
             return CreatedAtAction(nameof(GetById), new { id = catchMade.Id }, catchMade);
         }
 
-        //TODO: Implement Update using PUT
         [HttpPut("{id}")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<Catch>> Put(Guid id, Catch catchMade)
         {
             catchMade.EditDate = DateTime.Now;
             await _fokkersDbService.UpdateItemAsync(id.ToString(), catchMade);
+            return catchMade;
+        }
+
+        [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<Catch>> Delete(Guid id)
+        {
+            await _fokkersDbService.DeleteItemAsync(id.ToString());
             return NoContent();
         }
 

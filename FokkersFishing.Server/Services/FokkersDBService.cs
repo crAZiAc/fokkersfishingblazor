@@ -61,9 +61,9 @@ namespace FokkersFishing.Services
             return results;
         }
 
-        public async Task<int> GetCatchNumberCount()
+        public async Task<int> GetCatchNumberCount(string userEmail)
         {
-            string queryString = "SELECT top 1 c.catchNumber FROM c order by c.catchNumber DESC";
+            string queryString = "SELECT top 1 c.catchNumber FROM c where c.userName = '" + userEmail + "' order by c.catchNumber DESC";
             var query = this._container.GetItemQueryIterator<Catch>(new QueryDefinition(queryString));
             List<Catch> results = new List<Catch>();
             while (query.HasMoreResults)
