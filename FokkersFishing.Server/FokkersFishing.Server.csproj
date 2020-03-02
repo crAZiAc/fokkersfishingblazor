@@ -35,4 +35,10 @@
     <ProjectReference Include="..\FokkersFishing.Shared\FokkersFishing.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="app.db">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

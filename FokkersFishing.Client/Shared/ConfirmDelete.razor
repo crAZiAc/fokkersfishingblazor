@@ -1,0 +1,27 @@
+﻿@inject HttpClient HttpClient
+
+<div class="dialog-title">
+    <h2>@catchMade.CatchNumber</h2>
+    @catchMade.Fish
+</div>
+<form class="dialog-body">
+    <div>
+        <h3 style="padding: 10px">
+            Are you sure you want to delete catch #@catchMade.CatchNumber ?
+        </h3>
+    </div>
+</form>
+
+<div class="dialog-buttons">
+    <button class="btn btn-danger ml-auto" @onclick="@OnConfirm">Delete</button>
+    <button class="btn btn-secondary mr-auto" @onclick="@OnCancel">Cancel</button>
+</div>
+
+@code {
+
+    [Parameter] public Catch catchMade { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+    [Parameter] public EventCallback OnConfirm { get; set; }
+
+
+}

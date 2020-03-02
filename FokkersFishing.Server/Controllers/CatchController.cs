@@ -36,12 +36,17 @@ namespace FokkersFishing.Controllers
         }
 
         [HttpGet]
-        public async Task<IEnumerable<Catch>> Get()
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<IEnumerable<Catch>>> Get()
         {
             // Check incoming ID and get username
             ApplicationUser user = _userHelper.GetUser();
             IEnumerable<Catch> catchesMade = null;
             catchesMade = await _fokkersDbService.GetItemsAsync("select * from c where c.userName = '" + user.Email + "'");
+            if (catchesMade == null)
+            {
+                return NotFound();
+            }
             return catchesMade.ToList();
         }
 
