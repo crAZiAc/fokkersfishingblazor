@@ -1,5 +1,6 @@
 ﻿@inject HttpClient HttpClient
-    <EditForm Model="currentCatch" OnValidSubmit="SaveCatch">
+<EditForm Model="currentCatch" OnValidSubmit="SaveCatch">
+    
         <div className="input-group input-group-sm mb-3">
             <div className="input-group-prepend" />
 
@@ -30,18 +31,26 @@
             <div className="input-group-prepend" />
             <MatTextField @bind-Value="@currentCatch.Length" Label="Fish Length" FullWidth="true" Outlined="false" />
         </div>
+    @if ( HasChanged )
+    {
+        <button type="submit" class="checkout-button btn btn-primary" @onclick="@OnSubmit">Save</button>
+    }
+    else
+    {
         <button type="submit" class="checkout-button btn btn-secondary" @onclick="@OnSubmit">Save</button>
-    </EditForm>
+    }
+</EditForm>
 
 @code {
     [Parameter] public Catch currentCatch { get; set; }
     [Parameter] public List<Fish> fishOptions { get; set; }
     [Parameter] public EventCallback OnSubmit { get; set; }
+    [Parameter] public bool HasChanged{ get; set; }
 
     private async Task SaveCatch()
     {
         currentCatch = await HttpClient.PutJsonAsync<Catch>("catch/" + currentCatch.Id, currentCatch);
+        HasChanged = false;
         StateHasChanged();
     }
 }
-    

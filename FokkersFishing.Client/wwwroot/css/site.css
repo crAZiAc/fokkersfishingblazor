@@ -278,3 +278,9 @@ app {
     min-width: 110px;
     text-align: right;
 }
+
+.flex-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+}

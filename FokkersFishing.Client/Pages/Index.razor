@@ -1,8 +1,80 @@
 ﻿@page "/"
 @inject HttpClient HttpClient
 
+<h1>Fokkers Leaderboard</h1>
+<div class="main">
+    @if (catches == null)
+    {
+    <p><em>Loading Catches Leaderboard...</em></p>
+    }
+    else
+    {
 
-<h1>Welkom, Fokkers!</h1>
+    <h3>Top Catches</h3>
+    <MatTable Items="@catches" class="mat-elevation-z5" Striped="true" RowClass="tester" SortBy="Length" PageSize="10" FilterByColumnName="Fish">
+        <MatTableHeader>
+            <th width="10%">Global Catch #</th>
+            <th width="10%">Catch Date</th>
+            <th width="10%">Fish</th>
+            <th width="10%">Fish Length</th>
+            <th width="10%">Fisherman</th>
+        </MatTableHeader>
+        <MatTableRow>
+            <td>@context.GlobalCatchNumber</td>
+            <td>@context.CatchDate</td>
+            <td>@context.Fish</td>
+            <td>@context.Length</td>
+            <td>@context.UserName</td>
+        </MatTableRow>
+    </MatTable>
+    }
+</div>
 
-Welkom bij de Fokkers Vis Registratie (FVS)
+<div class="main">
+    @if (fishermen == null)
+    {
+    <p><em>Loading Fishermen Leaderboard...</em></p>
+    }
+    else
+    {
+
+    <h3>Top Fishermen</h3>
+    <MatTable Items="@fishermen" class="mat-elevation-z5" Striped="true" RowClass="tester" SortBy="TotalLength" PageSize="10">
+        <MatTableHeader>
+            <th width="10%">Fisherman</th>
+            <th width="10%">Total Fish Length</th>
+            <th width="10%">Total Fish Caught</th>
+        </MatTableHeader>
+        <MatTableRow>
+            <td>@context.UserName</td>
+            <td>@context.TotalLength</td>
+            <td>@context.FishCount</td>
+        </MatTableRow>
+    </MatTable>
+    }
+</div>
+
+<AuthorizeView>
+    <NotAuthorized>
+        <div class="container">
+            <span>Log in: </span>
+            <a class="btn btn-primary mr-1" href="user/signin?idp=facebook">Facebook</a>
+            <a class="btn btn-primary mr-1" href="user/signin?idp=google">Google</a>
+            <a class="btn btn-primary mr-1" href="user/signin?idp=microsoft">Microsoft</a>
+        </div>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    List<Catch> catches;
+    List<FisherMan> fishermen;
+
+    protected async override Task OnInitializedAsync()
+    {
+        catches = await HttpClient.GetJsonAsync<List<Catch>>("leaderboard");
+        fishermen = await HttpClient.GetJsonAsync<List<FisherMan>>("leaderboard/fishermen");
+
+    }
+}
+
 

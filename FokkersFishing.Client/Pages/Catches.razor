@@ -11,15 +11,15 @@
     }
     else
     {
+
         <button type="button" class="btn btn-primary" @onclick="@((x) => AddNewCatch())">Add</button>
-        <MatTable Items="@catches" class="mat-elevation-z5" Striped="true" RowClass="tester" SortBy="CatchNumber" PageSize="10">
+        <MatTable Items="@catches" class="mat-elevation-z5" Striped="true" RowClass="tester" SortBy="CatchNumber" PageSize="10" AllowSelection="true" SelectionChanged="SelectionChangedEvent" FilterByColumnName="Fish" >
             <MatTableHeader>
                 <th width="10%">Catch #</th>
                 <th width="10%">Global Catch #</th>
                 <th width="10%">Catch Date</th>
                 <th width="10%">Fish</th>
                 <th width="10%">Fish Length</th>
-                <th width="10%">Log Date</th>
                 <th width="10%">Commands</th>
             </MatTableHeader>
             <MatTableRow>
@@ -28,46 +28,39 @@
                 <td>@context.CatchDate</td>
                 <td>@context.Fish</td>
                 <td>@context.Length</td>
-                <td>@context.LogDate</td>
                 <td>
-                    <button class="btn btn-primary" @onclick="@(() => EditCatch(context.Id))">Edit</button>
                     <button class="btn btn-warning" @onclick="@(() => ShowDeleteDialog(context.Id))">Delete</button>
                 </td>
             </MatTableRow>
         </MatTable>
-        <EditCatch currentCatch="@currentCatch" fishOptions="@fishOptions" OnSubmit="@CatchSaved" />
+        <EditCatch currentCatch="@currentCatch" fishOptions="@fishOptions" OnSubmit="@CatchSaved" HasChanged="true"/>
     }
 </div>
 
 <TemplatedDialog Show="@DeleteDialogShown">
-    <ConfirmDelete OnCancel="CancelDelete" OnConfirm="@(() => DeleteCatch(currentCatch.Id))" catchMade="@currentCatch"/>
+    <ConfirmDelete OnCancel="CancelDelete" OnConfirm="@(() => DeleteCatch(currentCatch.Id))" catchMade="@currentCatch" />
 </TemplatedDialog>
 
 @code {
     List<Catch> catches;
+    List<Fish> fishOptions;
     public Catch currentCatch;
     bool DeleteDialogShown = false;
 
-    // TODO: get from db
-    List<Fish> fishOptions = new List<Fish>
-{
-        new Fish() { Name = "Pike"},
-        new Fish() { Name = "Zander"},
-        new Fish() { Name = "Bass"}
-    };
 
     protected async override Task OnInitializedAsync()
     {
+        fishOptions = await HttpClient.GetJsonAsync<List<Fish>>("fish");
         catches = await HttpClient.GetJsonAsync<List<Catch>>("catch");
         if (catches.Count > 0)
         {
             currentCatch = catches.FirstOrDefault();
-            EditCatch(currentCatch.Id);
         }
         else
         {
             currentCatch = new Catch();
         }
+
     }
 
     private async void AddNewCatch()
@@ -85,11 +78,6 @@
         StateHasChanged();
     }
 
-    private void EditCatch(Guid id)
-    {
-        currentCatch = catches.FirstOrDefault(x => x.Id == id);
-        StateHasChanged();
-    }
 
     private void CatchSaved()
     {
@@ -115,4 +103,18 @@
         DeleteDialogShown = false;
         StateHasChanged();
     }
-}
+
+    public void SelectionChangedEvent(object row)
+    {
+        if (row == null)
+        {
+            currentCatch = null;
+        }
+        else
+        {
+            currentCatch = ((Catch)row);
+        }
+
+        this.StateHasChanged();
+    }
+} 

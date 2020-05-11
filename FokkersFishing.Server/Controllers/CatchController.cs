@@ -51,16 +51,28 @@ namespace FokkersFishing.Controllers
         }
 
         [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<Catch>> GetById(string id)
         {
+            ApplicationUser user = _userHelper.GetUser();
             var catchMade = await _fokkersDbService.GetItemAsync(id);
 
             if (catchMade == null)
             {
                 return NotFound();
             }
-            return catchMade;
+            else
+            {
+                if (catchMade.UserName == user.Email)
+                {
+                    return catchMade;
+                }
+                else
+                {
+                    return Forbid();
+                }
+            }
         }
 
         [HttpPost]
@@ -83,6 +95,8 @@ namespace FokkersFishing.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<Catch>> Put(Guid id, Catch catchMade)
         {
+            ApplicationUser user = _userHelper.GetUser();
+            catchMade.UserName = user.Email;
             catchMade.EditDate = DateTime.Now;
             await _fokkersDbService.UpdateItemAsync(id.ToString(), catchMade);
             return catchMade;
@@ -90,11 +104,30 @@ namespace FokkersFishing.Controllers
 
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<Catch>> Delete(Guid id)
         {
-            await _fokkersDbService.DeleteItemAsync(id.ToString());
-            return NoContent();
+            ApplicationUser user = _userHelper.GetUser();
+            var catchMade = await _fokkersDbService.GetItemAsync(id.ToString());
+
+            if (catchMade == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                if (catchMade.UserName == user.Email)
+                {
+                    await _fokkersDbService.DeleteItemAsync(id.ToString());
+                    return NoContent();
+                }
+                else
+                {
+                    return Forbid();
+                }
+
+            }
         }
 
 

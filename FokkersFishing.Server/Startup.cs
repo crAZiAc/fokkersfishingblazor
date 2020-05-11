@@ -109,7 +109,6 @@ namespace FokkersFishing
             app.UseAuthorization();
             app.UseClientSideBlazorFiles<Client.Program>();
 
-
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
