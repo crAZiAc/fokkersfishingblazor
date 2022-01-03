@@ -2,16 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Azure.Data.Tables;
 using Newtonsoft.Json;
 
 namespace FokkersFishing.Shared.Models
 {
-    public class Catch
+    public class Catch: BaseEntity, ITableEntity
     {
         private DateTime m_catchDate;
-
-        [JsonProperty(PropertyName = "id")]
-        public Guid Id { get; set; }
 
         [JsonProperty(PropertyName = "catchNumber")]
         public int CatchNumber { get; set; }
@@ -47,6 +45,10 @@ namespace FokkersFishing.Shared.Models
         [JsonProperty(PropertyName = "globalCatchNumber")]
         public int GlobalCatchNumber { get; set; }
 
+        public Catch()
+        {
+            this.PartitionKey = "Catches";
+        }
 
     } // end c
 } // end ns

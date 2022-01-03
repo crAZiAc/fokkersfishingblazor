@@ -10,9 +10,7 @@ using FokkersFishing.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Azure.Cosmos;
 using FokkersFishing.Interfaces;
-using Microsoft.Azure.Cosmos.Fluent;
 using System.Threading.Tasks;
 using FokkersFishing.Services;
 using Microsoft.AspNetCore.Http;
@@ -22,6 +20,7 @@ using Microsoft.AspNetCore.ResponseCompression;
 using System.Net.Mime;
 using System.Linq;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Azure.Data.Tables;
 
 namespace FokkersFishing
 {
@@ -52,10 +51,10 @@ namespace FokkersFishing
                 options.UseSqlite(
                     Configuration.GetConnectionString("DefaultConnection")));
 
-            ConfigurationSection section = Configuration.GetSection("CosmosDb") as ConfigurationSection;
-            section["Key"] = Configuration["Authentication:Cosmos:Key"];
+            ConfigurationSection section = Configuration.GetSection("Storage") as ConfigurationSection;
+            section["ConnectionString"] = Configuration["Storage:ConnectionString"];
 
-            services.AddSingleton<IFokkersDbService>(InitializeCosmosClientInstanceAsync(section).GetAwaiter().GetResult());
+            services.AddSingleton<IFokkersDbService>(InitializeTableClientInstanceAsync(section).GetAwaiter().GetResult());
 
             services.AddAuthentication(options =>
             {
@@ -119,24 +118,18 @@ namespace FokkersFishing
         }
 
         /// <summary>
-        /// Creates a Cosmos DB database and a container with the specified partition key. 
+        /// Creates a an Azure Table 
         /// </summary>
         /// <returns></returns>
-        private static async Task<FokkersDbService> InitializeCosmosClientInstanceAsync(IConfigurationSection configurationSection)
+        private static async Task<FokkersDbService> InitializeTableClientInstanceAsync(IConfigurationSection configurationSection)
         {
-            string databaseName = configurationSection.GetSection("DatabaseName").Value;
-            string containerName = configurationSection.GetSection("ContainerName").Value;
-            string account = configurationSection.GetSection("Account").Value;
-            string key = configurationSection.GetSection("Key").Value;
-            CosmosClientBuilder clientBuilder = new CosmosClientBuilder(account, key);
-            CosmosClient client = clientBuilder
-                                .WithConnectionModeDirect()
-                                .Build();
-            FokkersDbService cosmosDbService = new FokkersDbService(client, databaseName, containerName);
-            DatabaseResponse database = await client.CreateDatabaseIfNotExistsAsync(databaseName);
-            await database.Database.CreateContainerIfNotExistsAsync(containerName, "/id");
+            string connectionString = configurationSection.GetSection("ConnectionString").Value;
+            string accountName = configurationSection.GetSection("AccountName").Value;
 
-            return cosmosDbService;
+            var serviceClient = new TableServiceClient(connectionString);
+
+            FokkersDbService tableDbService = new FokkersDbService(serviceClient);
+            return tableDbService;
         }
     } // end c
 } // end ns

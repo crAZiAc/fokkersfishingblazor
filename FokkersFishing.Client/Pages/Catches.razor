@@ -29,7 +29,7 @@
                 <td>@context.Fish</td>
                 <td>@context.Length</td>
                 <td>
-                    <button class="btn btn-warning" @onclick="@(() => ShowDeleteDialog(context.Id))">Delete</button>
+                    <button class="btn btn-warning" @onclick="@(() => ShowDeleteDialog(context.RowKey))">Delete</button>
                 </td>
             </MatTableRow>
         </MatTable>
@@ -38,7 +38,7 @@
 </div>
 
 <TemplatedDialog Show="@DeleteDialogShown">
-    <ConfirmDelete OnCancel="CancelDelete" OnConfirm="@(() => DeleteCatch(currentCatch.Id))" catchMade="@currentCatch" />
+    <ConfirmDelete OnCancel="CancelDelete" OnConfirm="@(() => DeleteCatch(currentCatch.RowKey))" catchMade="@currentCatch" />
 </TemplatedDialog>
 
 @code {
@@ -89,16 +89,16 @@
         DeleteDialogShown = false;
     }
 
-    private void ShowDeleteDialog(Guid id)
+    private void ShowDeleteDialog(string id)
     {
-        currentCatch = catches.FirstOrDefault(e => e.Id == id);
+        currentCatch = catches.FirstOrDefault(e => e.RowKey == id);
         DeleteDialogShown = true;
     }
 
-    private void DeleteCatch(Guid id)
+    private void DeleteCatch(string id)
     {
         HttpClient.DeleteAsync("catch/" + id);
-        Catch catchToBeDeleted = catches.FirstOrDefault(e => e.Id == id);
+        Catch catchToBeDeleted = catches.FirstOrDefault(e => e.RowKey == id);
         catches.Remove(catchToBeDeleted);
         DeleteDialogShown = false;
         StateHasChanged();

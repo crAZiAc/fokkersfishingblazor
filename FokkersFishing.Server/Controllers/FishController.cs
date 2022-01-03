@@ -34,7 +34,7 @@ namespace FokkersFishing.Controllers
         public async Task<ActionResult<IEnumerable<Fish>>> Get()
         {
             IEnumerable<Fish> fishes;
-            fishes = await _fokkersDbService.GetFishAsync("select * from f");
+            fishes = await _fokkersDbService.GetFishAsync();
             if (fishes == null)
             {
                 return NotFound();

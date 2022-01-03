@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Azure.Data.Tables;
 using Newtonsoft.Json;
 
 namespace FokkersFishing.Shared.Models
 {
-    public class FisherMan
+    public class FisherMan: BaseEntity, ITableEntity
     {
         [JsonProperty(PropertyName = "userName")]
         public string UserName { get; set; }

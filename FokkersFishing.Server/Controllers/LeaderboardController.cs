@@ -47,8 +47,7 @@ namespace FokkersFishing.Controllers
         public async Task<ActionResult<IEnumerable<FisherMan>>> GetFishermen()
         {
             _logger.LogError("In GetFishermen");
-            IEnumerable<FisherMan> fishermen = await _fokkersDbService.GetFishermenAsync("SELECT SUM(c.length) AS totalLength, SUM(1) as fishCount, c.userName as userName FROM c GROUP BY c.userName");
-            //IEnumerable<FisherMan> fishermen = await _fokkersDbService.GetFishermenAsync("SELECT * FROM c ORDER BY c.length DESC");
+            IEnumerable<FisherMan> fishermen = await _fokkersDbService.GetFishermenAsync();
             _logger.LogError("In GetFishermen: " + fishermen.Count().ToString());
             if (fishermen == null)
             {

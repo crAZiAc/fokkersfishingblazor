@@ -3,9 +3,11 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <LangVersion>7.3</LangVersion>
+    <UserSecretsId>254e56ec-c379-43d3-a4a4-633a8ff4bb2a</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Azure.Data.Tables" Version="12.3.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
 

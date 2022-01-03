@@ -2,83 +2,85 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Azure.Cosmos;
-using Microsoft.Azure.Cosmos.Fluent;
 using Microsoft.Extensions.Configuration;
 using FokkersFishing.Interfaces;
 using FokkersFishing.Models;
 using FokkersFishing.Shared.Models;
+using Azure.Data.Tables;
+using Azure.Data.Tables.Models;
+using Azure;
 
 namespace FokkersFishing.Services
 {
     public class FokkersDbService : IFokkersDbService
     {
-        private Container _catchContainer;
-        private Container _fishContainer;
+        private TableClient _catchContainer;
+        private TableClient _fishermenContainer;
+        private TableClient _fishContainer;
 
-        public FokkersDbService(
-            CosmosClient dbClient,
-            string databaseName,
-            string containerName)
+        public FokkersDbService(TableServiceClient dbClient)
         {
-            this._catchContainer = dbClient.GetContainer(databaseName, "Catches");
-            this._fishContainer = dbClient.GetContainer(databaseName, "Fish");
+            this._catchContainer = dbClient.GetTableClient("Catches");
+            this._fishContainer = dbClient.GetTableClient("Fishermen");
+            this._fishermenContainer = dbClient.GetTableClient("Fish");
+
+            this._catchContainer.CreateIfNotExists();
+            this._fishContainer.CreateIfNotExists();
+            this._fishermenContainer.CreateIfNotExists();
         }
 
 
         // Catches
         public async Task AddItemAsync(Catch item)
         {
-            await this._catchContainer.CreateItemAsync<Catch>(item, new PartitionKey(item.Id.ToString()));
+            await this._catchContainer.AddEntityAsync<Catch>(item);
         }
 
-        public async Task DeleteItemAsync(string id)
+        public async Task DeleteItemAsync(string rowKey)
         {
-            await this._catchContainer.DeleteItemAsync<Catch>(id, new PartitionKey(id));
+            await this._catchContainer.DeleteEntityAsync("Catches", rowKey);
         }
 
-        public async Task<Catch> GetItemAsync(string id)
+        public async Task<Catch> GetItemAsync(string rowKey)
         {
             try
             {
-                ItemResponse<Catch> response = await this._catchContainer.ReadItemAsync<Catch>(id, new PartitionKey(id));
-                return response.Resource;
+                var query = from c in _catchContainer.Query<Catch>()
+                            where c.RowKey == rowKey
+                            where c.PartitionKey == "Catches"
+                            select c;
+                return query.FirstOrDefault();
             }
-            catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+            catch (Exception ex)
             {
                 return null;
             }
-
         }
-
-        public async Task<IEnumerable<Catch>> GetItemsAsync(string queryString)
+        public async Task<List<Catch>> GetItemsAsync(string filter)
         {
-            var query = this._catchContainer.GetItemQueryIterator<Catch>(new QueryDefinition(queryString));
-            List<Catch> results = new List<Catch>();
-            while (query.HasMoreResults)
+
+            Pageable<Catch> queryResultsFilter = _catchContainer.Query<Catch>(
+                filter: $"PartitionKey eq 'Catches' and {filter}");
+            try
             {
-                var response = await query.ReadNextAsync();
-
-                results.AddRange(response.ToList());
+                return queryResultsFilter.ToList();
             }
-
-            return results;
+            catch (Exception ex)
+            {
+                return null;
+            }
         }
 
         public async Task<int> GetCatchNumberCount(string userEmail)
         {
-            string queryString = "SELECT top 1 c.catchNumber FROM c where c.userName = '" + userEmail + "' order by c.catchNumber DESC";
-            var query = this._catchContainer.GetItemQueryIterator<Catch>(new QueryDefinition(queryString));
-            List<Catch> results = new List<Catch>();
-            while (query.HasMoreResults)
-            {
-                var response = await query.ReadNextAsync();
-
-                results.AddRange(response.ToList());
-            }
+            var query = from c in _catchContainer.Query<Catch>()
+                        where c.UserName == userEmail
+                        where c.PartitionKey == "Catches"
+                        orderby c.CatchNumber
+                        select c;
             try
             {
-                return results.FirstOrDefault().CatchNumber;
+                return query.FirstOrDefault().CatchNumber;
             }
             catch (Exception ex)
             {
@@ -89,18 +91,13 @@ namespace FokkersFishing.Services
 
         public async Task<int> GetGlobalCatchNumberCount()
         {
-            string queryString = "SELECT top 1 c.globalCatchNumber FROM c order by c.globalCatchNumber DESC";
-            var query = this._catchContainer.GetItemQueryIterator<Catch>(new QueryDefinition(queryString));
-                        List<Catch> results = new List<Catch>();
-            while (query.HasMoreResults)
-            {
-                var response = await query.ReadNextAsync();
-
-                results.AddRange(response.ToList());
-            }
+            var query = from c in _catchContainer.Query<Catch>()
+                        where c.PartitionKey == "Catches"
+                        orderby c.GlobalCatchNumber
+                        select c;
             try
             {
-                return results.FirstOrDefault().GlobalCatchNumber;
+                return query.FirstOrDefault().CatchNumber;
             }
             catch (Exception ex)
             {
@@ -109,41 +106,51 @@ namespace FokkersFishing.Services
             return 0;
         }
 
-        public async Task UpdateItemAsync(string id, Catch item)
+        public async Task UpdateItemAsync(Catch item)
         {
-            await this._catchContainer.UpsertItemAsync<Catch>(item, new PartitionKey(id));
+            await this._catchContainer.UpdateEntityAsync<Catch>(item, item.ETag);
         }
 
 
         // Fish
-        public async Task<IEnumerable<Fish>> GetFishAsync(string queryString)
+        public async Task<IEnumerable<Fish>> GetFishAsync()
         {
-            var query = this._fishContainer.GetItemQueryIterator<Fish>(new QueryDefinition(queryString));
-            List<Fish> results = new List<Fish>();
-            while (query.HasMoreResults)
+            var query = from f in _fishContainer.Query<Fish>()
+                        orderby f.Name
+                        select f;
+            try
             {
-                var response = await query.ReadNextAsync();
-
-                results.AddRange(response.ToList());
+                return query.ToList();
             }
+            catch (Exception ex)
+            {
 
-            return results;
+            }
+            return null;
         }
 
-
+        // "SELECT SUM(c.length) AS totalLength, SUM(1) as fishCount, c.userName as userName FROM c GROUP BY c.userName");
         // Fishermen
-        public async Task<IEnumerable<FisherMan>> GetFishermenAsync(string queryString)
+        public async Task<IEnumerable<FisherMan>> GetFishermenAsync()
         {
-            var query = this._catchContainer.GetItemQueryIterator<FisherMan>(new QueryDefinition(queryString));
-            List<FisherMan> results = new List<FisherMan>();
-            while (query.HasMoreResults)
+
+            var query = from c in _catchContainer.Query<Catch>()
+                        group c by c.UserName into userGroup
+                        select new FisherMan
+                        {
+                            TotalLength = userGroup.Sum(x => x.Length),
+                            FishCount = userGroup.Count(),
+                            UserName = userGroup.Key
+                        };
+            try
             {
-                var response = await query.ReadNextAsync();
-
-                results.AddRange(response.ToList());
+                return query.ToList();
             }
+            catch (Exception ex)
+            {
 
-            return results;
+            }
+            return null;
         }
     } // end c
 } // end ns

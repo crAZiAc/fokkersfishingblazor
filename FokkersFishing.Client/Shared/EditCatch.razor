@@ -49,7 +49,7 @@
 
     private async Task SaveCatch()
     {
-        currentCatch = await HttpClient.PutJsonAsync<Catch>("catch/" + currentCatch.Id, currentCatch);
+        currentCatch = await HttpClient.PutJsonAsync<Catch>("catch/" + currentCatch.RowKey, currentCatch);
         HasChanged = false;
         StateHasChanged();
     }

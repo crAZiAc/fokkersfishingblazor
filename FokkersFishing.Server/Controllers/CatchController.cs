@@ -81,14 +81,14 @@ namespace FokkersFishing.Controllers
         public async Task<ActionResult<Catch>> Create(Catch catchMade)
         {
             ApplicationUser user = _userHelper.GetUser();
-            catchMade.Id = Guid.NewGuid();
+            catchMade.RowKey = Guid.NewGuid().ToString();
             catchMade.LogDate = DateTime.Now;
             catchMade.CatchNumber = _fokkersDbService.GetCatchNumberCount(user.Email).Result + 1;
             catchMade.GlobalCatchNumber = _fokkersDbService.GetGlobalCatchNumberCount().Result + 1;
             catchMade.UserName = user.Email;
 
             await _fokkersDbService.AddItemAsync(catchMade);
-            return CreatedAtAction(nameof(GetById), new { id = catchMade.Id }, catchMade);
+            return CreatedAtAction(nameof(GetById), new { id = catchMade.RowKey }, catchMade);
         }
 
         [HttpPut("{id}")]
@@ -98,7 +98,7 @@ namespace FokkersFishing.Controllers
             ApplicationUser user = _userHelper.GetUser();
             catchMade.UserName = user.Email;
             catchMade.EditDate = DateTime.Now;
-            await _fokkersDbService.UpdateItemAsync(id.ToString(), catchMade);
+            await _fokkersDbService.UpdateItemAsync(catchMade);
             return catchMade;
         }
 
