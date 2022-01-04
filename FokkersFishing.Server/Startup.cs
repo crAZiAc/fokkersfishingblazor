@@ -1,12 +1,8 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.EntityFrameworkCore;
 using FokkersFishing.Data;
-using FokkersFishing.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -14,8 +10,6 @@ using FokkersFishing.Interfaces;
 using System.Threading.Tasks;
 using FokkersFishing.Services;
 using Microsoft.AspNetCore.Http;
-using System.Security.Cryptography.X509Certificates;
-using FokkersFishing.Helpers;
 using Microsoft.AspNetCore.ResponseCompression;
 using System.Net.Mime;
 using System.Linq;
@@ -33,9 +27,14 @@ namespace FokkersFishing
 
         public IConfiguration Configuration { get; }
 
+       
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+
+            services.AddControllersWithViews();
+            services.AddRazorPages();
+
             services.AddMvc()
                 .AddNewtonsoftJson();
 
@@ -90,7 +89,7 @@ namespace FokkersFishing
             {
                 app.UseDeveloperExceptionPage();
                 app.UseDatabaseErrorPage();
-                app.UseBlazorDebugging();
+                app.UseWebAssemblyDebugging();
             }
             else
             {
@@ -101,17 +100,15 @@ namespace FokkersFishing
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-
+            app.UseBlazorFrameworkFiles();
             app.UseRouting();
 
             app.UseAuthentication();
             app.UseAuthorization();
-            app.UseClientSideBlazorFiles<Client.Program>();
-
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
-                endpoints.MapFallbackToClientSideBlazor<Client.Program>("index.html");
+                endpoints.MapFallbackToFile("index.html");
             });
 
 

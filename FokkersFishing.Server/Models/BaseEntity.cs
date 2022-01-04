@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace FokkersFishing.Shared.Models
+namespace FokkersFishing.Models
 {
     public abstract class BaseEntity: ITableEntity
     {
@@ -17,4 +17,4 @@ namespace FokkersFishing.Shared.Models
         public DateTimeOffset? Timestamp { get; set; }
         public ETag ETag { get; set; }
     } // end class
-} // end ns
+} // end nsS

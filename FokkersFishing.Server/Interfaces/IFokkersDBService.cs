@@ -10,16 +10,17 @@ namespace FokkersFishing.Interfaces
     public interface IFokkersDbService
     {
         // Catches
-        Task<Catch> GetItemAsync(string rowKey);
-        Task<List<Catch>> GetItemsAsync(string filter);
-        Task AddItemAsync(Catch item);
-        Task UpdateItemAsync(Catch item);
+        Task<CatchData> GetItemAsync(string rowKey);
+        Task<List<CatchData>> GetLeaderboardItemsAsync();
+        Task<List<CatchData>> GetUserItemsAsync(string userName);
+        Task AddItemAsync(CatchData item);
+        Task UpdateItemAsync(CatchData item);
         Task DeleteItemAsync(string rowKey);
         Task<int> GetCatchNumberCount(string userEmail);
         Task<int> GetGlobalCatchNumberCount();
 
         // Fish
-        Task<IEnumerable<Fish>> GetFishAsync();
+        Task<IEnumerable<FishData>> GetFishAsync();
 
         // Fishermen
         Task<IEnumerable<FisherMan>> GetFishermenAsync();

@@ -15,25 +15,21 @@ namespace FokkersFishing.Services
     public class FokkersDbService : IFokkersDbService
     {
         private TableClient _catchContainer;
-        private TableClient _fishermenContainer;
         private TableClient _fishContainer;
 
         public FokkersDbService(TableServiceClient dbClient)
         {
             this._catchContainer = dbClient.GetTableClient("Catches");
-            this._fishContainer = dbClient.GetTableClient("Fishermen");
-            this._fishermenContainer = dbClient.GetTableClient("Fish");
+            this._fishContainer = dbClient.GetTableClient("Fish");
 
             this._catchContainer.CreateIfNotExists();
             this._fishContainer.CreateIfNotExists();
-            this._fishermenContainer.CreateIfNotExists();
         }
 
-
         // Catches
-        public async Task AddItemAsync(Catch item)
+        public async Task AddItemAsync(CatchData item)
         {
-            await this._catchContainer.AddEntityAsync<Catch>(item);
+            await this._catchContainer.AddEntityAsync<CatchData>(item);
         }
 
         public async Task DeleteItemAsync(string rowKey)
@@ -41,11 +37,11 @@ namespace FokkersFishing.Services
             await this._catchContainer.DeleteEntityAsync("Catches", rowKey);
         }
 
-        public async Task<Catch> GetItemAsync(string rowKey)
+        public async Task<CatchData> GetItemAsync(string rowKey)
         {
             try
             {
-                var query = from c in _catchContainer.Query<Catch>()
+                var query = from c in _catchContainer.Query<CatchData>()
                             where c.RowKey == rowKey
                             where c.PartitionKey == "Catches"
                             select c;
@@ -56,14 +52,32 @@ namespace FokkersFishing.Services
                 return null;
             }
         }
-        public async Task<List<Catch>> GetItemsAsync(string filter)
+        public async Task<List<CatchData>> GetLeaderboardItemsAsync()
         {
 
-            Pageable<Catch> queryResultsFilter = _catchContainer.Query<Catch>(
-                filter: $"PartitionKey eq 'Catches' and {filter}");
             try
             {
-                return queryResultsFilter.ToList();
+                var query = from c in _catchContainer.Query<CatchData>()
+                            orderby c.Length descending
+                            select c;
+                return query.ToList();
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
+        public async Task<List<CatchData>> GetUserItemsAsync(string userName)
+        {
+
+            try
+            {
+                var query = from c in _catchContainer.Query<CatchData>()
+                            where c.UserName == userName
+                            orderby c.CatchNumber
+                            select c;
+                return query.ToList();
             }
             catch (Exception ex)
             {
@@ -73,10 +87,10 @@ namespace FokkersFishing.Services
 
         public async Task<int> GetCatchNumberCount(string userEmail)
         {
-            var query = from c in _catchContainer.Query<Catch>()
+            var query = from c in _catchContainer.Query<CatchData>()
                         where c.UserName == userEmail
                         where c.PartitionKey == "Catches"
-                        orderby c.CatchNumber
+                        orderby c.CatchNumber descending
                         select c;
             try
             {
@@ -91,9 +105,9 @@ namespace FokkersFishing.Services
 
         public async Task<int> GetGlobalCatchNumberCount()
         {
-            var query = from c in _catchContainer.Query<Catch>()
+            var query = from c in _catchContainer.Query<CatchData>()
                         where c.PartitionKey == "Catches"
-                        orderby c.GlobalCatchNumber
+                        orderby c.GlobalCatchNumber descending
                         select c;
             try
             {
@@ -106,16 +120,16 @@ namespace FokkersFishing.Services
             return 0;
         }
 
-        public async Task UpdateItemAsync(Catch item)
+        public async Task UpdateItemAsync(CatchData item)
         {
-            await this._catchContainer.UpdateEntityAsync<Catch>(item, item.ETag);
+            await this._catchContainer.UpdateEntityAsync<CatchData>(item, item.ETag);
         }
 
 
         // Fish
-        public async Task<IEnumerable<Fish>> GetFishAsync()
+        public async Task<IEnumerable<FishData>> GetFishAsync()
         {
-            var query = from f in _fishContainer.Query<Fish>()
+            var query = from f in _fishContainer.Query<FishData>()
                         orderby f.Name
                         select f;
             try
@@ -134,7 +148,7 @@ namespace FokkersFishing.Services
         public async Task<IEnumerable<FisherMan>> GetFishermenAsync()
         {
 
-            var query = from c in _catchContainer.Query<Catch>()
+            var query = from c in _catchContainer.Query<CatchData>()
                         group c by c.UserName into userGroup
                         select new FisherMan
                         {

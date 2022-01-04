@@ -7,8 +7,10 @@ using Newtonsoft.Json;
 
 namespace FokkersFishing.Shared.Models
 {
-    public class FisherMan: BaseEntity, ITableEntity
+    public class FisherMan
     {
+        [JsonProperty(PropertyName = "id")]
+        public Guid Id { get; set; }
         [JsonProperty(PropertyName = "userName")]
         public string UserName { get; set; }
 

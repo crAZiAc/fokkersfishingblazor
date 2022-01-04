@@ -1,39 +1,27 @@
-﻿@inject HttpClient HttpClient
+﻿@inject IHttpClientFactory ClientFactory
+@inject HttpClient HttpClient
+
 <EditForm Model="currentCatch" OnValidSubmit="SaveCatch">
-    
-        <div className="input-group input-group-sm mb-3">
-            <div className="input-group-prepend" />
 
-            <MatTextField @bind-Value="@currentCatch.CatchNumber" ReadOnly="true" Label="Catch #" FullWidth="true" Outlined="false" />
-        </div>
+    <div className="input-group input-group-sm mb-3">
+        <div className="input-group-prepend" />
+        <MatTextField @bind-Value="@currentCatch.CatchNumber" ReadOnly="true" Label="Catch #" Disabled="true" FullWidth="false" Outlined="false" />
+        <MatTextField @bind-Value="@currentCatch.LogDate" ReadOnly="true" Disabled="true" Label="Log Date" FullWidth="false" Outlined="false" />
+        <MatDatePicker @bind-Value="@currentCatch.CatchDate" EnableTime="true" Label="Catch Date and Time" Enable24hours="true" EnableSeconds="false" EnableWeekNumbers="true" FullWidth="false" Outlined="false" />
+        <MatTextField @bind-Value="@currentCatch.Length" Label="Fish Length" FullWidth="false" Outlined="false" />
+        <MatSelect Label="Fish Type" @bind-Value="currentCatch.Fish" FullWidth="false" Outlined="false">
+            @foreach (Fish fish in fishOptions)
+            {
+                <MatOptionString Value="@fish.Name">@fish.Name</MatOptionString>
+            }
+        </MatSelect>
 
-        <div className="input-group input-group-sm mb-3">
-            <div className="input-group-prepend" />
-            <MatTextField @bind-Value="@currentCatch.LogDate" ReadOnly="true" Label="Log Date" FullWidth="true" Outlined="false" />
-        </div>
-
-        <div className="input-group mb-3">
-            <div className="input-group-prepend" />
-            <MatDatePicker @bind-Value="@currentCatch.CatchDate" EnableTime="true" Label="Catch Date and Time" Enable24hours="true" EnableSeconds="false" EnableWeekNumbers="true" FullWidth="true" Outlined="false" />
-        </div>
-
-        <div className="input-group mb-3">
-            <div className="input-group-prepend" />
-            <MatSelect Label="Fish Type" @bind-Value="currentCatch.Fish" FullWidth="true" Outlined="false">
-                @foreach (Fish fish in fishOptions)
-                {
-                    <MatOptionString Value="@fish.Name">@fish.Name</MatOptionString>
-                }
-            </MatSelect>
-        </div>
-
-        <div className="input-group mb-3">
-            <div className="input-group-prepend" />
-            <MatTextField @bind-Value="@currentCatch.Length" Label="Fish Length" FullWidth="true" Outlined="false" />
-        </div>
-    @if ( HasChanged )
+    </div>
+    @if (HasChanged)
     {
-        <button type="submit" class="checkout-button btn btn-primary" @onclick="@OnSubmit">Save</button>
+        <MatRipple class="demo-mat-ripple" Color="@MatRippleColor.Secondary">
+            <button type="submit" class="checkout-button btn btn-primary" @onclick="@OnSubmit">Save</button>
+        </MatRipple>
     }
     else
     {
@@ -45,12 +33,24 @@
     [Parameter] public Catch currentCatch { get; set; }
     [Parameter] public List<Fish> fishOptions { get; set; }
     [Parameter] public EventCallback OnSubmit { get; set; }
-    [Parameter] public bool HasChanged{ get; set; }
+    [Parameter] public bool HasChanged { get; set; }
 
     private async Task SaveCatch()
     {
-        currentCatch = await HttpClient.PutJsonAsync<Catch>("catch/" + currentCatch.RowKey, currentCatch);
+        var client = ClientFactory.CreateClient("server");
         HasChanged = false;
         StateHasChanged();
+
+        HttpResponseMessage response = await client.PutAsJsonAsync("catch/" + currentCatch.Id, currentCatch);
+        if (response.StatusCode != System.Net.HttpStatusCode.OK)
+        {
+            HasChanged = true;
+            StateHasChanged();
+        }
+        else
+        {
+            currentCatch = await response.Content.ReadFromJsonAsync<Catch>();
+            StateHasChanged();
+        }
     }
 }

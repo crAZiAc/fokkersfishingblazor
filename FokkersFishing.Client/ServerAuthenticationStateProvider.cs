@@ -1,4 +1,5 @@
 ﻿using System.Net.Http;
+using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
@@ -12,14 +13,15 @@ namespace FokkersFishing.Client
     {
         private readonly HttpClient _httpClient;
 
-        public ServerAuthenticationStateProvider(HttpClient httpClient)
+        public ServerAuthenticationStateProvider(IHttpClientFactory clientFactory)
         {
-            _httpClient = httpClient;
+            _httpClient = clientFactory.CreateClient("server");
         }
 
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {
-            var userInfo = await _httpClient.GetJsonAsync<UserInfo>("user");
+
+            var userInfo = await _httpClient.GetFromJsonAsync<UserInfo>("user");
 
             ClaimsIdentity identity;
             if (userInfo.IsAuthenticated)

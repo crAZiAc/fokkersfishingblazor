@@ -33,12 +33,18 @@ namespace FokkersFishing.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<IEnumerable<Fish>>> Get()
         {
-            IEnumerable<Fish> fishes;
-            fishes = await _fokkersDbService.GetFishAsync();
-            if (fishes == null)
+            IEnumerable<FishData> fishesData;
+            fishesData = await _fokkersDbService.GetFishAsync();
+            if (fishesData == null)
             {
                 return NotFound();
             }
+            List<Fish> fishes = new List<Fish>();
+            foreach(FishData fishData in fishesData)
+            {
+                fishes.Add(fishData.GetFish());
+            }
+
             return fishes.ToList();
         }
 

@@ -1,25 +1,31 @@
 ﻿@page "/catches"
+@inject IHttpClientFactory ClientFactory
 @inject HttpClient HttpClient
 @using System.ComponentModel
 
-
 <div class="main">
 
-    @if (catches == null)
+    @if (catches == null & currentCatch == null)
     {
-        <p><em>Loading...</em></p>
+        <p><em>Loading catches for user...</em></p>
+        <MatProgressBar Indeterminate="true"></MatProgressBar>
     }
     else
     {
-
-        <button type="button" class="btn btn-primary" @onclick="@((x) => AddNewCatch())">Add</button>
-        <MatTable Items="@catches" class="mat-elevation-z5" Striped="true" RowClass="tester" SortBy="CatchNumber" PageSize="10" AllowSelection="true" SelectionChanged="SelectionChangedEvent" FilterByColumnName="Fish" >
+        <button type="button" class="btn btn-primary" @onclick="@((x) => AddNewCatch())">Add new catch</button>
+        <MatTable Items="@catches" class="mat-elevation-z5"
+                  Striped="true" RowClass="tester"
+                  SortBy="CatchNumber"
+                  PageSize="10"
+                  AllowSelection="true"
+                  SelectionChanged="SelectionChangedEvent"
+                  FilterByColumnName="Fish">
             <MatTableHeader>
                 <th width="10%">Catch #</th>
                 <th width="10%">Global Catch #</th>
-                <th width="10%">Catch Date</th>
+                <th width="30%">Catch Date</th>
                 <th width="10%">Fish</th>
-                <th width="10%">Fish Length</th>
+                <th width="20%">Fish Length</th>
                 <th width="10%">Commands</th>
             </MatTableHeader>
             <MatTableRow>
@@ -29,16 +35,16 @@
                 <td>@context.Fish</td>
                 <td>@context.Length</td>
                 <td>
-                    <button class="btn btn-warning" @onclick="@(() => ShowDeleteDialog(context.RowKey))">Delete</button>
+                    <button class="btn btn-warning" @onclick="@(() => ShowDeleteDialog(context.Id))">Delete</button>
                 </td>
             </MatTableRow>
         </MatTable>
-        <EditCatch currentCatch="@currentCatch" fishOptions="@fishOptions" OnSubmit="@CatchSaved" HasChanged="true"/>
+        <EditCatch currentCatch="@currentCatch" fishOptions="@fishOptions" OnSubmit="@CatchSaved" HasChanged="true" />
     }
 </div>
 
 <TemplatedDialog Show="@DeleteDialogShown">
-    <ConfirmDelete OnCancel="CancelDelete" OnConfirm="@(() => DeleteCatch(currentCatch.RowKey))" catchMade="@currentCatch" />
+    <ConfirmDelete OnCancel="CancelDelete" OnConfirm="@(() => DeleteCatch(currentCatch.Id))" catchMade="@currentCatch" dialogIsOpen="@DeleteDialogShown" />
 </TemplatedDialog>
 
 @code {
@@ -50,8 +56,9 @@
 
     protected async override Task OnInitializedAsync()
     {
-        fishOptions = await HttpClient.GetJsonAsync<List<Fish>>("fish");
-        catches = await HttpClient.GetJsonAsync<List<Catch>>("catch");
+        var client = ClientFactory.CreateClient("server");
+        fishOptions = await client.GetFromJsonAsync<List<Fish>>("fish");
+        catches = await client.GetFromJsonAsync<List<Catch>>("catch");
         if (catches.Count > 0)
         {
             currentCatch = catches.FirstOrDefault();
@@ -69,13 +76,22 @@
         {
             Length = 0,
             Fish = "Pike",
-            CatchDate = DateTime.Now
+            CatchDate = DateTime.Now,
         };
 
-        newCatch = await HttpClient.PostJsonAsync<Catch>("catch", newCatch);
-        catches.Add(newCatch);
-        currentCatch = newCatch;
-        StateHasChanged();
+        var client = ClientFactory.CreateClient("server");
+        HttpResponseMessage response = await client.PostAsJsonAsync("catch", newCatch);
+        if (response.StatusCode != System.Net.HttpStatusCode.Created)
+        {
+            StateHasChanged();
+        }
+        else
+        {
+            newCatch = await response.Content.ReadFromJsonAsync<Catch>();
+            catches.Add(newCatch);
+            currentCatch = newCatch;
+            StateHasChanged();
+        }
     }
 
 
@@ -89,16 +105,17 @@
         DeleteDialogShown = false;
     }
 
-    private void ShowDeleteDialog(string id)
+    private void ShowDeleteDialog(Guid id)
     {
-        currentCatch = catches.FirstOrDefault(e => e.RowKey == id);
+        currentCatch = catches.FirstOrDefault(e => e.Id == id);
         DeleteDialogShown = true;
     }
 
-    private void DeleteCatch(string id)
+    private void DeleteCatch(Guid id)
     {
-        HttpClient.DeleteAsync("catch/" + id);
-        Catch catchToBeDeleted = catches.FirstOrDefault(e => e.RowKey == id);
+        var client = ClientFactory.CreateClient("server");
+        client.DeleteAsync("catch/" + id);
+        Catch catchToBeDeleted = catches.FirstOrDefault(e => e.Id == id);
         catches.Remove(catchToBeDeleted);
         DeleteDialogShown = false;
         StateHasChanged();
