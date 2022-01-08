@@ -1,4 +1,9 @@
-﻿@using System.Security.Claims
+﻿@using System.Security.Claims 
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+
+@inject NavigationManager Navigation
+@inject SignOutSessionStateManager SignOutManager
 
 <div class="user-info">
     <AuthorizeView>
@@ -23,12 +28,16 @@
             </div>
         </Authorized>
         <NotAuthorized>
-            <div class="container">
-                <span>Log in: </span>
-                <a class="btn btn-primary mr-1" href="user/signin?idp=facebook">Facebook</a>
-                <a class="btn btn-primary mr-1" href="user/signin?idp=google">Google</a>
-                <a class="btn btn-primary mr-1" href="user/signin?idp=microsoft">Microsoft</a>
-            </div>
+            <a href="authentication/register">Register</a>
+            <a href="authentication/login">Log in</a>
         </NotAuthorized>
     </AuthorizeView>
 </div>
+
+@code{
+    private async Task BeginSignOut(MouseEventArgs args)
+    {
+        await SignOutManager.SetSignOutState();
+        Navigation.NavigateTo("authentication/logout");
+    }
+}

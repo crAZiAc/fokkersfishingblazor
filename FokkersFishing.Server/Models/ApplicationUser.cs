@@ -8,6 +8,5 @@ namespace FokkersFishing.Models
 {
     public class ApplicationUser : IdentityUser
     {
-        // TODO: add roles?
     } // end c
 } // end ns

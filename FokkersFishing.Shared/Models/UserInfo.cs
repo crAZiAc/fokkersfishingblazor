@@ -15,5 +15,6 @@ namespace FokkersFishing.Shared.Models
         public string IdentityProvider { get; set; }
 
         public string Email { get; set; }
+
     } // end c
 } // end ns

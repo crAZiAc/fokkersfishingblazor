@@ -43,9 +43,7 @@
     }
 </div>
 
-<TemplatedDialog Show="@DeleteDialogShown">
-    <ConfirmDelete OnCancel="CancelDelete" OnConfirm="@(() => DeleteCatch(currentCatch.Id))" catchMade="@currentCatch" dialogIsOpen="@DeleteDialogShown" />
-</TemplatedDialog>
+<ConfirmDelete OnCancel="CancelDelete" OnConfirm="@(() => DeleteCatch(currentCatch.Id))" catchMade="@currentCatch" dialogIsOpen="@DeleteDialogShown" />
 
 @code {
     List<Catch> catches;

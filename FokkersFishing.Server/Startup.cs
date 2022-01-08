@@ -1,20 +1,25 @@
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.EntityFrameworkCore;
+using Azure.Data.Tables;
 using FokkersFishing.Data;
+using FokkersFishing.Interfaces;
+using FokkersFishing.Models;
+using FokkersFishing.Services;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI;
+using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using FokkersFishing.Interfaces;
-using System.Threading.Tasks;
-using FokkersFishing.Services;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.ResponseCompression;
-using System.Net.Mime;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Azure.Data.Tables;
+using System.Net.Mime;
+using System.Threading.Tasks;
 
 namespace FokkersFishing
 {
@@ -27,19 +32,10 @@ namespace FokkersFishing
 
         public IConfiguration Configuration { get; }
 
-       
+
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
-            services.AddControllersWithViews();
-            services.AddRazorPages();
-
-            services.AddMvc()
-                .AddNewtonsoftJson();
-
-            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-
             services.AddResponseCompression(options =>
             {
                 options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
@@ -47,18 +43,31 @@ namespace FokkersFishing
             });
 
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlite(
-                    Configuration.GetConnectionString("DefaultConnection")));
+               options.UseSqlite(
+                   Configuration.GetConnectionString("DefaultConnection")));
+
+            services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
+                .AddRoles<IdentityRole>()
+                .AddEntityFrameworkStores<ApplicationDbContext>();
 
             ConfigurationSection section = Configuration.GetSection("Storage") as ConfigurationSection;
             section["ConnectionString"] = Configuration["Storage:ConnectionString"];
 
             services.AddSingleton<IFokkersDbService>(InitializeTableClientInstanceAsync(section).GetAwaiter().GetResult());
 
+            services.AddIdentityServer()
+           .AddApiAuthorization<ApplicationUser, ApplicationDbContext>(opt =>
+           {
+               opt.IdentityResources["openid"].UserClaims.Add("role");
+               opt.ApiResources.Single().UserClaims.Add("role");
+           });
+            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Remove("role");
+
             services.AddAuthentication(options =>
             {
                 options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
             })
+                .AddIdentityServerJwt()
                 .AddCookie()
                 .AddFacebook(facebookOptions =>
                 {
@@ -80,6 +89,13 @@ namespace FokkersFishing
                       googleOptions.ClientSecret = Configuration["Authentication:Google:ClientSecret"];
                       googleOptions.SaveTokens = true;
                   });
+
+
+            services.AddControllersWithViews();
+            services.AddRazorPages();
+
+          
+
         } //end f
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -99,14 +115,17 @@ namespace FokkersFishing
             }
 
             app.UseHttpsRedirection();
+            app.UseBlazorFrameworkFiles(); 
             app.UseStaticFiles();
-            app.UseBlazorFrameworkFiles();
             app.UseRouting();
 
+            app.UseIdentityServer();
             app.UseAuthentication();
             app.UseAuthorization();
+
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapRazorPages();
                 endpoints.MapControllers();
                 endpoints.MapFallbackToFile("index.html");
             });

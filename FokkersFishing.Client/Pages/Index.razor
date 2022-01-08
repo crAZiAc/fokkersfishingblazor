@@ -1,6 +1,7 @@
 ﻿@page "/"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @inject IHttpClientFactory ClientFactory
-@inject HttpClient HttpClient
 
 <h1>Fokkers Leaderboard</h1>
 <div class="main">
@@ -66,24 +67,13 @@
     }
 </div>
 
-<AuthorizeView>
-    <NotAuthorized>
-        <div class="container">
-            <span>Log in: </span>
-            <a class="btn btn-primary mr-1" href="user/signin?idp=facebook">Facebook</a>
-            <a class="btn btn-primary mr-1" href="user/signin?idp=google">Google</a>
-            <a class="btn btn-primary mr-1" href="user/signin?idp=microsoft">Microsoft</a>
-        </div>
-    </NotAuthorized>
-</AuthorizeView>
-
 @code {
     List<Catch> catches;
     List<FisherMan> fishermen;
 
     protected async override Task OnInitializedAsync()
     {
-        var client = ClientFactory.CreateClient("server");
+        var client = ClientFactory.CreateClient("serverNoAuth");
         catches = await client.GetFromJsonAsync<List<Catch>>("leaderboard");
         fishermen = await client.GetFromJsonAsync<List<FisherMan>>("leaderboard/fishermen");
     }

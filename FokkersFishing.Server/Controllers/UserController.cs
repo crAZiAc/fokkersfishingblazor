@@ -23,7 +23,14 @@ namespace FokkersFishing.Server
         {
             if (User.Identity.IsAuthenticated)
             {
-                UserInfo userInfo = new UserInfo() { Name = User.Identity.Name, IsAuthenticated = true, IdentityProvider = User.Identity.AuthenticationType.ToString(), Id = User.FindFirst(ClaimTypes.NameIdentifier).Value, Email = User.FindFirst(ClaimTypes.Email).Value };
+                UserInfo userInfo = new UserInfo() 
+                {
+                    Name = User.Identity.Name, 
+                    IsAuthenticated = true, 
+                    IdentityProvider = User.Identity.AuthenticationType.ToString(), 
+                    Id = User.FindFirst(ClaimTypes.NameIdentifier).Value, 
+                    Email = User.FindFirst(ClaimTypes.Email).Value
+                };
                 return userInfo;
             }
             else

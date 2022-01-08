@@ -12,10 +12,11 @@ using System.Security.Claims;
 using FokkersFishing.Data;
 using FokkersFishing.Shared.Models;
 using FokkersFishing.Server.Helpers;
+using Microsoft.AspNetCore.Identity;
 
 namespace FokkersFishing.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "User")]
     [ApiController]
     [Route("[controller]")]
     public class CatchController : Controller
@@ -26,10 +27,10 @@ namespace FokkersFishing.Controllers
         private readonly ApplicationDbContext _dbContext;
         private UserHelper _userHelper;
 
-        public CatchController(ILogger<CatchController> logger, IFokkersDbService cosmosDbService, IHttpContextAccessor httpContextAccessor, ApplicationDbContext dbContext)
+        public CatchController(ILogger<CatchController> logger, IFokkersDbService fokkersDbService, IHttpContextAccessor httpContextAccessor, ApplicationDbContext dbContext)
         {
             _logger = logger;
-            _fokkersDbService = cosmosDbService;
+            _fokkersDbService = fokkersDbService;
             _httpContextAccessor = httpContextAccessor;
             _dbContext = dbContext;
             _userHelper = new UserHelper(_httpContextAccessor, _dbContext);

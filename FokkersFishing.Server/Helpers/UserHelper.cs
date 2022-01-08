@@ -1,6 +1,7 @@
 ﻿using FokkersFishing.Data;
 using FokkersFishing.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace FokkersFishing.Server.Helpers
 {
-    public  class UserHelper
+    public class UserHelper
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ApplicationDbContext _dbContext;
@@ -35,6 +36,7 @@ namespace FokkersFishing.Server.Helpers
                         UserName = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.Name).Value,
                         Id = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value
                     };
+
                     _dbContext.Add(user);
                     _dbContext.SaveChangesAsync();
                 }

@@ -2,13 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
 using FokkersFishing.Interfaces;
 using FokkersFishing.Models;
 using FokkersFishing.Shared.Models;
 using Azure.Data.Tables;
-using Azure.Data.Tables.Models;
-using Azure;
 
 namespace FokkersFishing.Services
 {
