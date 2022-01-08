@@ -16,7 +16,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace FokkersFishing.Controllers
 {
-    [Authorize(Roles = "User")]
+    [Authorize(Roles = "Administrator, User")]
     [ApiController]
     [Route("[controller]")]
     public class CatchController : Controller
@@ -126,7 +126,11 @@ namespace FokkersFishing.Controllers
             updateCatch.Length = catchMade.Length;
             updateCatch.LogDate = catchMade.LogDate.ToUniversalTime();
             updateCatch.UserName = catchMade.UserName;
-
+            updateCatch.CatchPhotoUrl = catchMade.CatchPhotoUrl;
+            updateCatch.CatchThumbnailUrl = catchMade.CatchThumbnailUrl;
+            updateCatch.MeasurePhotoUrl = catchMade.MeasurePhotoUrl;
+            updateCatch.MeasureThumbnailUrl = catchMade.MeasureThumbnailUrl;
+            
             await _fokkersDbService.UpdateItemAsync(updateCatch);
             return catchMade;
         }
@@ -148,7 +152,11 @@ namespace FokkersFishing.Controllers
             {
                 if (catchMade.UserName == user.Email)
                 {
+                    // TODO: Delete photos
+
+
                     await _fokkersDbService.DeleteItemAsync(id.ToString());
+                    
                     return NoContent();
                 }
                 else

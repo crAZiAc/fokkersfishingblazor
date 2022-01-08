@@ -20,10 +20,10 @@ namespace FokkersFishing.Controllers
     [Route("[controller]")]
     public class LeaderboardController : Controller
     {
-        private readonly ILogger<CatchController> _logger;
+        private readonly ILogger<LeaderboardController> _logger;
         private readonly IFokkersDbService _fokkersDbService;
 
-        public LeaderboardController(ILogger<CatchController> logger, IFokkersDbService cosmosDbService)
+        public LeaderboardController(ILogger<LeaderboardController> logger, IFokkersDbService cosmosDbService)
         {
             _logger = logger;
             _fokkersDbService = cosmosDbService;

@@ -1,5 +1,6 @@
 ﻿@inject IHttpClientFactory ClientFactory
 @inject HttpClient HttpClient
+@using System.IO
 
 <EditForm Model="currentCatch" OnValidSubmit="SaveCatch">
 
@@ -15,6 +16,37 @@
                 <MatOptionString Value="@fish.Name">@fish.Name</MatOptionString>
             }
         </MatSelect>
+        @if (selectedMeasureFile != null)
+        {
+        }
+        else
+        {
+
+        }
+        <table>
+            <tr>
+                <td>
+                    <MatFileUpload OnChange="@MeasureFilesReady" Label="Upload picture of catch with measure" AllowMultiple="false"></MatFileUpload>
+                </td>
+                @if (selectedMeasureFile != null)
+                {
+                    <td>
+                        <MatIcon Icon="check"></MatIcon>
+                    </td>
+                }
+            </tr>
+            <tr>
+                <td>
+                    <MatFileUpload OnChange="@CatchFilesReady" Label="Upload picture of fish and fisherman" AllowMultiple="false"></MatFileUpload>
+                </td>
+                @if (selectedCatchFile != null)
+                {
+                    <td>
+                        <MatIcon Icon="check"></MatIcon>
+                    </td>
+                }
+            </tr>
+        </table>
 
     </div>
     @if (HasChanged)
@@ -35,11 +67,51 @@
     [Parameter] public EventCallback OnSubmit { get; set; }
     [Parameter] public bool HasChanged { get; set; }
 
+    string selectedMeasureFileMessage = string.Empty;
+    IMatFileUploadEntry selectedMeasureFile;
+
+    string selectedCatchFileMessage = string.Empty;
+    IMatFileUploadEntry selectedCatchFile;
+
     private async Task SaveCatch()
     {
         var client = ClientFactory.CreateClient("server");
         HasChanged = false;
         StateHasChanged();
+
+        // Upload photos
+        if (selectedCatchFile != null)
+        {
+            Photo catchPhoto = new Photo { Id = currentCatch.Id, PhotoType = PhotoTypeEnum.Catch };
+            MemoryStream stream = new MemoryStream();
+            await selectedCatchFile.WriteToStreamAsync(stream);
+
+            catchPhoto.ImageContent = stream.ToArray();
+            stream.Close();
+            HttpResponseMessage responsePhoto = await client.PostAsJsonAsync<Photo>($"photo", catchPhoto);
+            if (responsePhoto.StatusCode == System.Net.HttpStatusCode.Created)
+            {
+                UploadPhotoResponse photoResponse = await responsePhoto.Content.ReadFromJsonAsync<UploadPhotoResponse>();
+                currentCatch.CatchPhotoUrl = photoResponse.PhotoUrl;
+                currentCatch.CatchThumbnailUrl = photoResponse.ThumbnailUrl;
+            }
+        }
+        if (selectedMeasureFile != null)
+        {
+            Photo measurePhoto = new Photo { Id = currentCatch.Id, PhotoType = PhotoTypeEnum.Measure };
+            MemoryStream stream = new MemoryStream();
+            await selectedMeasureFile.WriteToStreamAsync(stream);
+
+            measurePhoto.ImageContent = stream.ToArray();
+            stream.Close();
+            HttpResponseMessage responsePhoto = await client.PostAsJsonAsync<Photo>($"photo", measurePhoto);
+            if (responsePhoto.StatusCode == System.Net.HttpStatusCode.Created)
+            {
+                UploadPhotoResponse photoResponse = await responsePhoto.Content.ReadFromJsonAsync<UploadPhotoResponse>();
+                currentCatch.MeasurePhotoUrl = photoResponse.PhotoUrl;
+                currentCatch.MeasureThumbnailUrl = photoResponse.ThumbnailUrl;
+            }
+        }
 
         HttpResponseMessage response = await client.PutAsJsonAsync("catch/" + currentCatch.Id, currentCatch);
         if (response.StatusCode != System.Net.HttpStatusCode.OK)
@@ -52,5 +124,19 @@
             currentCatch = await response.Content.ReadFromJsonAsync<Catch>();
             StateHasChanged();
         }
+    }
+
+    void MeasureFilesReady(IMatFileUploadEntry[] files)
+    {
+        selectedMeasureFileMessage = $"Measure picture: {files[0].Name} - Size: {files[0].Size}";
+        selectedMeasureFile = files[0];
+        this.StateHasChanged();
+    }
+
+    void CatchFilesReady(IMatFileUploadEntry[] files)
+    {
+        selectedCatchFileMessage = $"Name: {files[0].Name} - Size: {files[0].Size}";
+        selectedCatchFile = files[0];
+        this.StateHasChanged();
     }
 }

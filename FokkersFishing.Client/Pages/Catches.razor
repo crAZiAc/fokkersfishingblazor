@@ -1,7 +1,7 @@
 ﻿@page "/catches"
 @inject IHttpClientFactory ClientFactory
-@inject HttpClient HttpClient
 @using System.ComponentModel
+
 
 <div class="main">
 
@@ -26,6 +26,7 @@
                 <th width="30%">Catch Date</th>
                 <th width="10%">Fish</th>
                 <th width="20%">Fish Length</th>
+                <th width="20%">Photos</th>
                 <th width="10%">Commands</th>
             </MatTableHeader>
             <MatTableRow>
@@ -34,6 +35,7 @@
                 <td>@context.CatchDate</td>
                 <td>@context.Fish</td>
                 <td>@context.Length</td>
+                <td><image src="@context.MeasureThumbnailUrl" title="Measure"/><image src="@context.CatchThumbnailUrl" title="Catch"/></td>
                 <td>
                     <button class="btn btn-warning" @onclick="@(() => ShowDeleteDialog(context.Id))">Delete</button>
                 </td>
@@ -43,7 +45,10 @@
     }
 </div>
 
-<ConfirmDelete OnCancel="CancelDelete" OnConfirm="@(() => DeleteCatch(currentCatch.Id))" catchMade="@currentCatch" dialogIsOpen="@DeleteDialogShown" />
+@if (currentCatch != null & DeleteDialogShown == true)
+{
+    <ConfirmDelete OnCancel="CancelDelete" OnConfirm="@(() => DeleteCatch(currentCatch.Id))" catchMade="@currentCatch" dialogIsOpen="@DeleteDialogShown" />
+}
 
 @code {
     List<Catch> catches;
@@ -51,6 +56,7 @@
     public Catch currentCatch;
     bool DeleteDialogShown = false;
 
+  
 
     protected async override Task OnInitializedAsync()
     {
@@ -85,6 +91,7 @@
         }
         else
         {
+           
             newCatch = await response.Content.ReadFromJsonAsync<Catch>();
             catches.Add(newCatch);
             currentCatch = newCatch;
@@ -107,6 +114,7 @@
     {
         currentCatch = catches.FirstOrDefault(e => e.Id == id);
         DeleteDialogShown = true;
+        StateHasChanged();
     }
 
     private void DeleteCatch(Guid id)
@@ -116,6 +124,9 @@
         Catch catchToBeDeleted = catches.FirstOrDefault(e => e.Id == id);
         catches.Remove(catchToBeDeleted);
         DeleteDialogShown = false;
+
+        // Delete photos
+
         StateHasChanged();
     }
 
@@ -123,7 +134,7 @@
     {
         if (row == null)
         {
-            currentCatch = null;
+            currentCatch = catches.FirstOrDefault();
         }
         else
         {
@@ -132,4 +143,6 @@
 
         this.StateHasChanged();
     }
+
+   
 } 

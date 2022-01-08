@@ -9,6 +9,9 @@ namespace FokkersFishing.Interfaces
 {
     public interface IFokkersDbService
     {
+        // Properties
+        string StorageConnectionString { get; }
+
         // Catches
         Task<CatchData> GetItemAsync(string rowKey);
         Task<List<CatchData>> GetLeaderboardItemsAsync();

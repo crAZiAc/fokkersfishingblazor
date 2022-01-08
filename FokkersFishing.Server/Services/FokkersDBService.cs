@@ -13,9 +13,18 @@ namespace FokkersFishing.Services
     {
         private TableClient _catchContainer;
         private TableClient _fishContainer;
-
-        public FokkersDbService(TableServiceClient dbClient)
+        private string _connectionString;
+        public string StorageConnectionString
         {
+            get
+            {
+                return _connectionString;
+            }
+        }
+
+        public FokkersDbService(TableServiceClient dbClient, string connectionString)
+        {
+            _connectionString = connectionString;
             this._catchContainer = dbClient.GetTableClient("Catches");
             this._fishContainer = dbClient.GetTableClient("Fish");
 
@@ -108,7 +117,7 @@ namespace FokkersFishing.Services
                         select c;
             try
             {
-                return query.FirstOrDefault().CatchNumber;
+                return query.FirstOrDefault().GlobalCatchNumber;
             }
             catch (Exception ex)
             {

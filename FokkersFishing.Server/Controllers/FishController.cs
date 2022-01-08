@@ -15,7 +15,7 @@ using FokkersFishing.Server.Helpers;
 
 namespace FokkersFishing.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Administrator, User")]
     [ApiController]
     [Route("[controller]")]
     public class FishController : Controller

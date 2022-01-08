@@ -48,5 +48,17 @@ namespace FokkersFishing.Shared.Models
         [JsonProperty(PropertyName = "globalCatchNumber")]
         public int GlobalCatchNumber { get; set; }
 
+        [JsonProperty(PropertyName = "measurePhotoUrl")]
+        public string MeasurePhotoUrl { get; set; }
+
+        [JsonProperty(PropertyName = "catchPhotoUrl")]
+        public string CatchPhotoUrl { get; set; }
+
+        [JsonProperty(PropertyName = "measureThumbnailUrl")]
+        public string MeasureThumbnailUrl { get; set; }
+
+        [JsonProperty(PropertyName = "catchThumbnailUrl")]
+        public string CatchThumbnailUrl { get; set; }
+
     } // end c
 } // end ns

@@ -54,7 +54,7 @@ namespace FokkersFishing
             section["ConnectionString"] = Configuration["Storage:ConnectionString"];
 
             services.AddSingleton<IFokkersDbService>(InitializeTableClientInstanceAsync(section).GetAwaiter().GetResult());
-
+            
             services.AddIdentityServer()
            .AddApiAuthorization<ApplicationUser, ApplicationDbContext>(opt =>
            {
@@ -129,8 +129,6 @@ namespace FokkersFishing
                 endpoints.MapControllers();
                 endpoints.MapFallbackToFile("index.html");
             });
-
-
         }
 
         /// <summary>
@@ -144,7 +142,7 @@ namespace FokkersFishing
 
             var serviceClient = new TableServiceClient(connectionString);
 
-            FokkersDbService tableDbService = new FokkersDbService(serviceClient);
+            FokkersDbService tableDbService = new FokkersDbService(serviceClient, connectionString);
             return tableDbService;
         }
     } // end c

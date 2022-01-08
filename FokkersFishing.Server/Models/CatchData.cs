@@ -10,8 +10,6 @@ namespace FokkersFishing.Models
 {
     public class CatchData : BaseEntity, ITableEntity
     {
-        private DateTime m_catchDate;
-
         public int CatchNumber { get; set; }
 
         public string UserName { get; set; }
@@ -34,7 +32,11 @@ namespace FokkersFishing.Models
                 Id = Guid.Parse(this.RowKey),
                 Length = this.Length,
                 LogDate = this.LogDate.ToLocalTime(),
-                UserName = this.UserName
+                UserName = this.UserName,
+                CatchPhotoUrl = this.CatchPhotoUrl,
+                MeasurePhotoUrl = this.MeasurePhotoUrl,
+                CatchThumbnailUrl = this.CatchThumbnailUrl,
+                MeasureThumbnailUrl = this.MeasureThumbnailUrl
             };
         }
 
@@ -43,6 +45,11 @@ namespace FokkersFishing.Models
         public DateTime EditDate { get; set; }
 
         public int GlobalCatchNumber { get; set; }
+        public string MeasurePhotoUrl { get; set; }
+        public string CatchPhotoUrl { get; set; }
+        public string MeasureThumbnailUrl { get; set; }
+
+        public string CatchThumbnailUrl { get; set; }
 
         public CatchData()
         {
