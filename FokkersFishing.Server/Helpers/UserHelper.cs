@@ -19,7 +19,6 @@ namespace FokkersFishing.Server.Helpers
             _httpContextAccessor = httpContextAccessor;
             _dbContext = dbContext;
         }
-
         public ApplicationUser GetUser()
         {
             ApplicationUser user = null;
@@ -42,6 +41,16 @@ namespace FokkersFishing.Server.Helpers
                 }
             }
             return user;
+        } // end f
+
+        public List<ApplicationUser> GetUsers()
+        {
+            List<ApplicationUser> userList = new List<ApplicationUser>();
+            foreach(var user in _dbContext.Users)
+            {
+                userList.Add(user);
+            }
+            return userList;
         } // end f
 
     } // end c

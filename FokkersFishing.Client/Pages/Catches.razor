@@ -2,7 +2,6 @@
 @inject IHttpClientFactory ClientFactory
 @using System.ComponentModel
 
-
 <div class="main">
 
     @if (catches == null & currentCatch == null)
@@ -35,7 +34,24 @@
                 <td>@context.CatchDate</td>
                 <td>@context.Fish</td>
                 <td>@context.Length</td>
-                <td><image src="@context.MeasureThumbnailUrl" title="Measure"/><image src="@context.CatchThumbnailUrl" title="Catch"/></td>
+                <td>
+                    <table>
+                        <tr>
+                            <td width="50%">
+                                @if (context.MeasureThumbnailUrl != null)
+                                    {
+                                    <img src="@context.MeasureThumbnailUrl" title="Measure" @onclick="@(() => PhotoViewerShowMeasure(context))" />
+                                    }
+                            </td>
+                            <td width="50%">
+                                @if (context.CatchThumbnailUrl != null)
+                                    {
+                                    <img src="@context.CatchThumbnailUrl" title="Catch" @onclick="@(() => PhotoViewerShowCatch(context))" />
+                                    }
+                            </td>
+                        </tr>
+                    </table>
+                </td>
                 <td>
                     <button class="btn btn-warning" @onclick="@(() => ShowDeleteDialog(context.Id))">Delete</button>
                 </td>
@@ -50,13 +66,25 @@
     <ConfirmDelete OnCancel="CancelDelete" OnConfirm="@(() => DeleteCatch(currentCatch.Id))" catchMade="@currentCatch" dialogIsOpen="@DeleteDialogShown" />
 }
 
+@if (selectedPhotoCatch != null & PhotoViewerCatchShown == true)
+{
+    <PhotoViewer OnClose="@(() => PhotoViewerCatchClose())" catchMade="@selectedPhotoCatch" dialogIsOpen="@PhotoViewerCatchShown" url="@selectedPhotoCatch.CatchPhotoUrl" />
+}
+
+@if (selectedMeasureCatch != null & PhotoViewerMeasureShown == true)
+{
+    <PhotoViewer OnClose="@(() => PhotoViewerMeasureClose())" catchMade="@selectedMeasureCatch" dialogIsOpen="@PhotoViewerMeasureShown" url="@selectedMeasureCatch.MeasurePhotoUrl" />
+}
+
 @code {
     List<Catch> catches;
     List<Fish> fishOptions;
     public Catch currentCatch;
     bool DeleteDialogShown = false;
-
-  
+    bool PhotoViewerCatchShown = false;
+    bool PhotoViewerMeasureShown = false;
+    Catch selectedPhotoCatch;
+    Catch selectedMeasureCatch;
 
     protected async override Task OnInitializedAsync()
     {
@@ -91,7 +119,7 @@
         }
         else
         {
-           
+
             newCatch = await response.Content.ReadFromJsonAsync<Catch>();
             catches.Add(newCatch);
             currentCatch = newCatch;
@@ -126,7 +154,7 @@
         DeleteDialogShown = false;
 
         // Delete photos
-
+        client.DeleteAsync($"photo/{id}");
         StateHasChanged();
     }
 
@@ -144,5 +172,31 @@
         this.StateHasChanged();
     }
 
-   
+    public void PhotoViewerShowCatch(Catch catchSelected)
+    {
+        selectedPhotoCatch = catchSelected;
+        PhotoViewerCatchShown = true;
+        StateHasChanged();
+    }
+
+    public void PhotoViewerShowMeasure(Catch catchSelected)
+    {
+        selectedMeasureCatch = catchSelected;
+        PhotoViewerMeasureShown = true;
+        StateHasChanged();
+    }
+
+    public void PhotoViewerCatchClose()
+    {
+        PhotoViewerCatchShown = false;
+        StateHasChanged();
+    }
+
+    public void PhotoViewerMeasureClose()
+    {
+        PhotoViewerMeasureShown = false;
+        StateHasChanged();
+    }
+
+
 } 

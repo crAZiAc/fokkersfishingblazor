@@ -36,46 +36,23 @@ namespace FokkersFishing.Controllers
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<UploadPhotoResponse>> UploadCatchPhoto(Photo photo)
+        public async Task<ActionResult<UploadPhotoResponse>> UploadCatchPhotos(Photo photo)
         {
             UploadPhotoResponse response = await UploadPhoto(photo);
             if (response == null)
             {
                 return null;
             }
-            return CreatedAtAction(nameof(UploadCatchPhoto), new { url = response.PhotoUrl }, response);
+            return CreatedAtAction(nameof(UploadCatchPhotos), new { url = response.PhotoUrl }, response);
         }
 
-        [HttpDelete("catch/{id}")]
+        [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<string>> DeleteCatchPhoto(Guid id)
+        public async Task<ActionResult<string>> DeletePhotos(Guid id)
         {
-            string imageNamePrefix = $"catch-{id.ToString()}";
-            BlobContainerClient client = new BlobContainerClient(_fokkersDbService.StorageConnectionString, "catches");
-            var blobs = client.GetBlobs(Azure.Storage.Blobs.Models.BlobTraits.All, Azure.Storage.Blobs.Models.BlobStates.All, imageNamePrefix);
-            if (blobs.Count() == 0)
-            {
-                return NotFound();
-            }
-            else
-            {
-                foreach (var blob in blobs.ToList())
-                {
-                    client.DeleteBlob(blob.Name, Azure.Storage.Blobs.Models.DeleteSnapshotsOption.IncludeSnapshots);
-                }
-                return NoContent();
-            }
-        }
-
-        [HttpDelete("measure/{id}")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<string>> DeleteMeasurePhoto(Guid id)
-        {
-            string imageNamePrefix = $"measure-{id.ToString()}";
+            string imageNamePrefix = $"{id.ToString()}";
             BlobContainerClient client = new BlobContainerClient(_fokkersDbService.StorageConnectionString, "catches");
             var blobs = client.GetBlobs(Azure.Storage.Blobs.Models.BlobTraits.All, Azure.Storage.Blobs.Models.BlobStates.All, imageNamePrefix);
             if (blobs.Count() == 0)
@@ -112,22 +89,23 @@ namespace FokkersFishing.Controllers
         {
             string imageName = string.Empty;
             string imageThumbName = string.Empty;
+            string extension = "jpg";
             switch (photo.PhotoType)
             {
                 case PhotoTypeEnum.Catch:
                     {
-                        imageName = $"catch-{photo.Id.ToString()}.png";
-                        imageThumbName = $"tn-catch-{photo.Id.ToString()}.png";
+                        imageName = $"{photo.Id.ToString()}-catch.{extension}";
+                        imageThumbName = $"{photo.Id.ToString()}-catch-tn.{extension}";
                         break;
                     }
                 case PhotoTypeEnum.Measure:
                     {
-                        imageName = $"measure-{photo.Id.ToString()}.png";
-                        imageThumbName = $"tn-measure-{photo.Id.ToString()}.png";
+                        imageName = $"{photo.Id.ToString()}-measure.{extension}";
+                        imageThumbName = $"{photo.Id.ToString()}-measure-tn.{extension}";
                         break;
                     }
             }
-            
+
             BlobClient client = new BlobClient(_fokkersDbService.StorageConnectionString, "catches", imageName);
             BlobClient clientThumbnail = new BlobClient(_fokkersDbService.StorageConnectionString, "catches", imageThumbName);
             try
@@ -137,28 +115,28 @@ namespace FokkersFishing.Controllers
                 using (Stream stream = new MemoryStream(photo.ImageContent))
                 {
                     pngImage = Image.FromStream(stream);
-                    
-                }
-                using (Stream stream = new MemoryStream())
-                {
-                    pngImage.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
-                    stream.Position = 0;
-                    await client.UploadAsync(stream, true);
+                    using (Stream imageStream = new MemoryStream())
+                    {
+                        pngImage.Save(imageStream, System.Drawing.Imaging.ImageFormat.Jpeg);
+                        imageStream.Position = 0;
+                        await client.UploadAsync(imageStream, true);
+                    }
                 }
 
                 // upload thumbnail
                 Image thumbNailImage = null;
                 using (Stream stream = new MemoryStream(photo.ImageContent))
                 {
-                    thumbNailImage = GetReducedImage(32, 32, stream);
+                    thumbNailImage = GetReducedImage(64, 64, stream);
+                    using (Stream thumbStream = new MemoryStream())
+                    {
+                        thumbNailImage.Save(thumbStream, System.Drawing.Imaging.ImageFormat.Jpeg);
+                        thumbStream.Position = 0;
+                        await clientThumbnail.UploadAsync(thumbStream, true);
+                    }
                 }
-                Stream thumbStream = new MemoryStream();
-                thumbNailImage.Save(thumbStream, System.Drawing.Imaging.ImageFormat.Png);
-                thumbStream.Position = 0;
-                await clientThumbnail.UploadAsync(thumbStream, true);
-                thumbStream.Close();
-
             }
+
             catch (Exception ex)
             {
                 return null;
