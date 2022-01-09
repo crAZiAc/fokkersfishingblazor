@@ -1,193 +1,109 @@
 ﻿@inject IHttpClientFactory ClientFactory
 @inject HttpClient HttpClient
-@inject IMatToaster Toaster
-@using System.IO
 
 
-<EditForm Model="currentCatch" OnValidSubmit="SaveCatch">
+<MatDialog @bind-IsOpen="@dialogIsOpen">
+    <MatDialogTitle>Catch #: @currentCatch.CatchNumber</MatDialogTitle>
+    <MatDialogContent>
+        <EditForm Model="currentCatch">
 
-    <div className="input-group input-group-sm mb-3">
-        <div className="input-group-prepend" />
-        <MatTextField @bind-Value="@currentCatch.CatchNumber" ReadOnly="true" Label="Catch #" Disabled="true" FullWidth="false" Outlined="false" />
-        <MatTextField @bind-Value="@currentCatch.LogDate" ReadOnly="true" Disabled="true" Label="Log Date" FullWidth="false" Outlined="false" />
-        <MatDatePicker @bind-Value="@currentCatch.CatchDate" EnableTime="true" Label="Catch Date and Time" Enable24hours="true" EnableSeconds="false" EnableWeekNumbers="true" FullWidth="false" Outlined="false" />
-        <MatTextField @bind-Value="@currentCatch.Length" Label="Fish Length" FullWidth="false" Outlined="false" />
-        <MatSelect Label="Fish Type" @bind-Value="currentCatch.Fish" FullWidth="false" Outlined="false">
-            @foreach (Fish fish in fishOptions)
-            {
-                <MatOptionString Value="@fish.Name">@fish.Name</MatOptionString>
-            }
-        </MatSelect>
-        @if (selectedMeasureFile != null)
-        {
-        }
-        else
-        {
-
-        }
-        <table>
-            <tr>
-                <td width="25%">
-                    <MatFileUpload OnChange="@MeasureFilesReady" Label="Upload picture of catch with measure" AllowMultiple="false"></MatFileUpload>
-                </td>
-
-                <td width="25%">
-                    @if (selectedMeasureFile != null)
+            <div className="input-group input-group-sm mb-3">
+                <div className="input-group-prepend" />
+                <MatTextField @bind-Value="@currentCatch.CatchNumber" ReadOnly="true" Label="Catch #" Disabled="true" FullWidth="false" Outlined="false" />
+                <MatTextField @bind-Value="@currentCatch.LogDate" ReadOnly="true" Disabled="true" Label="Log Date" FullWidth="false" Outlined="false" />
+                <MatDatePicker @bind-Value="@currentCatch.CatchDate" EnableTime="true" Label="Catch Date and Time" Enable24hours="true" EnableSeconds="false" EnableWeekNumbers="true" FullWidth="false" Outlined="false" />
+                <MatTextField @bind-Value="@currentCatch.Length" Label="Fish Length" FullWidth="false" Outlined="false" />
+                <MatSelect Label="Fish Type" @bind-Value="currentCatch.Fish" FullWidth="false" Outlined="false">
+                    @foreach (Fish fish in fishOptions)
                     {
-                        <MatIcon Icon="check"></MatIcon>
+                    <MatOptionString Value="@fish.Name">@fish.Name</MatOptionString>
                     }
-                </td>
-                <td width="50%">
-                    @if (selectedMeasureFile != null)
-                    {
-                        <label>@selectedMeasureFileMessage</label>
-                    }
-                </td>
-            </tr>
-            <tr>
-                <td width="25%">
-                    <MatFileUpload OnChange="@CatchFilesReady" Label="Upload picture of fish and fisherman" AllowMultiple="false"></MatFileUpload>
-                </td>
+                </MatSelect>
+                <table>
+                    <tr>
+                        <td width="25%">
+                            <MatFileUpload OnChange="@MeasureFilesReady" Label="Upload picture of catch with measure" AllowMultiple="false"></MatFileUpload>
+                        </td>
 
-                <td width="50%">
-                    @if (selectedCatchFile != null)
-                    {
-                        <MatIcon Icon="check"></MatIcon>
-                    }
-                </td>
-                <td width="50%">
-                    @if (selectedCatchFile != null)
-                    {
-                        <label>@selectedCatchFileMessage</label>
-                    }
-                </td>
-            </tr>
-        </table>
+                        <td width="25%">
+                            @if (measureFile != null)
+                            {
+                            <MatIcon Icon="check"></MatIcon>
+                            }
+                        </td>
+                        <td width="50%">
+                            @if (measureFile != null)
+                            {
+                            <label>@selectedMeasureFileMessage</label>
+                            }
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="25%">
+                            <MatFileUpload OnChange="@CatchFilesReady" Label="Upload picture of fish and fisherman" AllowMultiple="false"></MatFileUpload>
+                        </td>
 
-    </div>
-    @if (HasChanged)
-    {
-        <MatRipple class="demo-mat-ripple" Color="@MatRippleColor.Secondary">
-            <button type="submit" class="checkout-button btn btn-primary" @onclick="@OnSubmit">Save</button>
-        </MatRipple>
-    }
-    else
-    {
-        <button type="submit" class="checkout-button btn btn-secondary" @onclick="@OnSubmit">Save</button>
-    }
-</EditForm>
+                        <td width="50%">
+                            @if (catchFile != null)
+                            {
+                            <MatIcon Icon="check"></MatIcon>
+                            }
+                        </td>
+                        <td width="50%">
+                            @if (catchFile != null)
+                            {
+                            <label>@selectedCatchFileMessage</label>
+                            }
+                        </td>
+                    </tr>
+                </table>
+
+            </div>
+
+        </EditForm>
+    </MatDialogContent>
+    <MatDialogActions>
+        <MatButton OnClick="@(() => OnSave.InvokeAsync(catchFiles))" Class="btn btn-primary">Save</MatButton>
+        <MatButton OnClick="@OnCancel" Class="btn btn-secondary" s>Cancel</MatButton>
+    </MatDialogActions>
+</MatDialog>
+
 
 @code {
     [Parameter] public Catch currentCatch { get; set; }
     [Parameter] public List<Fish> fishOptions { get; set; }
-    [Parameter] public EventCallback OnSubmit { get; set; }
+    [Parameter] public EventCallback<Dictionary<string, IMatFileUploadEntry>> OnSave { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
     [Parameter] public bool HasChanged { get; set; }
+    [Parameter] public bool dialogIsOpen { get; set; }
+
+    Dictionary<string, IMatFileUploadEntry> catchFiles { get; set; } = new Dictionary<string, IMatFileUploadEntry>();
+    IMatFileUploadEntry catchFile;
+    IMatFileUploadEntry measureFile;
+
 
     string selectedMeasureFileMessage = string.Empty;
-    IMatFileUploadEntry selectedMeasureFile;
-
     string selectedCatchFileMessage = string.Empty;
-    IMatFileUploadEntry selectedCatchFile;
 
-    private async Task SaveCatch()
+    protected async override Task OnInitializedAsync()
     {
-        Toaster.Add($"Catch #: {currentCatch.CatchNumber}, Type: {currentCatch.Fish}", MatToastType.Info, "Saving catch", "", config =>
-        {
-            config.ShowCloseButton = true;
-            config.ShowProgressBar = true;
-            config.MaximumOpacity = 100;
-
-            config.ShowTransitionDuration = 500;
-            config.VisibleStateDuration = 3000;
-            config.HideTransitionDuration = 500;
-        });
-
-        var client = ClientFactory.CreateClient("server");
-        HasChanged = false;
-        StateHasChanged();
-
-        // Upload photos
-        if (selectedMeasureFile != null)
-        {
-            Photo measurePhoto = new Photo { Id = currentCatch.Id, PhotoType = PhotoTypeEnum.Measure };
-            MemoryStream stream = new MemoryStream();
-            await selectedMeasureFile.WriteToStreamAsync(stream);
-
-            measurePhoto.ImageContent = stream.ToArray();
-            stream.Close();
-            HttpResponseMessage responsePhoto = await client.PostAsJsonAsync<Photo>($"photo", measurePhoto);
-            if (responsePhoto.StatusCode == System.Net.HttpStatusCode.Created)
-            {
-                UploadPhotoResponse photoResponse = await responsePhoto.Content.ReadFromJsonAsync<UploadPhotoResponse>();
-                currentCatch.MeasurePhotoUrl = photoResponse.PhotoUrl;
-                currentCatch.MeasureThumbnailUrl = photoResponse.ThumbnailUrl;
-            }
-        }
-
-        if (selectedCatchFile != null)
-        {
-            Photo catchPhoto = new Photo { Id = currentCatch.Id, PhotoType = PhotoTypeEnum.Catch };
-            MemoryStream stream = new MemoryStream();
-            await selectedCatchFile.WriteToStreamAsync(stream);
-
-            catchPhoto.ImageContent = stream.ToArray();
-            stream.Close();
-            HttpResponseMessage responsePhoto = await client.PostAsJsonAsync<Photo>($"photo", catchPhoto);
-            if (responsePhoto.StatusCode == System.Net.HttpStatusCode.Created)
-            {
-                UploadPhotoResponse photoResponse = await responsePhoto.Content.ReadFromJsonAsync<UploadPhotoResponse>();
-                currentCatch.CatchPhotoUrl = photoResponse.PhotoUrl;
-                currentCatch.CatchThumbnailUrl = photoResponse.ThumbnailUrl;
-            }
-        }
-
-        HttpResponseMessage response = await client.PutAsJsonAsync("catch/" + currentCatch.Id, currentCatch);
-        if (response.StatusCode != System.Net.HttpStatusCode.OK)
-        {
-            Toaster.Add($"Catch #: {currentCatch.CatchNumber}, Type: {currentCatch.Fish}", MatToastType.Warning, "Saving catch failed", "", config =>
-            {
-                config.ShowCloseButton = true;
-                config.ShowProgressBar = true;
-                config.MaximumOpacity = 100;
-
-                config.ShowTransitionDuration = 250;
-                config.VisibleStateDuration = 2000;
-                config.HideTransitionDuration = 500;
-            });
-            HasChanged = true;
-            StateHasChanged();
-        }
-        else
-        {
-            currentCatch = await response.Content.ReadFromJsonAsync<Catch>();
-            StateHasChanged();
-        }
-        selectedMeasureFile = null;
-        selectedCatchFile = null;
-        StateHasChanged();
-        Toaster.Add($"Catch #: {currentCatch.CatchNumber}, Type: {currentCatch.Fish}", MatToastType.Success, "Catch saved", "", config =>
-        {
-            config.ShowCloseButton = true;
-            config.ShowProgressBar = true;
-            config.MaximumOpacity = 100;
-
-            config.ShowTransitionDuration = 250;
-            config.VisibleStateDuration = 2000;
-            config.HideTransitionDuration = 500;
-        });
+        catchFiles.Add("measure", null);
+        catchFiles.Add("catch", null);
     }
 
     void MeasureFilesReady(IMatFileUploadEntry[] files)
     {
         selectedMeasureFileMessage = $"Measure picture: {files[0].Name} - Size: {files[0].Size}";
-        selectedMeasureFile = files[0];
+        measureFile = files[0];
+        catchFiles["measure"] = measureFile;
         this.StateHasChanged();
     }
 
     void CatchFilesReady(IMatFileUploadEntry[] files)
     {
         selectedCatchFileMessage = $"Name: {files[0].Name} - Size: {files[0].Size}";
-        selectedCatchFile = files[0];
+        catchFile = files[0];
+        catchFiles["catch"] = catchFile;
         this.StateHasChanged();
     }
 }
