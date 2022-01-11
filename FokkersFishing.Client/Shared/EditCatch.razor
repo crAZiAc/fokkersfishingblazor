@@ -1,7 +1,6 @@
 ﻿@inject IHttpClientFactory ClientFactory
 @inject HttpClient HttpClient
 
-
 <MatDialog @bind-IsOpen="@dialogIsOpen">
     <MatDialogTitle>Catch #: @currentCatch.CatchNumber</MatDialogTitle>
     <MatDialogContent>
@@ -16,7 +15,7 @@
                 <MatSelect Label="Fish Type" @bind-Value="currentCatch.Fish" FullWidth="false" Outlined="false">
                     @foreach (Fish fish in fishOptions)
                     {
-                    <MatOptionString Value="@fish.Name">@fish.Name</MatOptionString>
+                        <MatOptionString Value="@fish.Name">@fish.Name</MatOptionString>
                     }
                 </MatSelect>
                 <table>
@@ -28,13 +27,13 @@
                         <td width="25%">
                             @if (measureFile != null)
                             {
-                            <MatIcon Icon="check"></MatIcon>
+                                <MatIcon Icon="check"></MatIcon>
                             }
                         </td>
                         <td width="50%">
                             @if (measureFile != null)
                             {
-                            <label>@selectedMeasureFileMessage</label>
+                                <label>@selectedMeasureFileMessage</label>
                             }
                         </td>
                     </tr>
@@ -46,13 +45,13 @@
                         <td width="50%">
                             @if (catchFile != null)
                             {
-                            <MatIcon Icon="check"></MatIcon>
+                                <MatIcon Icon="check"></MatIcon>
                             }
                         </td>
                         <td width="50%">
                             @if (catchFile != null)
                             {
-                            <label>@selectedCatchFileMessage</label>
+                                <label>@selectedCatchFileMessage</label>
                             }
                         </td>
                     </tr>

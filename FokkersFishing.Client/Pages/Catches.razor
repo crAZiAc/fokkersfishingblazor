@@ -14,61 +14,57 @@
     else
     {
         <button type="button" class="btn btn-primary" @onclick="@((x) => AddNewCatch())">Add new catch</button>
-        <MatTable Items="@catches" class="mat-elevation-z5"
-                  Striped="true" RowClass="tester"
-                  SortBy="CatchNumber"
-                  PageSize="10"
-                  AllowSelection="true"
-                  SelectionChanged="SelectionChangedEvent"
-                  FilterByColumnName="Fish">
-            <MatTableHeader>
-                <th width="10%">Catch #</th>
-                <th width="10%">Global Catch #</th>
-                <th width="30%">Catch Date</th>
-                <th width="10%">Fish</th>
-                <th width="20%">Fish Length</th>
-                <th width="20%">Photos</th>
-                <th width="10%">Commands</th>
-            </MatTableHeader>
-            <MatTableRow>
-                <td><button class="btn btn-primary" @onclick="@(() => ShowEditDialog(context.Id))">@context.CatchNumber</button></td>
-                <td>@context.GlobalCatchNumber</td>
-                <td>@context.CatchDate</td>
-                <td>@context.Fish</td>
-                <td>@context.Length</td>
-                <td>
-                    <table>
-                        <tr>
-                            <td width="50%">
-                                @if (context.MeasureThumbnailUrl != null)
-                                    {
-                                    <img src="@context.MeasureThumbnailUrl" title="Measure" @onclick="@(() => PhotoViewerShowMeasure(context))" />
-                                    }
-                            </td>
-                            <td width="50%">
-                                @if (context.CatchThumbnailUrl != null)
-                                    {
-                                    <img src="@context.CatchThumbnailUrl" title="Catch" @onclick="@(() => PhotoViewerShowCatch(context))" />
-                                    }
-                            </td>
-                        </tr>
-                    </table>
-                </td>
-                <td>
-                    
-                    <button class="btn btn-warning" @onclick="@(() => ShowDeleteDialog(context.Id))">Delete</button>
-                </td>
-            </MatTableRow>
-        </MatTable>
+        @foreach (Catch catchRow in catches)
+        {
+            string image = string.Empty;
+            string textColor = string.Empty;
+            if (catchRow.CatchPhotoUrl != null)
+            {
+                image = catchRow.CatchPhotoUrl;
+                textColor = "grey";
+            }
+            else
+            {
+                image = "https://fokkersfishingstorage.blob.core.windows.net/catches/NoCatch.png";
+                textColor = "red";
+            }
+            <MatCard class="demo-mat-card">
+                <MatCardContent>
+                    <MatCardMedia Wide="true" ImageUrl="@image">
+                        <div class="demo-mat-card-content" style="color: @textColor;">
+                            <MatHeadline6 class="demo-mat-card-clean-margin">
+                                Catch # @catchRow.CatchNumber (@catchRow.Fish - @catchRow.Length cm)
+                            </MatHeadline6>
+                            <MatSubtitle2 class="demo-mat-card-clean-margin">
+                                Catch date: @catchRow.CatchDate.ToLocalTime()
+                                <br />
+                                Global Catch # @catchRow.GlobalCatchNumber
+                            </MatSubtitle2>
+                        </div>
+                    </MatCardMedia>
+                    <MatBody2 class="demo-mat-card-content demo-mat-card-clean-margin">
+                        Logged: @catchRow.LogDate.ToLocalTime()
+                        <br />
+                        Edited: @catchRow.EditDate.ToLocalTime()
+                    </MatBody2>
+                </MatCardContent>
+                <MatCardActions>
+                    <MatCardActionIcons>
+                        <MatIconButton Icon="@MatIconNames.Edit" @onclick="@(() => ShowEditDialog(catchRow.Id))"></MatIconButton>
+                        <MatIconButton Icon="@MatIconNames.Delete" @onclick="@(() => ShowDeleteDialog(catchRow.Id))"></MatIconButton>
+                    </MatCardActionIcons>
+                </MatCardActions>
+            </MatCard>
+        }
     }
 </div>
 
 @if (currentCatch != null & EditDialogShown == true)
 {
-            <EditCatch OnCancel="CancelEdit" OnSave="SaveCatch"
-                       currentCatch="@currentCatch"
-                       fishOptions="@fishOptions"
-                       dialogIsOpen="@EditDialogShown" />
+    <EditCatch OnCancel="CancelEdit" OnSave="SaveCatch"
+               currentCatch="@currentCatch"
+               fishOptions="@fishOptions"
+               dialogIsOpen="@EditDialogShown" />
 }
 
 @if (currentCatch != null & DeleteDialogShown == true)
@@ -311,4 +307,4 @@
         EditDialogShown = false;
         StateHasChanged();
     }
-} 
+}
