@@ -6,6 +6,7 @@ using FokkersFishing.Interfaces;
 using FokkersFishing.Models;
 using FokkersFishing.Shared.Models;
 using Azure.Data.Tables;
+using FokkersFishing.Data;
 
 namespace FokkersFishing.Services
 {
@@ -14,6 +15,7 @@ namespace FokkersFishing.Services
         private TableClient _catchContainer;
         private TableClient _fishContainer;
         private string _connectionString;
+
         public string StorageConnectionString
         {
             get
@@ -74,13 +76,38 @@ namespace FokkersFishing.Services
             }
         }
 
-        public async Task<List<CatchData>> GetUserItemsAsync(string userName)
+        public async Task<List<Catch>> GetTopCatchAsync(string fish)
         {
-
             try
             {
                 var query = from c in _catchContainer.Query<CatchData>()
-                            where c.UserName == userName
+                            where c.Fish.ToLower() == fish.ToLower()
+                            orderby c.Length descending
+                            group c by c.UserEmail into userGroup
+                            select new Catch
+                            {
+                                UserEmail = userGroup.Key,
+                                Length = userGroup.Max(m => m.Length),
+                                Fish = userGroup.Max(m => m.Fish),
+                                CatchDate = userGroup.Max(m => m.CatchDate),
+                                MeasurePhotoUrl = userGroup.Max(m => m.MeasurePhotoUrl),
+                                CatchPhotoUrl = userGroup.Max(m => m.CatchPhotoUrl),
+                                GlobalCatchNumber = userGroup.Max(m => m.GlobalCatchNumber)
+                            };
+                return query.ToList();
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
+        public async Task<List<CatchData>> GetUserItemsAsync(string userEmail)
+        {
+            try
+            {
+                var query = from c in _catchContainer.Query<CatchData>()
+                            where c.UserEmail == userEmail
                             orderby c.CatchNumber
                             select c;
                 return query.ToList();
@@ -94,7 +121,7 @@ namespace FokkersFishing.Services
         public async Task<int> GetCatchNumberCount(string userEmail)
         {
             var query = from c in _catchContainer.Query<CatchData>()
-                        where c.UserName == userEmail
+                        where c.UserEmail == userEmail
                         where c.PartitionKey == "Catches"
                         orderby c.CatchNumber descending
                         select c;
@@ -149,18 +176,16 @@ namespace FokkersFishing.Services
             return null;
         }
 
-        // "SELECT SUM(c.length) AS totalLength, SUM(1) as fishCount, c.userName as userName FROM c GROUP BY c.userName");
-        // Fishermen
-        public async Task<IEnumerable<FisherMan>> GetFishermenAsync()
+        public async Task<IEnumerable<FisherMan>> GetFishermenAsync(ApplicationDbContext context)
         {
-
             var query = from c in _catchContainer.Query<CatchData>()
-                        group c by c.UserName into userGroup
+                        group c by c.UserEmail into userGroup
                         select new FisherMan
                         {
                             TotalLength = userGroup.Sum(x => x.Length),
                             FishCount = userGroup.Count(),
-                            UserName = userGroup.Key
+                            UserEmail = userGroup.Key,
+                            UserName = GetUser(userGroup.Key, context).UserName
                         };
             try
             {
@@ -172,6 +197,13 @@ namespace FokkersFishing.Services
             }
             return null;
         }
+
+        public ApplicationUser GetUser(string userEmail, ApplicationDbContext context)
+        {
+            ApplicationUser user = null;
+            user = context.Users.FirstOrDefault(c => c.Email.ToLower() == userEmail.ToLower());
+            return user;
+        } // end f
     } // end c
 } // end ns
 

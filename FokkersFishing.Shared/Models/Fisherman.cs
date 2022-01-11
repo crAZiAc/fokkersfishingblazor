@@ -16,9 +16,12 @@ namespace FokkersFishing.Shared.Models
 
         [JsonProperty(PropertyName = "totalLength")]
         public double TotalLength { get; set; }
-        
+
         [JsonProperty(PropertyName = "fishCount")]
         public int FishCount { get; set; }
+
+        [JsonProperty(PropertyName = "email")]
+        public string UserEmail { get; set; }
 
     } // end c
 } // end ns

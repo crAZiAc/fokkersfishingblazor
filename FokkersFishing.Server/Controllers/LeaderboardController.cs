@@ -22,11 +22,13 @@ namespace FokkersFishing.Controllers
     {
         private readonly ILogger<LeaderboardController> _logger;
         private readonly IFokkersDbService _fokkersDbService;
+        private readonly ApplicationDbContext _dbContext;
 
-        public LeaderboardController(ILogger<LeaderboardController> logger, IFokkersDbService cosmosDbService)
+        public LeaderboardController(ILogger<LeaderboardController> logger, IFokkersDbService cosmosDbService, ApplicationDbContext context)
         {
             _logger = logger;
             _fokkersDbService = cosmosDbService;
+            _dbContext = context;
         }
 
 
@@ -52,9 +54,7 @@ namespace FokkersFishing.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<IEnumerable<FisherMan>>> GetFishermen()
         {
-            _logger.LogError("In GetFishermen");
-            IEnumerable<FisherMan> fishermen = await _fokkersDbService.GetFishermenAsync();
-            _logger.LogError("In GetFishermen: " + fishermen.Count().ToString());
+            IEnumerable<FisherMan> fishermen = await _fokkersDbService.GetFishermenAsync(_dbContext);
             if (fishermen == null)
             {
                 return NotFound();
@@ -62,5 +62,50 @@ namespace FokkersFishing.Controllers
             return fishermen.OrderByDescending(f => f.TotalLength).ToList();
         }
 
-    } // end c
+        [HttpGet("bigthree")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<List<BigThree>>> GetBigThree()
+        {
+            Dictionary<string, BigThree> bigThree = new Dictionary<string, BigThree>();
+            IEnumerable<FisherMan> fishermen = await _fokkersDbService.GetFishermenAsync(_dbContext);
+            
+            // Fill initial dictionary
+            foreach(var fisher in fishermen)
+            {
+                bigThree.Add(fisher.UserEmail, new BigThree { Name = fisher.UserName });
+            }
+            
+            // Pikes
+            IEnumerable<Catch> pikes = await _fokkersDbService.GetTopCatchAsync("pike");
+            if (pikes != null)
+            {
+                foreach (var pike in pikes)
+                {
+                    bigThree[pike.UserEmail].Pike = pike;
+                }
+            }
+
+            // Bass
+            IEnumerable<Catch> bass = await _fokkersDbService.GetTopCatchAsync("bass");
+            if (bass != null)
+            {
+                foreach (var bassFish in bass)
+                {
+                    bigThree[bassFish.UserEmail].Bass = bassFish;
+                }
+            }
+
+            // Zander
+            IEnumerable<Catch> zander = await _fokkersDbService.GetTopCatchAsync("zander");
+            if (zander != null)
+            {
+                foreach (var zanderFish in zander)
+                {
+                    bigThree[zanderFish.UserEmail].Zander = zanderFish;
+                }
+            }
+            return bigThree.Values.ToList();
+        }
+
+} // end c
 } // end ns

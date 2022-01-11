@@ -57,7 +57,7 @@ namespace FokkersFishing.Controllers
             }
             else
             {
-                if (catchMade.UserName == user.Email)
+                if (catchMade.UserEmail == user.Email)
                 {
                     return catchMade.GetCatch();
                 }
@@ -79,7 +79,7 @@ namespace FokkersFishing.Controllers
             catchMade.EditDate = DateTime.Now;
             catchMade.CatchNumber = _fokkersDbService.GetCatchNumberCount(user.Email).Result + 1;
             catchMade.GlobalCatchNumber = _fokkersDbService.GetGlobalCatchNumberCount().Result + 1;
-            catchMade.UserName = user.Email;
+            catchMade.UserEmail = user.Email;
 
             CatchData newCatch = new CatchData();
             newCatch.CatchDate = catchMade.CatchDate.ToUniversalTime();
@@ -90,7 +90,7 @@ namespace FokkersFishing.Controllers
             newCatch.Length = catchMade.Length;
             newCatch.LogDate = catchMade.LogDate.ToUniversalTime();
             newCatch.RowKey = catchMade.Id.ToString();
-            newCatch.UserName = catchMade.UserName;
+            newCatch.UserEmail = catchMade.UserEmail;
 
             await _fokkersDbService.AddItemAsync(newCatch);
             return CreatedAtAction(nameof(GetById), new { id = catchMade.Id }, catchMade);
@@ -101,7 +101,7 @@ namespace FokkersFishing.Controllers
         public async Task<ActionResult<Catch>> Put(Guid id, Catch catchMade)
         {
             ApplicationUser user = _userHelper.GetUser();
-            catchMade.UserName = user.Email;
+            catchMade.UserEmail = user.Email;
             catchMade.EditDate = DateTime.Now;
 
             CatchData updateCatch = await _fokkersDbService.GetItemAsync(id.ToString());
@@ -112,7 +112,7 @@ namespace FokkersFishing.Controllers
             updateCatch.GlobalCatchNumber = catchMade.GlobalCatchNumber;
             updateCatch.Length = catchMade.Length;
             updateCatch.LogDate = catchMade.LogDate.ToUniversalTime();
-            updateCatch.UserName = catchMade.UserName;
+            updateCatch.UserEmail = catchMade.UserEmail;
             updateCatch.CatchPhotoUrl = catchMade.CatchPhotoUrl;
             updateCatch.CatchThumbnailUrl = catchMade.CatchThumbnailUrl;
             updateCatch.MeasurePhotoUrl = catchMade.MeasurePhotoUrl;
@@ -137,7 +137,7 @@ namespace FokkersFishing.Controllers
             }
             else
             {
-                if (catchMade.UserName == user.Email)
+                if (catchMade.UserEmail == user.Email)
                 {
                     // TODO: Delete photos
 

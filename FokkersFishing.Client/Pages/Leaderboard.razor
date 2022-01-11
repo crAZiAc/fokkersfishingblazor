@@ -1,13 +1,13 @@
-﻿@page "/admin"
+﻿@page "/leaders"
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @inject IHttpClientFactory ClientFactory
 
-<h1>Fokkers Users</h1>
+<h1>Fokkers Leaderboard</h1>
 <div class="main">
     @if (catches == null)
     {
-        <p><em>Loading Users...</em></p>
+        <p><em>Loading Catches Leaderboard...</em></p>
         <MatProgressBar Indeterminate="true"></MatProgressBar>
     }
     else

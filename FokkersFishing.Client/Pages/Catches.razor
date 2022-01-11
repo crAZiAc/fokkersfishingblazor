@@ -50,6 +50,7 @@
                 </MatCardContent>
                 <MatCardActions>
                     <MatCardActionIcons>
+                        <MatIconButton Icon="@MatIconNames.Photo" @onclick="@(() => PhotoViewerShowMeasure(catchRow))"></MatIconButton>
                         <MatIconButton Icon="@MatIconNames.Edit" @onclick="@(() => ShowEditDialog(catchRow.Id))"></MatIconButton>
                         <MatIconButton Icon="@MatIconNames.Delete" @onclick="@(() => ShowDeleteDialog(catchRow.Id))"></MatIconButton>
                     </MatCardActionIcons>
@@ -85,6 +86,7 @@
 @code {
     List<Catch> catches;
     List<Fish> fishOptions;
+
     public Catch currentCatch;
     bool EditDialogShown = false;
     bool DeleteDialogShown = false;

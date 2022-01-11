@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FokkersFishing.Shared.Models;
+using FokkersFishing.Data;
 
 namespace FokkersFishing.Interfaces
 {
@@ -14,7 +15,6 @@ namespace FokkersFishing.Interfaces
 
         // Catches
         Task<CatchData> GetItemAsync(string rowKey);
-        Task<List<CatchData>> GetLeaderboardItemsAsync();
         Task<List<CatchData>> GetUserItemsAsync(string userName);
         Task AddItemAsync(CatchData item);
         Task UpdateItemAsync(CatchData item);
@@ -26,6 +26,10 @@ namespace FokkersFishing.Interfaces
         Task<IEnumerable<FishData>> GetFishAsync();
 
         // Fishermen
-        Task<IEnumerable<FisherMan>> GetFishermenAsync();
+        Task<IEnumerable<FisherMan>> GetFishermenAsync(ApplicationDbContext context);
+
+        // Leaderboard
+        Task<List<CatchData>> GetLeaderboardItemsAsync();
+        Task<List<Catch>> GetTopCatchAsync(string fish);
     } // end i
 } // end ns

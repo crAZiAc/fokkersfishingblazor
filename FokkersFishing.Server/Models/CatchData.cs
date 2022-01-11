@@ -12,7 +12,7 @@ namespace FokkersFishing.Models
     {
         public int CatchNumber { get; set; }
 
-        public string UserName { get; set; }
+        public string UserEmail { get; set; }
 
         public string Fish { get; set; }
 
@@ -32,7 +32,7 @@ namespace FokkersFishing.Models
                 Id = Guid.Parse(this.RowKey),
                 Length = this.Length,
                 LogDate = this.LogDate.ToLocalTime(),
-                UserName = this.UserName,
+                UserEmail = this.UserEmail,
                 CatchPhotoUrl = this.CatchPhotoUrl,
                 MeasurePhotoUrl = this.MeasurePhotoUrl,
                 CatchThumbnailUrl = this.CatchThumbnailUrl,

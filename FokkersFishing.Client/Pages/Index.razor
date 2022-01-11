@@ -1,82 +1,258 @@
 ﻿@page "/"
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using System.IO
 @inject IHttpClientFactory ClientFactory
+@inject IMatToaster Toaster
 
-<h1>Fokkers Leaderboard</h1>
+
+<AuthorizeView Roles="Administrator, User">
+    <button type="button" class="btn btn-primary" @onclick="@((x) => AddNewCatch())">Add new catch</button>
+</AuthorizeView>
+<h1>Fokkers Top Catches</h1>
+
 <div class="main">
-    @if (catches == null)
+    @if (bigThree == null)
     {
-        <p><em>Loading Catches Leaderboard...</em></p>
-        <MatProgressBar Indeterminate="true"></MatProgressBar>
+    <p><em>Loading Big Three...</em></p>
+    <MatProgressBar Indeterminate="true"></MatProgressBar>
     }
     else
     {
+    <h3>Big Three</h3>
+    @foreach (BigThree big in bigThree.OrderByDescending(s => s.TotalLength))
+        {
+    <h4>Place # @placeCounter</h4>
+    <h5>@big.Name</h5>
+    <div class="mat-layout-grid">
+        <div class="mat-layout-grid-inner">
+            <div class="mat-layout-grid-cell">
+                @if (big.Pike != null)
+                        {
+                <MatCard class="demo-mat-card">
+                    <MatCardContent>
+                        <div class="demo-mat-card-content" style="color: grey; width: 200px">
+                            <MatSubtitle2 class="demo-mat-card-clean-margin">
+                                @big.Pike.Fish (@big.Pike.Length cm)
+                            </MatSubtitle2>
+                        </div>
+                        <MatCardMedia Wide="true" ImageUrl="@big.Pike.CatchPhotoUrl">
+                        </MatCardMedia>
+                    </MatCardContent>
+                </MatCard>
+                        }
+            </div>
 
-        <h3>Top Catches</h3>
-        <MatTable Items="@catches" class="mat-elevation-z5" Striped="true"
-                  RowClass="tester"
-                  SortBy="Length"
-                  PageSize="10"
-                  FilterByColumnName="Fish"
-                  ShowPaging="false">
-            <MatTableHeader>
-                <th width="10%">Catch #</th>
-                <th width="30%">Catch Date</th>
-                <th width="10%">Fish</th>
-                <th width="20%">Fish Length</th>
-                <th width="20%">Fisherman</th>
-            </MatTableHeader>
-            <MatTableRow>
-                <td>@context.GlobalCatchNumber</td>
-                <td>@context.CatchDate</td>
-                <td>@context.Fish</td>
-                <td>@context.Length</td>
-                <td>@context.UserName</td>
-            </MatTableRow>
-        </MatTable>
+            <div class="mat-layout-grid-cell">
+                @if (big.Bass != null)
+                        {
+                <MatCard class="demo-mat-card">
+                    <MatCardContent>
+                        <div class="demo-mat-card-content" style="color: grey; width: 200px">
+                            <MatSubtitle2 class="demo-mat-card-clean-margin">
+                                @big.Bass.Fish (@big.Bass.Length cm)
+                            </MatSubtitle2>
+                        </div>
+                        <MatCardMedia Wide="true" ImageUrl="@big.Bass.CatchPhotoUrl">
+                        </MatCardMedia>
+                    </MatCardContent>
+                </MatCard>
+                        }
+            </div>
+
+            <div class="mat-layout-grid-cell">
+                @if (big.Zander != null)
+                        {
+                <MatCard class="demo-mat-card">
+                    <MatCardContent>
+                        <div class="demo-mat-card-content" style="color: grey;width: 200px">
+                            <MatSubtitle2 class="demo-mat-card-clean-margin">
+                                @big.Zander.Fish (@big.Zander.Length cm)
+                            </MatSubtitle2>
+                        </div>
+                        <MatCardMedia Wide="true" ImageUrl="@big.Zander.CatchPhotoUrl">
+                        </MatCardMedia>
+                    </MatCardContent>
+                </MatCard>
+                        }
+            </div>
+        </div>
+    </div>
+    <MatDivider></MatDivider>
+            placeCounter++;
+        }       // end foreach
     }
 </div>
-
 <div class="main">
     @if (fishermen == null)
     {
-        <p><em>Loading Fishermen Leaderboard...</em></p>
-        <MatProgressBar Indeterminate="true"></MatProgressBar>
+    <p><em>Loading Top Fishermen...</em></p>
+    <MatProgressBar Indeterminate="true"></MatProgressBar>
     }
     else
     {
+    <h3>Top Fishermen</h3>
 
-        <h3>Top Fishermen</h3>
-        <MatTable Items="@fishermen" class="mat-elevation-z5" Striped="true"
-                  RowClass="tester"
-                  SortBy="TotalLength" PageSize="10"
-                  FilterByColumnName="UserName"
-                  ShowPaging="false">
-            <MatTableHeader>
-                <th width="30%">Fisherman</th>
-                <th width="30%">Total Fish Length</th>
-                <th width="30%">Total Fish Caught</th>
-            </MatTableHeader>
-            <MatTableRow>
-                <td>@context.UserName</td>
-                <td>@context.TotalLength</td>
-                <td>@context.FishCount</td>
-            </MatTableRow>
-        </MatTable>
-        
+    <table>
+        <tr>
+            <th width="50%">Fisherman</th>
+            <th width="25%">Total Fish Length</th>
+            <th width="25%">Total Fish Caught</th>
+        </tr>
+        @foreach (var fisherman in fishermen)
+        {
+        <tr>
+            <td>@fisherman.UserName</td>
+            <td>@fisherman.TotalLength</td>
+            <td>@fisherman.FishCount</td>
+        </tr>
+        }
+    </table>
     }
 </div>
 
+@if (newCatch != null & EditDialogShown == true)
+{
+<EditCatch OnCancel="CancelEdit" OnSave="SaveCatch"
+           currentCatch="@newCatch"
+           fishOptions="@fishOptions"
+           dialogIsOpen="@EditDialogShown" />
+}
+
 @code {
-    List<Catch> catches;
     List<FisherMan> fishermen;
+    List<BigThree> bigThree;
+    List<Fish> fishOptions;
+
+    int placeCounter = 1;
+    bool EditDialogShown = false;
+    Catch newCatch;
 
     protected async override Task OnInitializedAsync()
     {
         var client = ClientFactory.CreateClient("serverNoAuth");
-        catches = await client.GetFromJsonAsync<List<Catch>>("leaderboard");
+        fishOptions = await client.GetFromJsonAsync<List<Fish>>("fish");
+        bigThree = await client.GetFromJsonAsync<List<BigThree>>("leaderboard/bigthree");
         fishermen = await client.GetFromJsonAsync<List<FisherMan>>("leaderboard/fishermen");
+
+    }
+    private void CancelEdit()
+    {
+        EditDialogShown = false;
+        StateHasChanged();
+    }
+
+    private async void AddNewCatch()
+    {
+        newCatch = new Catch
+        {
+            Length = 0,
+            Fish = "Pike",
+            CatchDate = DateTime.Now,
+        };
+
+        var client = ClientFactory.CreateClient("server");
+        HttpResponseMessage response = await client.PostAsJsonAsync("catch", newCatch);
+        if (response.StatusCode != System.Net.HttpStatusCode.Created)
+        {
+            StateHasChanged();
+        }
+        else
+        {
+            newCatch = await response.Content.ReadFromJsonAsync<Catch>();
+            EditDialogShown = true;
+            StateHasChanged();
+        }
+    }
+
+    private async Task SaveCatch(Dictionary<string, IMatFileUploadEntry> catchFiles)
+    {
+        IMatFileUploadEntry selectedMeasureFile = catchFiles["measure"];
+        IMatFileUploadEntry selectedCatchFile = catchFiles["catch"];
+        Toaster.Add($"Catch #: {newCatch.CatchNumber}, Type: {newCatch.Fish}", MatToastType.Info, "Saving catch", "", config =>
+        {
+            config.ShowCloseButton = true;
+            config.ShowProgressBar = true;
+            config.MaximumOpacity = 100;
+
+            config.ShowTransitionDuration = 500;
+            config.VisibleStateDuration = 3000;
+            config.HideTransitionDuration = 500;
+        });
+
+        var client = ClientFactory.CreateClient("server");
+        StateHasChanged();
+
+        // Upload photos
+        if (selectedMeasureFile != null)
+        {
+            Photo measurePhoto = new Photo { Id = newCatch.Id, PhotoType = PhotoTypeEnum.Measure };
+            MemoryStream stream = new MemoryStream();
+            await selectedMeasureFile.WriteToStreamAsync(stream);
+
+            measurePhoto.ImageContent = stream.ToArray();
+            stream.Close();
+            HttpResponseMessage responsePhoto = await client.PostAsJsonAsync<Photo>($"photo", measurePhoto);
+            if (responsePhoto.StatusCode == System.Net.HttpStatusCode.Created)
+            {
+                UploadPhotoResponse photoResponse = await responsePhoto.Content.ReadFromJsonAsync<UploadPhotoResponse>();
+                newCatch.MeasurePhotoUrl = photoResponse.PhotoUrl;
+                newCatch.MeasureThumbnailUrl = photoResponse.ThumbnailUrl;
+            }
+        }
+
+        if (selectedCatchFile != null)
+        {
+            Photo catchPhoto = new Photo { Id = newCatch.Id, PhotoType = PhotoTypeEnum.Catch };
+            MemoryStream stream = new MemoryStream();
+            await selectedCatchFile.WriteToStreamAsync(stream);
+
+            catchPhoto.ImageContent = stream.ToArray();
+            stream.Close();
+            HttpResponseMessage responsePhoto = await client.PostAsJsonAsync<Photo>($"photo", catchPhoto);
+            if (responsePhoto.StatusCode == System.Net.HttpStatusCode.Created)
+            {
+                UploadPhotoResponse photoResponse = await responsePhoto.Content.ReadFromJsonAsync<UploadPhotoResponse>();
+                newCatch.CatchPhotoUrl = photoResponse.PhotoUrl;
+                newCatch.CatchThumbnailUrl = photoResponse.ThumbnailUrl;
+            }
+        }
+
+        HttpResponseMessage response = await client.PutAsJsonAsync("catch/" + newCatch.Id, newCatch);
+        if (response.StatusCode != System.Net.HttpStatusCode.OK)
+        {
+            Toaster.Add($"Catch #: {newCatch.CatchNumber}, Type: {newCatch.Fish}", MatToastType.Warning, "Saving catch failed", "", config =>
+            {
+                config.ShowCloseButton = true;
+                config.ShowProgressBar = true;
+                config.MaximumOpacity = 100;
+
+                config.ShowTransitionDuration = 250;
+                config.VisibleStateDuration = 2000;
+                config.HideTransitionDuration = 500;
+            });
+            StateHasChanged();
+        }
+        else
+        {
+            newCatch = await response.Content.ReadFromJsonAsync<Catch>();
+            StateHasChanged();
+        }
+        selectedMeasureFile = null;
+        selectedCatchFile = null;
+        StateHasChanged();
+        Toaster.Add($"Catch #: {newCatch.CatchNumber}, Type: {newCatch.Fish}", MatToastType.Success, "Catch saved", "", config =>
+        {
+            config.ShowCloseButton = true;
+            config.ShowProgressBar = true;
+            config.MaximumOpacity = 100;
+
+            config.ShowTransitionDuration = 250;
+            config.VisibleStateDuration = 2000;
+            config.HideTransitionDuration = 500;
+        });
+        EditDialogShown = false;
+        StateHasChanged();
     }
 }
 

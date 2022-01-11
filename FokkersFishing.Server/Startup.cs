@@ -45,7 +45,7 @@ namespace FokkersFishing
             services.AddDbContext<ApplicationDbContext>(options =>
                options.UseSqlite(
                    Configuration.GetConnectionString("DefaultConnection")));
-
+            
             services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
@@ -139,7 +139,6 @@ namespace FokkersFishing
         {
             string connectionString = configurationSection.GetSection("ConnectionString").Value;
             string accountName = configurationSection.GetSection("AccountName").Value;
-
             var serviceClient = new TableServiceClient(connectionString);
 
             FokkersDbService tableDbService = new FokkersDbService(serviceClient, connectionString);

@@ -43,6 +43,9 @@ namespace FokkersFishing.Server.Helpers
             return user;
         } // end f
 
+
+      
+
         public List<ApplicationUser> GetUsers()
         {
             List<ApplicationUser> userList = new List<ApplicationUser>();
