@@ -26,7 +26,7 @@ namespace FokkersFishing.Interfaces
         Task<IEnumerable<FishData>> GetFishAsync();
 
         // Fishermen
-        Task<IEnumerable<FisherMan>> GetFishermenAsync(ApplicationDbContext context);
+        Task<IEnumerable<FisherMan>> GetFishermenAsync();
 
         // Leaderboard
         Task<List<CatchData>> GetLeaderboardItemsAsync();

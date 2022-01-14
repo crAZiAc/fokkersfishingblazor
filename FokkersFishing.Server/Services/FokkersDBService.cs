@@ -176,7 +176,7 @@ namespace FokkersFishing.Services
             return null;
         }
 
-        public async Task<IEnumerable<FisherMan>> GetFishermenAsync(ApplicationDbContext context)
+        public async Task<IEnumerable<FisherMan>> GetFishermenAsync()
         {
             var query = from c in _catchContainer.Query<CatchData>()
                         group c by c.UserEmail into userGroup
@@ -184,8 +184,7 @@ namespace FokkersFishing.Services
                         {
                             TotalLength = userGroup.Sum(x => x.Length),
                             FishCount = userGroup.Count(),
-                            UserEmail = userGroup.Key,
-                            UserName = GetUser(userGroup.Key, context).UserName
+                            UserEmail = userGroup.Key
                         };
             try
             {
@@ -198,12 +197,7 @@ namespace FokkersFishing.Services
             return null;
         }
 
-        public ApplicationUser GetUser(string userEmail, ApplicationDbContext context)
-        {
-            ApplicationUser user = null;
-            user = context.Users.FirstOrDefault(c => c.Email.ToLower() == userEmail.ToLower());
-            return user;
-        } // end f
+      
     } // end c
 } // end ns
 

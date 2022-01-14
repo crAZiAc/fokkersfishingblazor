@@ -23,12 +23,15 @@ namespace FokkersFishing.Controllers
         private readonly ILogger<LeaderboardController> _logger;
         private readonly IFokkersDbService _fokkersDbService;
         private readonly ApplicationDbContext _dbContext;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private UserHelper _userHelper;
 
-        public LeaderboardController(ILogger<LeaderboardController> logger, IFokkersDbService cosmosDbService, ApplicationDbContext context)
+        public LeaderboardController(ILogger<LeaderboardController> logger, IFokkersDbService fokkersDbService, IHttpContextAccessor httpContextAccessor, ApplicationDbContext dbContext)
         {
             _logger = logger;
-            _fokkersDbService = cosmosDbService;
-            _dbContext = context;
+            _fokkersDbService = fokkersDbService;
+            _dbContext = dbContext;
+            _userHelper = new UserHelper(_httpContextAccessor, _dbContext);
         }
 
 
@@ -54,10 +57,14 @@ namespace FokkersFishing.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<IEnumerable<FisherMan>>> GetFishermen()
         {
-            IEnumerable<FisherMan> fishermen = await _fokkersDbService.GetFishermenAsync(_dbContext);
+            IEnumerable<FisherMan> fishermen = await _fokkersDbService.GetFishermenAsync();
             if (fishermen == null)
             {
                 return NotFound();
+            }
+            foreach(var fisher in fishermen)
+            {
+                fisher.UserName = _userHelper.GetUser(fisher.UserEmail).UserName;
             }
             return fishermen.OrderByDescending(f => f.TotalLength).ToList();
         }
@@ -67,12 +74,12 @@ namespace FokkersFishing.Controllers
         public async Task<ActionResult<List<BigThree>>> GetBigThree()
         {
             Dictionary<string, BigThree> bigThree = new Dictionary<string, BigThree>();
-            IEnumerable<FisherMan> fishermen = await _fokkersDbService.GetFishermenAsync(_dbContext);
+            IEnumerable<FisherMan> fishermen = await _fokkersDbService.GetFishermenAsync();
             
             // Fill initial dictionary
             foreach(var fisher in fishermen)
             {
-                bigThree.Add(fisher.UserEmail, new BigThree { Name = fisher.UserName });
+                bigThree.Add(fisher.UserEmail, new BigThree { Name = _userHelper.GetUser(fisher.UserEmail).UserName });
             }
             
             // Pikes
@@ -107,5 +114,7 @@ namespace FokkersFishing.Controllers
             return bigThree.Values.ToList();
         }
 
-} // end c
+       
+
+    } // end c
 } // end ns
