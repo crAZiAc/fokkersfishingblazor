@@ -1,0 +1,34 @@
+﻿@inject IHttpClientFactory ClientFactory
+@inject HttpClient HttpClient
+@using Microsoft.AspNetCore.Identity;
+
+<MatDialog @bind-IsOpen="@dialogIsOpen">
+    <MatDialogTitle>User: @currentUser.UserName</MatDialogTitle>
+    <MatDialogContent>
+        <EditForm Model="@currentUser">
+
+            <div className="input-group input-group-sm mb-3">
+                <div className="input-group-prepend" />
+                <MatTextField @bind-Value="@currentUser.Email" Disabled="true" Label="E-Mail Address" FullWidth="false" Outlined="false" />
+                <MatTextField @bind-Value="@currentUser.UserName" Label="User Name" Disabled="false" FullWidth="false" Outlined="false" />
+                @foreach(var role in currentUser.RoleArray)
+                {
+                    <MatCheckbox @bind-Value="role.IsInRole" Label="@role.Name"/>
+                }
+            </div>
+
+        </EditForm>
+    </MatDialogContent>
+    <MatDialogActions>
+        <MatButton OnClick="@OnUserSave" Class="btn btn-primary">Save</MatButton>
+        <MatButton OnClick="@OnUserCancel" Class="btn btn-secondary">Cancel</MatButton>
+    </MatDialogActions>
+</MatDialog>
+
+
+@code {
+    [Parameter] public User currentUser { get; set; }
+    [Parameter] public EventCallback OnUserSave { get; set; }
+    [Parameter] public EventCallback OnUserCancel { get; set; }
+    [Parameter] public bool dialogIsOpen { get; set; }
+}

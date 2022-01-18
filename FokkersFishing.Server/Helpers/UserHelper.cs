@@ -44,21 +44,108 @@ namespace FokkersFishing.Server.Helpers
             return user;
         } // end f
 
-        public List<ApplicationUser> GetUsers()
+        public List<User> GetUsers()
         {
-            List<ApplicationUser> userList = new List<ApplicationUser>();
+            List<User> userList = new List<User>();
             foreach (var user in _dbContext.Users)
             {
-                userList.Add(user);
+                User userToAdd = new User { UserName = user.UserName, Email = user.Email };
+                foreach (var role in _dbContext.Roles)
+                {
+                    var userRole = _dbContext.UserRoles.FirstOrDefault(r => r.RoleId == role.Id & r.UserId == user.Id);
+                    if (userRole != null)
+                    {
+                        userToAdd.Roles.Add(new Role { Id = role.Id, Name = role.Name, IsInRole = true });
+                    }
+                    else
+                    {
+                        userToAdd.Roles.Add(new Role { Id = role.Id, Name = role.Name, IsInRole = false }); ;
+                    }
+                }
+                userList.Add(userToAdd);
             }
             return userList;
         } // end f
 
-        public ApplicationUser GetUser(string userEmail)
+        public User GetUser(string userEmail)
         {
-            ApplicationUser user = null;
-            user = _dbContext.Users.FirstOrDefault(c => c.Email.ToLower() == userEmail.ToLower());
-            return user;
+            ApplicationUser user = _dbContext.Users.FirstOrDefault(c => c.Email.ToLower() == userEmail.ToLower());
+            User userToReturn = user.GetUser();
+            foreach (var role in _dbContext.Roles)
+            {
+                var userRole = _dbContext.UserRoles.FirstOrDefault(r => r.RoleId == role.Id & r.UserId == user.Id);
+                if (userRole != null)
+                {
+                    userToReturn.Roles.Add(new Role { Id = role.Id, Name = role.Name, IsInRole = true });
+                }
+                else
+                {
+                    userToReturn.Roles.Add(new Role { Id = role.Id, Name = role.Name, IsInRole = false }); ;
+                }
+            }
+            return userToReturn;
+
+        } // end f
+
+        public User UpdateUser(User user)
+        {
+            ApplicationUser userToUpdate = _dbContext.Users.FirstOrDefault(c => c.Email.ToLower() == user.Email.ToLower());
+            if (userToUpdate != null)
+            {
+                userToUpdate.UserName = user.UserName;
+                userToUpdate.EmailConfirmed = true;
+                _dbContext.SaveChanges();
+
+                foreach(var userRole in user.Roles)
+                {
+                    var role = _dbContext.Roles.FirstOrDefault(r => r.Name.ToLower() == userRole.Name.ToLower());
+                    if (role != null)
+                    {
+                        // Check if role already there
+                        var userRoleToCheck = _dbContext.UserRoles.FirstOrDefault(r => r.RoleId == role.Id & r.UserId == userToUpdate.Id);
+                        if (userRoleToCheck != null)
+                        {
+                            // check if it needs to be there
+                            if (!userRole.IsInRole)
+                            {
+                                // Should not be there, but is in collection, so remove it
+                                _dbContext.UserRoles.Remove(userRoleToCheck);
+                                _dbContext.SaveChanges();
+                            }
+                            
+                        }   
+                        else
+                        {
+                            // check if it needs to be there
+                            if (userRole.IsInRole)
+                            {
+                                // Should be there, but is not in collection, so add
+                                _dbContext.UserRoles.Add(new IdentityUserRole<string> { RoleId = role.Id, UserId = userToUpdate.Id });
+                                _dbContext.SaveChanges();
+                            }
+                        }
+                    }
+                }
+                User userToReturn = userToUpdate.GetUser();
+                foreach (var role in _dbContext.Roles)
+                {
+                    var userRole = _dbContext.UserRoles.FirstOrDefault(r => r.RoleId == role.Id & r.UserId == userToUpdate.Id);
+                    if (userRole != null)
+                    {
+                        userToReturn.Roles.Add(new Role { Id = role.Id, Name = role.Name, IsInRole = true });
+                    }
+                    else
+                    {
+                        userToReturn.Roles.Add(new Role { Id = role.Id, Name = role.Name, IsInRole = false }); ;
+                    }
+                }
+                return userToReturn;
+            }
+            else
+            {
+                return null;
+            }
+
         } // end f
 
         public bool DeleteUser(string userEmail)
@@ -77,12 +164,18 @@ namespace FokkersFishing.Server.Helpers
             }
         } // end f
 
-        public List<IdentityRole> GetRoles()
+        public List<Role> GetRoles()
         {
+            List<Role> rolesToReturn = new List<Role>();
             List<IdentityRole> roles = _dbContext.Roles.ToList();
             if (roles != null )
             {
-                return roles;
+                foreach(var role in roles)
+                {
+
+                    rolesToReturn.Add(new Role { Id = role.Id, Name = role.Name, IsInRole = false }); ;
+                }
+                return rolesToReturn;
             }
             return null;
         } // end f
@@ -98,25 +191,28 @@ namespace FokkersFishing.Server.Helpers
                 userToReturn = user.GetUser();
                 _dbContext.UserRoles.Add(new IdentityUserRole<string> { RoleId = roleToAdd.Id, UserId = user.Id });
                 _dbContext.SaveChanges();
-                userToReturn.Roles.Add(roleToAdd);
+                userToReturn.Roles.Where(r => r.Id == roleToAdd.Id & r.Name == roleToAdd.Name).FirstOrDefault().IsInRole = true;
             }
             return userToReturn;
         } // end f
 
-        public bool RemoveRoleFromUser(string userEmail, string role)
+        public User RemoveRoleFromUser(string userEmail, string role)
         {
+            User userToReturn = null;
             ApplicationUser user = null;
             user = _dbContext.Users.FirstOrDefault(c => c.Email.ToLower() == userEmail.ToLower());
             IdentityRole roleToRemove = _dbContext.Roles.FirstOrDefault(r => r.Name.ToLower() == role.ToLower());
             if (roleToRemove != null & user != null)
             {
+                userToReturn = user.GetUser();
                 _dbContext.UserRoles.Remove(new IdentityUserRole<string> { RoleId = roleToRemove.Id, UserId = user.Id });
                 _dbContext.SaveChanges();
-                return true;
+                userToReturn.Roles.Where(r => r.Id == roleToRemove.Id & r.Name == roleToRemove.Name).FirstOrDefault().IsInRole = false;
+                return userToReturn;
             }
             else
             {
-                return false;
+                return null;
             }
         } // end f
 

@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
 
 namespace FokkersFishing.Shared.Models
 {
@@ -9,21 +11,35 @@ namespace FokkersFishing.Shared.Models
     {
         public string Email { get; set; }
         public string UserName { get; set; }
-        public List<IdentityRole<string>> Roles { get; set; }
+        [JsonIgnore]
+        public List<Role> Roles { get; set; }
+        public Role[] RoleArray
+        {
+            get
+            {
+                return Roles.ToArray();
+            }
+        }
 
         public User()
         {
-            Roles = new List<IdentityRole<string>>();
+            Roles = new List<Role>();
         }
         public string RoleList
         {
             get
             {
                 StringBuilder roleList = new StringBuilder();
-                foreach (var role in Roles)
+                int roleCount = this.Roles.Where(r => r.IsInRole).Count();
+                int roleNumber = 1;
+                foreach (var role in this.Roles.Where(r => r.IsInRole))
                 {
                     roleList.Append(role.Name);
-                    roleList.Append(",");
+                    if (roleNumber < roleCount)
+                    {
+                        roleList.Append(", ");
+                    }
+                    roleNumber++;
                 }
                 return roleList.ToString();
             }

@@ -21,13 +21,13 @@ namespace FokkersFishing.Controllers
     [Route("[controller]")]
     public class AdminController : Controller
     {
-        private readonly ILogger<CatchController> _logger;
+        private readonly ILogger<AdminController> _logger;
         private readonly IFokkersDbService _fokkersDbService;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ApplicationDbContext _dbContext;
         private UserHelper _userHelper;
 
-        public AdminController(ILogger<CatchController> logger, IFokkersDbService fokkersDbService, IHttpContextAccessor httpContextAccessor, ApplicationDbContext dbContext)
+        public AdminController(ILogger<AdminController> logger, IFokkersDbService fokkersDbService, IHttpContextAccessor httpContextAccessor, ApplicationDbContext dbContext)
         {
             _logger = logger;
             _fokkersDbService = fokkersDbService;
@@ -36,64 +36,63 @@ namespace FokkersFishing.Controllers
             _userHelper = new UserHelper(_httpContextAccessor, _dbContext);
         }
 
-        [HttpGet("/users")]
+        [HttpGet("users")]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
             List<User> usersToReturn = new List<User>();
-            IEnumerable<ApplicationUser> users = null;
-            users = _userHelper.GetUsers();
-            if (users == null)
+            usersToReturn = _userHelper.GetUsers();
+            if (usersToReturn == null)
             {
                 return NotFound();
             }
             else
             {
-                foreach (var user in users)
-                {
-                    User userToReturn = user.GetUser();
-                    var roles = _dbContext.UserRoles.Where(ur => ur.UserId == user.Id);
-                    foreach (var userRole in roles)
-                    {
-                        var role = _dbContext.Roles.FirstOrDefault(r => r.Id == userRole.RoleId);
-                        userToReturn.Roles.Add(role);
-                    }
-                    usersToReturn.Add(userToReturn);
-                }
+                return usersToReturn.ToList();
             }
-            return usersToReturn.ToList();
         }
 
-        [HttpGet("/roles")]
+        [HttpGet("roles")]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<IEnumerable<IdentityRole>>> GetRoles()
+        public async Task<ActionResult<IEnumerable<Role>>> GetRoles()
         {
-            var roles = _userHelper.GetRoles();
-            if (roles == null)
+            List<Role> rolesToReturn = _userHelper.GetRoles();
+            if (rolesToReturn == null)
             {
                 return NotFound();
             }
-            return roles.ToList();
+            else
+            {
+                return rolesToReturn.ToList();
+            }
         }
 
-        [HttpGet("/users/{userEmail}")]
+        [HttpGet("users/{userEmail}")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<User>> GetUserByEmail(string userEmail)
         {
-            ApplicationUser user = _userHelper.GetUser(userEmail);
-            User userToReturn = user.GetUser();
-            var roles = _dbContext.UserRoles.Where(ur => ur.UserId == user.Id);
-            foreach (var userRole in roles)
-            {
-                var role = _dbContext.Roles.FirstOrDefault(r => r.Id == userRole.RoleId);
-                userToReturn.Roles.Add(role);
-            }
+            User userToReturn = _userHelper.GetUser(userEmail);
             return userToReturn;
         }
 
 
-        [HttpPost("/roles/{userEmail}/{roleName}")]
+        [HttpPut("users")]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<User>> UpdateUser(User user)
+        {
+            User userUpdated = _userHelper.UpdateUser(user);
+            if (userUpdated != null)
+            {
+                return userUpdated;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        [HttpPost("roles/{userEmail}/{roleName}")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<User>> AddUserToRole(string userEmail, string roleName)
@@ -109,27 +108,23 @@ namespace FokkersFishing.Controllers
             }
         }
 
-        [HttpDelete("/users/{userEmail}")]
+        [HttpDelete("users/{userEmail}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<bool>> DeleteUsers(string userEmail)
+        public async Task<ActionResult<bool>> DeleteUser(string userEmail)
         {
             bool result = _userHelper.DeleteUser(userEmail);
             return result;
         }
 
-        [HttpDelete("/roles/{userEmail}/{roleName}")]
+        [HttpDelete("roles/{userEmail}/{roleName}")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<bool>> DeleteRoleFromUser(string userEmail, string roleName)
+        public async Task<ActionResult<User>> DeleteRoleFromUser(string userEmail, string roleName)
         {
-            bool result = _userHelper.RemoveRoleFromUser(userEmail, roleName);
+            User result = _userHelper.RemoveRoleFromUser(userEmail, roleName);
             return result;
         }
-
-
-
-
     } // end c
 } // end ns

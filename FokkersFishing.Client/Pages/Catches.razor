@@ -70,7 +70,7 @@
 
 @if (currentCatch != null & DeleteDialogShown == true)
 {
-    <ConfirmDelete OnCancel="CancelDelete" OnConfirm="@(() => DeleteCatch(currentCatch.Id))" catchMade="@currentCatch" dialogIsOpen="@DeleteDialogShown" />
+    <ConfirmCatchDelete OnCancel="CancelDelete" OnConfirm="@(() => DeleteCatch(currentCatch.Id))" catchMade="@currentCatch" dialogIsOpen="@DeleteDialogShown" />
 }
 
 @if (selectedPhotoCatch != null & PhotoViewerCatchShown == true)

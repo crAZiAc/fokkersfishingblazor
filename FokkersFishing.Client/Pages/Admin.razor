@@ -2,6 +2,7 @@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @inject IHttpClientFactory ClientFactory
+@inject IMatToaster Toaster
 
 <h1>Fokkers Users</h1>
 <div class="main">
@@ -12,35 +13,106 @@
     }
     else
     {
-
         <h3>Users</h3>
         <MatTable Items="@users" class="mat-elevation-z5" Striped="true"
-                  RowClass="tester"
-                  SortBy="Length"
-                  PageSize="10"
-                  FilterByColumnName="UserName"
-                  ShowPaging="false">
+              RowClass="tester"
+              SortBy="Length"
+              PageSize="10"
+              FilterByColumnName="UserName"
+              ShowPaging="false">
             <MatTableHeader>
                 <th width="25%">User Name</th>
                 <th width="25%">E-Mail</th>
                 <th width="25%">Roles</th>
+                <th width="25%">Commands</th>
             </MatTableHeader>
             <MatTableRow>
                 <td>@context.UserName</td>
                 <td>@context.Email</td>
                 <td>@context.RoleList</td>
+                <td>
+                    <MatIconButton Icon="@MatIconNames.Edit" OnClick="@(() => EditUser(@context))" />
+                    <MatIconButton Icon="@MatIconNames.Delete" OnClick="@(() => DeleteUser(@context))" />
+                </td>
             </MatTableRow>
         </MatTable>
+        <EditUser currentUser="@currentUser" dialogIsOpen="isDialogOpen" OnUserSave="@OnUserSave" OnUserCancel="OnUserCancel" />
+        <ConfirmUserDelete currentUser="@currentUser" dialogIsOpen="isDeleteDialogOpen" OnConfirm="@(() => OnUserDeleteConfirm(currentUser))" OnCancel="@OnUserDeleteCancel" />
     }
 </div>
 
 @code {
     List<User> users;
+    User currentUser;
+    bool isDialogOpen = false;
+    bool isDeleteDialogOpen = false;
+    string roles = string.Empty;
 
     protected async override Task OnInitializedAsync()
     {
         var client = ClientFactory.CreateClient("server");
-        users = await client.GetFromJsonAsync<List<User>>("/users");
+        users = await client.GetFromJsonAsync<List<User>>("admin/users");
+        currentUser = users.FirstOrDefault();
+    }
+
+    protected void DeleteUser(User userToEdit)
+    {
+        currentUser = userToEdit;
+        isDeleteDialogOpen = true;
+        StateHasChanged();
+    }
+
+    protected void EditUser(User userToEdit)
+    {
+        currentUser = userToEdit;
+        isDialogOpen = true;
+        StateHasChanged();
+    }
+
+    protected async void OnUserSave()
+    {
+        var client = ClientFactory.CreateClient("server");
+        HttpResponseMessage response = await client.PutAsJsonAsync("admin/users", currentUser);
+        if (response.StatusCode != System.Net.HttpStatusCode.OK)
+        {
+            Toaster.Add($"User #: {currentUser.UserName}", MatToastType.Warning, "Saving user failed", "", config =>
+           {
+               config.ShowCloseButton = true;
+               config.ShowProgressBar = true;
+               config.MaximumOpacity = 100;
+
+               config.ShowTransitionDuration = 250;
+               config.VisibleStateDuration = 2000;
+               config.HideTransitionDuration = 500;
+           });
+        }
+        else
+        {
+            currentUser = await response.Content.ReadFromJsonAsync<User>();
+        }
+        isDialogOpen = false;
+        StateHasChanged();
+    }
+
+    protected void OnUserCancel()
+    {
+        isDialogOpen = false;
+        StateHasChanged();
+    }
+
+    private void OnUserDeleteCancel()
+    {
+        isDeleteDialogOpen = false;
+        StateHasChanged();
+    }
+
+    private void OnUserDeleteConfirm(User userToBeDeleted)
+    {
+        var client = ClientFactory.CreateClient("server");
+        client.DeleteAsync($"admin/users/{userToBeDeleted.Email}");
+        users.Remove(userToBeDeleted);
+        isDeleteDialogOpen = false;
+        StateHasChanged();
     }
 }
 
