@@ -1,8 +1,9 @@
-﻿@page "/admin"
+﻿@page "/adminusers"
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @inject IHttpClientFactory ClientFactory
 @inject IMatToaster Toaster
+@attribute [Authorize(Roles = "Administrator")]
 
 <h1>Fokkers Users</h1>
 <div class="main">
@@ -51,7 +52,7 @@
     protected async override Task OnInitializedAsync()
     {
         var client = ClientFactory.CreateClient("server");
-        users = await client.GetFromJsonAsync<List<User>>("admin/users");
+        users = await client.GetFromJsonAsync<List<User>>("adminuser/users");
         currentUser = users.FirstOrDefault();
     }
 
@@ -72,7 +73,7 @@
     protected async void OnUserSave()
     {
         var client = ClientFactory.CreateClient("server");
-        HttpResponseMessage response = await client.PutAsJsonAsync("admin/users", currentUser);
+        HttpResponseMessage response = await client.PutAsJsonAsync("adminuser/users", currentUser);
         if (response.StatusCode != System.Net.HttpStatusCode.OK)
         {
             Toaster.Add($"User #: {currentUser.UserName}", MatToastType.Warning, "Saving user failed", "", config =>
@@ -109,7 +110,7 @@
     private void OnUserDeleteConfirm(User userToBeDeleted)
     {
         var client = ClientFactory.CreateClient("server");
-        client.DeleteAsync($"admin/users/{userToBeDeleted.Email}");
+        client.DeleteAsync($"adminuser/users/{userToBeDeleted.Email}");
         users.Remove(userToBeDeleted);
         isDeleteDialogOpen = false;
         StateHasChanged();

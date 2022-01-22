@@ -5,7 +5,6 @@
 @inject IHttpClientFactory ClientFactory
 @inject IMatToaster Toaster
 
-
 <AuthorizeView Roles="Administrator, User">
     <button type="button" class="btn btn-primary" @onclick="@((x) => AddNewCatch())">Add new catch</button>
 </AuthorizeView>

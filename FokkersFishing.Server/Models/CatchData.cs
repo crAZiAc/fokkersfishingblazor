@@ -36,7 +36,8 @@ namespace FokkersFishing.Models
                 CatchPhotoUrl = this.CatchPhotoUrl,
                 MeasurePhotoUrl = this.MeasurePhotoUrl,
                 CatchThumbnailUrl = this.CatchThumbnailUrl,
-                MeasureThumbnailUrl = this.MeasureThumbnailUrl
+                MeasureThumbnailUrl = this.MeasureThumbnailUrl,
+                Status = this.Status
             };
         }
 
@@ -50,6 +51,7 @@ namespace FokkersFishing.Models
         public string MeasureThumbnailUrl { get; set; }
 
         public string CatchThumbnailUrl { get; set; }
+        public CatchStatusEnum Status { get; set; }
 
         public CatchData()
         {

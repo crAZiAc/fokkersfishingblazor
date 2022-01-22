@@ -15,10 +15,14 @@ namespace FokkersFishing.Interfaces
 
         // Catches
         Task<CatchData> GetItemAsync(string rowKey);
-        Task<List<CatchData>> GetUserItemsAsync(string userName);
+        Task<CatchData> GetUserItemAsync(string rowKey, string userName);
         Task AddItemAsync(CatchData item);
         Task UpdateItemAsync(CatchData item);
         Task DeleteItemAsync(string rowKey);
+
+        Task<List<CatchData>> GetUserItemsAsync(string userName);
+        Task<List<CatchData>> GetAllCatches();
+        Task<List<CatchData>> GetPendingCatches();
         Task<int> GetCatchNumberCount(string userEmail);
         Task<int> GetGlobalCatchNumberCount();
 

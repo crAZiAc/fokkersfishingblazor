@@ -14,7 +14,7 @@
         </li>
         <li class="nav-item px-3">
             <NavLink class="nav-link" href="leaders" Match="NavLinkMatch.All">
-                <span class="oi oi-home" aria-hidden="true"></span> Leaderboard
+                <span class="oi oi-dashboard" aria-hidden="true"></span> Leaderboard
             </NavLink>
         </li>
         <AuthorizeView Roles="Administrator, User">
@@ -26,8 +26,18 @@
         </AuthorizeView>
         <AuthorizeView Roles="Administrator">
             <li class="nav-item px-3">
-                <NavLink class="nav-link" href="admin">
-                    <span class="oi oi-list-rich" aria-hidden="true"></span> Admin
+                <NavLink class="nav-link" href="adminusers">
+                    <span class="oi oi-lock-locked" aria-hidden="true"></span> Users
+                </NavLink>
+            </li>
+             <li class="nav-item px-3">
+                <NavLink class="nav-link" href="admincatches">
+                    <span class="oi oi-elevator" aria-hidden="true"></span> All Catches
+                </NavLink>
+            </li>
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="pendingcatches">
+                    <span class="oi oi-check" aria-hidden="true"></span> Pending Catches
                 </NavLink>
             </li>
         </AuthorizeView>

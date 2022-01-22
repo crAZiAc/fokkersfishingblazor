@@ -36,6 +36,7 @@ namespace FokkersFishing.Controllers
             _userHelper = new UserHelper(_httpContextAccessor, _dbContext);
         }
 
+        #region User Calls
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<IEnumerable<Catch>>> Get()
@@ -59,11 +60,10 @@ namespace FokkersFishing.Controllers
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<Catch>> GetById(Guid id)
+        public async Task<ActionResult<Catch>> GetByIdUser(Guid id)
         {
             ApplicationUser user = _userHelper.GetUser();
-            CatchData catchMade = await _fokkersDbService.GetItemAsync(id.ToString());
-
+            CatchData catchMade = await _fokkersDbService.GetUserItemAsync(id.ToString(), user.Email);
             if (catchMade == null)
             {
                 return NotFound();
@@ -84,7 +84,7 @@ namespace FokkersFishing.Controllers
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<Catch>> Create(Catch catchMade)
+        public async Task<ActionResult<Catch>> CreateUserCatch(Catch catchMade)
         {
             ApplicationUser user = _userHelper.GetUser();
             catchMade.Id = Guid.NewGuid();
@@ -104,14 +104,126 @@ namespace FokkersFishing.Controllers
             newCatch.LogDate = catchMade.LogDate.ToUniversalTime();
             newCatch.RowKey = catchMade.Id.ToString();
             newCatch.UserEmail = catchMade.UserEmail;
+            newCatch.Status = CatchStatusEnum.Pending;
 
             await _fokkersDbService.AddItemAsync(newCatch);
-            return CreatedAtAction(nameof(GetById), new { id = catchMade.Id }, catchMade);
+            return CreatedAtAction(nameof(GetByIdUser), new { id = catchMade.Id }, catchMade);
         }
 
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<Catch>> Put(Guid id, Catch catchMade)
+        public async Task<ActionResult<Catch>> PutUser(Guid id, Catch catchMade)
+        {
+            ApplicationUser user = _userHelper.GetUser();
+            catchMade.UserEmail = user.Email;
+            catchMade.EditDate = DateTime.Now;
+
+            CatchData updateCatch = await _fokkersDbService.GetUserItemAsync(id.ToString(), user.Email);
+            if (updateCatch != null)
+            {
+                if (updateCatch.Status == CatchStatusEnum.Pending)
+                {
+                    updateCatch.CatchDate = catchMade.CatchDate.ToUniversalTime();
+                    updateCatch.CatchNumber = catchMade.CatchNumber;
+                    updateCatch.EditDate = catchMade.EditDate.ToUniversalTime();
+                    updateCatch.Fish = catchMade.Fish;
+                    updateCatch.GlobalCatchNumber = catchMade.GlobalCatchNumber;
+                    updateCatch.Length = catchMade.Length;
+                    updateCatch.LogDate = catchMade.LogDate.ToUniversalTime();
+                    updateCatch.UserEmail = catchMade.UserEmail;
+                    updateCatch.CatchPhotoUrl = catchMade.CatchPhotoUrl;
+                    updateCatch.CatchThumbnailUrl = catchMade.CatchThumbnailUrl;
+                    updateCatch.MeasurePhotoUrl = catchMade.MeasurePhotoUrl;
+                    updateCatch.MeasureThumbnailUrl = catchMade.MeasureThumbnailUrl;
+                    updateCatch.Status = CatchStatusEnum.Pending;
+
+                    await _fokkersDbService.UpdateItemAsync(updateCatch);
+                    return catchMade;
+                }
+                else
+                {
+                    return Forbid();
+                }
+            }
+            else
+            {
+                return Forbid();
+            }
+
+        }
+
+        [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<Catch>> DeleteUserCatch(Guid id)
+        {
+            ApplicationUser user = _userHelper.GetUser();
+            var catchMade = await _fokkersDbService.GetUserItemAsync(id.ToString(), user.Email);
+
+            if (catchMade == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                if (catchMade.UserEmail == user.Email)
+                {
+                    await _fokkersDbService.DeleteItemAsync(id.ToString());
+
+                    return NoContent();
+                }
+                else
+                {
+                    return Forbid();
+                }
+
+            }
+        }
+        #endregion
+        #region Admin calls
+        [Authorize(Roles = "Administrator")]
+        [HttpGet("admin")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<IEnumerable<Catch>>> GetAdmin()
+        {
+            IEnumerable<CatchData> catchesMadeData = null;
+            catchesMadeData = await _fokkersDbService.GetAllCatches();
+            if (catchesMadeData == null)
+            {
+                return NotFound();
+            }
+            List<Catch> catchesMade = new List<Catch>();
+            foreach (CatchData catchMadeData in catchesMadeData)
+            {
+                catchesMade.Add(catchMadeData.GetCatch());
+            }
+            return catchesMade.ToList();
+        }
+
+        [Authorize(Roles = "Administrator")]
+        [HttpGet("admin/pending")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<IEnumerable<Catch>>> GetPendingAdmin()
+        {
+            IEnumerable<CatchData> catchesMadeData = null;
+            catchesMadeData = await _fokkersDbService.GetPendingCatches();
+            if (catchesMadeData == null)
+            {
+                return NotFound();
+            }
+            List<Catch> catchesMade = new List<Catch>();
+            foreach (CatchData catchMadeData in catchesMadeData)
+            {
+                catchesMade.Add(catchMadeData.GetCatch());
+            }
+            return catchesMade.ToList();
+        }
+
+        [Authorize(Roles = "Administrator")]
+        [HttpPut("admin/{id}")]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<Catch>> PutAdmin(Guid id, Catch catchMade)
         {
             ApplicationUser user = _userHelper.GetUser();
             catchMade.UserEmail = user.Email;
@@ -130,16 +242,18 @@ namespace FokkersFishing.Controllers
             updateCatch.CatchThumbnailUrl = catchMade.CatchThumbnailUrl;
             updateCatch.MeasurePhotoUrl = catchMade.MeasurePhotoUrl;
             updateCatch.MeasureThumbnailUrl = catchMade.MeasureThumbnailUrl;
-            
+            updateCatch.Status = catchMade.Status;
+
             await _fokkersDbService.UpdateItemAsync(updateCatch);
             return catchMade;
         }
 
-        [HttpDelete("{id}")]
+        [Authorize(Roles = "Administrator")]
+        [HttpDelete("admin/{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<Catch>> Delete(Guid id)
+        public async Task<ActionResult<Catch>> DeleteAdminCatch(Guid id)
         {
             ApplicationUser user = _userHelper.GetUser();
             var catchMade = await _fokkersDbService.GetItemAsync(id.ToString());
@@ -150,23 +264,11 @@ namespace FokkersFishing.Controllers
             }
             else
             {
-                if (catchMade.UserEmail == user.Email)
-                {
-                    // TODO: Delete photos
-
-
-                    await _fokkersDbService.DeleteItemAsync(id.ToString());
-                    
-                    return NoContent();
-                }
-                else
-                {
-                    return Forbid();
-                }
-
+                await _fokkersDbService.DeleteItemAsync(id.ToString());
+                return NoContent();
             }
         }
-
+        #endregion
 
     } // end c
 } // end ns

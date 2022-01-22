@@ -18,45 +18,56 @@
                         <MatOptionString Value="@fish.Name">@fish.Name</MatOptionString>
                     }
                 </MatSelect>
-                <table>
-                    <tr>
-                        <td width="25%">
-                            <MatFileUpload OnChange="@MeasureFilesReady" Label="Upload picture of catch with measure" AllowMultiple="false"></MatFileUpload>
-                        </td>
+                @if (!adminEdit)
+                {
+                    <table>
+                        <tr>
+                            <td width="25%">
+                                <MatFileUpload OnChange="@MeasureFilesReady" Label="Upload picture of catch with measure" AllowMultiple="false"></MatFileUpload>
+                            </td>
 
-                        <td width="25%">
-                            @if (measureFile != null)
-                            {
-                                <MatIcon Icon="check"></MatIcon>
-                            }
-                        </td>
-                        <td width="50%">
-                            @if (measureFile != null)
-                            {
-                                <label>@selectedMeasureFileMessage</label>
-                            }
-                        </td>
-                    </tr>
-                    <tr>
-                        <td width="25%">
-                            <MatFileUpload OnChange="@CatchFilesReady" Label="Upload picture of fish and fisherman" AllowMultiple="false"></MatFileUpload>
-                        </td>
+                            <td width="25%">
+                                @if (measureFile != null)
+                                {
+                                    <MatIcon Icon="check"></MatIcon>
+                                }
+                            </td>
+                            <td width="50%">
+                                @if (measureFile != null)
+                                {
+                                    <label>@selectedMeasureFileMessage</label>
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <td width="25%">
+                                <MatFileUpload OnChange="@CatchFilesReady" Label="Upload picture of fish and fisherman" AllowMultiple="false"></MatFileUpload>
+                            </td>
 
-                        <td width="50%">
-                            @if (catchFile != null)
-                            {
-                                <MatIcon Icon="check"></MatIcon>
-                            }
-                        </td>
-                        <td width="50%">
-                            @if (catchFile != null)
-                            {
-                                <label>@selectedCatchFileMessage</label>
-                            }
-                        </td>
-                    </tr>
-                </table>
-
+                            <td width="50%">
+                                @if (catchFile != null)
+                                {
+                                    <MatIcon Icon="check"></MatIcon>
+                                }
+                            </td>
+                            <td width="50%">
+                                @if (catchFile != null)
+                                {
+                                    <label>@selectedCatchFileMessage</label>
+                                }
+                            </td>
+                        </tr>
+                    </table>
+                }
+                else
+                {
+                    <MatChipSet Choice="true" SelectedChipChanged="@StatusChanged">
+                        <MatChip Label="Approved" LeadingIcon="@MatIconNames.Done_all" style="color: lightgreen;background-color: green" Value="CatchStatusEnum.Approved"></MatChip>
+                        <MatChip Label="Pending" LeadingIcon="@MatIconNames.Schedule" style="color: lightyellow;background-color:#ffc107" Value="CatchStatusEnum.Pending"></MatChip>
+                        <MatChip Label="Rejected" LeadingIcon="@MatIconNames.Pan_tool" style="color: indianred;background-color:red" Value="CatchStatusEnum.Rejected"></MatChip>
+                    </MatChipSet>
+                    <p class="mt-2">Status: @currentCatch.Status.ToString()</p>
+                }
             </div>
 
         </EditForm>
@@ -75,12 +86,12 @@
     [Parameter] public EventCallback OnCancel { get; set; }
     [Parameter] public bool HasChanged { get; set; }
     [Parameter] public bool dialogIsOpen { get; set; }
+    [Parameter] public bool adminEdit { get; set; }
 
 
     Dictionary<string, IMatFileUploadEntry> catchFiles { get; set; } = new Dictionary<string, IMatFileUploadEntry>();
     IMatFileUploadEntry catchFile;
     IMatFileUploadEntry measureFile;
-
 
     string selectedMeasureFileMessage = string.Empty;
     string selectedCatchFileMessage = string.Empty;
@@ -104,6 +115,12 @@
         selectedCatchFileMessage = $"Name: {files[0].Name} - Size: {files[0].Size}";
         catchFile = files[0];
         catchFiles["catch"] = catchFile;
+        this.StateHasChanged();
+    }
+
+    void StatusChanged(MatChip selectedChip)
+    {
+        currentCatch.Status = ((CatchStatusEnum)selectedChip.Value);
         this.StateHasChanged();
     }
 }

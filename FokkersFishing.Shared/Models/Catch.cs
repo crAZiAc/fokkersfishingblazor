@@ -60,5 +60,8 @@ namespace FokkersFishing.Shared.Models
         [JsonProperty(PropertyName = "catchThumbnailUrl")]
         public string CatchThumbnailUrl { get; set; }
 
+        [JsonProperty(PropertyName = "status")]
+        public CatchStatusEnum Status { get; set; }
+
     } // end c
 } // end ns

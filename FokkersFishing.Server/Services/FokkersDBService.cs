@@ -60,12 +60,31 @@ namespace FokkersFishing.Services
                 return null;
             }
         }
+
+        public async Task<CatchData> GetUserItemAsync(string rowKey, string userEmail)
+
+        {
+            try
+            {
+                var query = from c in _catchContainer.Query<CatchData>()
+                            where c.RowKey == rowKey
+                            where c.UserEmail == userEmail
+                            where c.PartitionKey == "Catches"
+                            select c;
+                return query.FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
         public async Task<List<CatchData>> GetLeaderboardItemsAsync()
         {
 
             try
             {
                 var query = from c in _catchContainer.Query<CatchData>()
+                            where c.Status == CatchStatusEnum.Approved
                             orderby c.Length descending
                             select c;
                 return query.ToList();
@@ -82,6 +101,7 @@ namespace FokkersFishing.Services
             {
                 var query = from c in _catchContainer.Query<CatchData>()
                             where c.Fish.ToLower() == fish.ToLower()
+                            where c.Status == CatchStatusEnum.Approved
                             orderby c.Length descending
                             group c by c.UserEmail into userGroup
                             select new Catch
@@ -108,7 +128,38 @@ namespace FokkersFishing.Services
             {
                 var query = from c in _catchContainer.Query<CatchData>()
                             where c.UserEmail == userEmail
-                            orderby c.CatchNumber
+                            orderby c.CatchNumber descending
+                            select c;
+                return query.ToList();
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
+        public async Task<List<CatchData>> GetAllCatches()
+        {
+            try
+            {
+                var query = from c in _catchContainer.Query<CatchData>()
+                            orderby c.GlobalCatchNumber descending
+                            select c;
+                return query.ToList();
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
+        public async Task<List<CatchData>> GetPendingCatches()
+        {
+            try
+            {
+                var query = from c in _catchContainer.Query<CatchData>()
+                            where c.Status == CatchStatusEnum.Pending
+                            orderby c.GlobalCatchNumber descending
                             select c;
                 return query.ToList();
             }
@@ -179,6 +230,7 @@ namespace FokkersFishing.Services
         public async Task<IEnumerable<FisherMan>> GetFishermenAsync()
         {
             var query = from c in _catchContainer.Query<CatchData>()
+                        where c.Status == CatchStatusEnum.Approved
                         group c by c.UserEmail into userGroup
                         select new FisherMan
                         {

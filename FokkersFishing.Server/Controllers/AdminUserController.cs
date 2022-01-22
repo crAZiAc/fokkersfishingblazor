@@ -19,15 +19,15 @@ namespace FokkersFishing.Controllers
     [Authorize(Roles = "Administrator")]
     [ApiController]
     [Route("[controller]")]
-    public class AdminController : Controller
+    public class AdminUserController : Controller
     {
-        private readonly ILogger<AdminController> _logger;
+        private readonly ILogger<AdminUserController> _logger;
         private readonly IFokkersDbService _fokkersDbService;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ApplicationDbContext _dbContext;
         private UserHelper _userHelper;
 
-        public AdminController(ILogger<AdminController> logger, IFokkersDbService fokkersDbService, IHttpContextAccessor httpContextAccessor, ApplicationDbContext dbContext)
+        public AdminUserController(ILogger<AdminUserController> logger, IFokkersDbService fokkersDbService, IHttpContextAccessor httpContextAccessor, ApplicationDbContext dbContext)
         {
             _logger = logger;
             _fokkersDbService = fokkersDbService;

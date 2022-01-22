@@ -1,20 +1,19 @@
-﻿@page "/catches"
+﻿@page "/pendingcatches"
 @inject IHttpClientFactory ClientFactory
 @inject IMatToaster Toaster
 @using System.ComponentModel
 @using System.IO
-@attribute [Authorize(Roles = "Administrator, User")]
+@attribute [Authorize(Roles = "Administrator")]
 
 <div class="main">
 
     @if (catches == null & currentCatch == null)
     {
-        <p><em>Loading catches for user...</em></p>
+        <p><em>Loading pending catches</em></p>
         <MatProgressBar Indeterminate="true"></MatProgressBar>
     }
     else
     {
-        <button type="button" class="btn btn-primary" @onclick="@((x) => AddNewCatch())">Add new catch</button>
         @foreach (Catch catchRow in catches)
         {
             string image = string.Empty;
@@ -35,6 +34,8 @@
                         <div class="demo-mat-card-content" style="color: @textColor;">
                             <MatHeadline6 class="demo-mat-card-clean-margin">
                                 Catch # @catchRow.CatchNumber (@catchRow.Fish - @catchRow.Length cm)
+                                <br>
+                                @catchRow.UserEmail
                             </MatHeadline6>
                             <MatSubtitle2 class="demo-mat-card-clean-margin">
                                 Catch date: @catchRow.CatchDate.ToLocalTime()
@@ -56,26 +57,23 @@
                             case CatchStatusEnum.Approved:
                                 {
                                     <MatFAB Icon="@MatIconNames.Done_all" Label="Approved" style="color: lightgreen;background-color: green" />
-                                    <MatIconButton Icon="@MatIconNames.Photo" @onclick="@(() => PhotoViewerShowMeasure(catchRow))"></MatIconButton>
-                                    <MatIconButton Icon="@MatIconNames.Delete" @onclick="@(() => ShowDeleteDialog(catchRow.Id))"></MatIconButton>
+
                                     break;
                                 }
                             case CatchStatusEnum.Pending:
                                 {
                                     <MatFAB Icon="@MatIconNames.Schedule" Label="Pending" style="color: lightyellow;background-color:#ffc107" />
-                                    <MatIconButton Icon="@MatIconNames.Photo" @onclick="@(() => PhotoViewerShowMeasure(catchRow))"></MatIconButton>
-                                    <MatIconButton Icon="@MatIconNames.Edit" @onclick="@(() => ShowEditDialog(catchRow.Id))"></MatIconButton>
-                                    <MatIconButton Icon="@MatIconNames.Delete" @onclick="@(() => ShowDeleteDialog(catchRow.Id))"></MatIconButton>
-
                                     break;
                                 }
                             case CatchStatusEnum.Rejected:
                                 {
                                     <MatFAB Icon="@MatIconNames.Pan_tool" Label="Rejected" style="color: indianred;background-color:red" />
-                                    <MatIconButton Icon="@MatIconNames.Photo" @onclick="@(() => PhotoViewerShowMeasure(catchRow))"></MatIconButton>
                                     break;
                                 }
                         }
+                        <MatIconButton Icon="@MatIconNames.Photo" @onclick="@(() => PhotoViewerShowMeasure(catchRow))"></MatIconButton>
+                        <MatIconButton Icon="@MatIconNames.Edit" @onclick="@(() => ShowEditDialog(catchRow.Id))"></MatIconButton>
+                        <MatIconButton Icon="@MatIconNames.Delete" @onclick="@(() => ShowDeleteDialog(catchRow.Id))"></MatIconButton>
                     </MatCardActionIcons>
                 </MatCardActions>
             </MatCard>
@@ -89,7 +87,7 @@
            currentCatch="@currentCatch"
            fishOptions="@fishOptions"
            dialogIsOpen="@EditDialogShown"
-           adminEdit="false"/>
+           adminEdit="true"/>
 }
 
 @if (currentCatch != null & DeleteDialogShown == true)
@@ -125,7 +123,7 @@
     {
         var client = ClientFactory.CreateClient("server");
         fishOptions = await client.GetFromJsonAsync<List<Fish>>("fish");
-        catches = await client.GetFromJsonAsync<List<Catch>>("catch");
+        catches = await client.GetFromJsonAsync<List<Catch>>("catch/admin/pending");
         if (catches.Count > 0)
         {
             currentCatch = catches.FirstOrDefault();
@@ -136,34 +134,6 @@
         }
 
     }
-
-    private async void AddNewCatch()
-    {
-        Catch newCatch = new Catch
-            {
-                Length = 0,
-                Fish = "Pike",
-                CatchDate = DateTime.Now,
-            };
-
-        var client = ClientFactory.CreateClient("server");
-        HttpResponseMessage response = await client.PostAsJsonAsync("catch", newCatch);
-        if (response.StatusCode != System.Net.HttpStatusCode.Created)
-        {
-            StateHasChanged();
-        }
-        else
-        {
-
-            newCatch = await response.Content.ReadFromJsonAsync<Catch>();
-            catches.Add(newCatch);
-            currentCatch = newCatch;
-            EditDialogShown = true;
-            StateHasChanged();
-        }
-    }
-
-
 
     private void CancelEdit()
     {
@@ -194,7 +164,7 @@
     private void DeleteCatch(Guid id)
     {
         var client = ClientFactory.CreateClient("server");
-        client.DeleteAsync("catch/" + id);
+        client.DeleteAsync("catch/admin/" + id);
         Catch catchToBeDeleted = catches.FirstOrDefault(e => e.Id == id);
         catches.Remove(catchToBeDeleted);
         DeleteDialogShown = false;
@@ -246,8 +216,6 @@
 
     private async Task SaveCatch(Dictionary<string, IMatFileUploadEntry> catchFiles)
     {
-        IMatFileUploadEntry selectedMeasureFile = catchFiles["measure"];
-        IMatFileUploadEntry selectedCatchFile = catchFiles["catch"];
         Toaster.Add($"Catch #: {currentCatch.CatchNumber}, Type: {currentCatch.Fish}", MatToastType.Info, "Saving catch", "", config =>
         {
             config.ShowCloseButton = true;
@@ -262,42 +230,7 @@
         var client = ClientFactory.CreateClient("server");
         StateHasChanged();
 
-        // Upload photos
-        if (selectedMeasureFile != null)
-        {
-            Photo measurePhoto = new Photo { Id = currentCatch.Id, PhotoType = PhotoTypeEnum.Measure };
-            MemoryStream stream = new MemoryStream();
-            await selectedMeasureFile.WriteToStreamAsync(stream);
-
-            measurePhoto.ImageContent = stream.ToArray();
-            stream.Close();
-            HttpResponseMessage responsePhoto = await client.PostAsJsonAsync<Photo>($"photo", measurePhoto);
-            if (responsePhoto.StatusCode == System.Net.HttpStatusCode.Created)
-            {
-                UploadPhotoResponse photoResponse = await responsePhoto.Content.ReadFromJsonAsync<UploadPhotoResponse>();
-                currentCatch.MeasurePhotoUrl = photoResponse.PhotoUrl;
-                currentCatch.MeasureThumbnailUrl = photoResponse.ThumbnailUrl;
-            }
-        }
-
-        if (selectedCatchFile != null)
-        {
-            Photo catchPhoto = new Photo { Id = currentCatch.Id, PhotoType = PhotoTypeEnum.Catch };
-            MemoryStream stream = new MemoryStream();
-            await selectedCatchFile.WriteToStreamAsync(stream);
-
-            catchPhoto.ImageContent = stream.ToArray();
-            stream.Close();
-            HttpResponseMessage responsePhoto = await client.PostAsJsonAsync<Photo>($"photo", catchPhoto);
-            if (responsePhoto.StatusCode == System.Net.HttpStatusCode.Created)
-            {
-                UploadPhotoResponse photoResponse = await responsePhoto.Content.ReadFromJsonAsync<UploadPhotoResponse>();
-                currentCatch.CatchPhotoUrl = photoResponse.PhotoUrl;
-                currentCatch.CatchThumbnailUrl = photoResponse.ThumbnailUrl;
-            }
-        }
-
-        HttpResponseMessage response = await client.PutAsJsonAsync("catch/" + currentCatch.Id, currentCatch);
+        HttpResponseMessage response = await client.PutAsJsonAsync("catch/admin/" + currentCatch.Id, currentCatch);
         if (response.StatusCode != System.Net.HttpStatusCode.OK)
         {
             Toaster.Add($"Catch #: {currentCatch.CatchNumber}, Type: {currentCatch.Fish}", MatToastType.Warning, "Saving catch failed", "", config =>
@@ -317,8 +250,6 @@
             currentCatch = await response.Content.ReadFromJsonAsync<Catch>();
             StateHasChanged();
         }
-        selectedMeasureFile = null;
-        selectedCatchFile = null;
         StateHasChanged();
         Toaster.Add($"Catch #: {currentCatch.CatchNumber}, Type: {currentCatch.Fish}", MatToastType.Success, "Catch saved", "", config =>
         {
