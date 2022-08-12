@@ -226,22 +226,13 @@ namespace FokkersFishing.Controllers
         public async Task<ActionResult<Catch>> PutAdmin(Guid id, Catch catchMade)
         {
             ApplicationUser user = _userHelper.GetUser();
-            catchMade.UserEmail = user.Email;
             catchMade.EditDate = DateTime.Now;
 
             CatchData updateCatch = await _fokkersDbService.GetItemAsync(id.ToString());
             updateCatch.CatchDate = catchMade.CatchDate.ToUniversalTime();
-            updateCatch.CatchNumber = catchMade.CatchNumber;
             updateCatch.EditDate = catchMade.EditDate.ToUniversalTime();
             updateCatch.Fish = catchMade.Fish;
-            updateCatch.GlobalCatchNumber = catchMade.GlobalCatchNumber;
             updateCatch.Length = catchMade.Length;
-            updateCatch.LogDate = catchMade.LogDate.ToUniversalTime();
-            updateCatch.UserEmail = catchMade.UserEmail;
-            updateCatch.CatchPhotoUrl = catchMade.CatchPhotoUrl;
-            updateCatch.CatchThumbnailUrl = catchMade.CatchThumbnailUrl;
-            updateCatch.MeasurePhotoUrl = catchMade.MeasurePhotoUrl;
-            updateCatch.MeasureThumbnailUrl = catchMade.MeasureThumbnailUrl;
             updateCatch.Status = catchMade.Status;
 
             await _fokkersDbService.UpdateItemAsync(updateCatch);

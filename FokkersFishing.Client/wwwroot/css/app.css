@@ -191,10 +191,11 @@ app {
     }
 }
 
-.mdc-dialog-scroll-lock {
-    overflow-y: scroll;
+
+.mdc-dialog .mdc-dialog__container {
+    width: 100%;
 }
 
-body.mdc-dialog-scroll-lock {
-    overflow: inherit;
+.mdc-dialog .mdc-dialog__surface {
+    max-width: none !important;
 }

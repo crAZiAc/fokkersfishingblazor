@@ -15,7 +15,7 @@
     else
     {
         <button type="button" class="btn btn-primary" @onclick="@((x) => AddNewCatch())">Add new catch</button>
-        @foreach (Catch catchRow in catches)
+        @foreach (Catch catchRow in catches.OrderByDescending(c => c.CatchNumber))
         {
             string image = string.Empty;
             string textColor = string.Empty;
@@ -144,6 +144,7 @@
                 Length = 0,
                 Fish = "Pike",
                 CatchDate = DateTime.Now,
+                Status = CatchStatusEnum.Pending
             };
 
         var client = ClientFactory.CreateClient("server");

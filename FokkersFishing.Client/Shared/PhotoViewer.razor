@@ -2,8 +2,16 @@
 
 <MatDialog @bind-IsOpen="@dialogIsOpen">
     <MatDialogTitle>Catch #: @catchMade.CatchNumber (@catchMade.Fish - @catchMade.Length cm). Caught on: @catchMade.CatchDate.ToLocalTime()</MatDialogTitle>
-    <MatDialogContent>
-        <img src="@url" width="95%" height="95%" />
+    <MatDialogContent >
+        @if (isAdmin)
+        {
+            <img src="@url"width="100%" height="100%"/>
+        }
+        else
+        {
+            <img src="@url" width="95%" height="95%"/>
+        }
+
     </MatDialogContent>
     <MatDialogActions>
         <MatButton OnClick="@OnClose" Class="btn btn-secondary">Close</MatButton>
@@ -15,5 +23,6 @@
     [Parameter] public Catch catchMade { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
     [Parameter] public bool dialogIsOpen { get; set; }
+    [Parameter] public bool isAdmin { get; set; }
 
 }

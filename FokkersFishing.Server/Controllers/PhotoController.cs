@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Identity;
 using Azure.Storage.Blobs;
 using System.IO;
 using System.Drawing;
+using Azure.Storage.Blobs.Models;
 
 namespace FokkersFishing.Controllers
 {
@@ -119,7 +120,7 @@ namespace FokkersFishing.Controllers
                     {
                         pngImage.Save(imageStream, System.Drawing.Imaging.ImageFormat.Jpeg);
                         imageStream.Position = 0;
-                        await client.UploadAsync(imageStream, true);
+                        await client.UploadAsync(imageStream, new BlobHttpHeaders { ContentType = "img/jpeg" });
                     }
                 }
 

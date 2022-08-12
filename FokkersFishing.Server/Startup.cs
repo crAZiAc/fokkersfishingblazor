@@ -45,8 +45,14 @@ namespace FokkersFishing
             services.AddDbContext<ApplicationDbContext>(options =>
                options.UseSqlite(
                    Configuration.GetConnectionString("DefaultConnection")));
-            
-            services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
+
+            services.AddDefaultIdentity<ApplicationUser>(options =>
+            {
+                options.SignIn.RequireConfirmedAccount = true;
+                options.Password.RequireDigit = true;
+                options.Password.RequireLowercase = true;
+                options.Password.RequireUppercase = true;
+            })
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
@@ -54,7 +60,7 @@ namespace FokkersFishing
             section["ConnectionString"] = Configuration["Storage:ConnectionString"];
 
             services.AddSingleton<IFokkersDbService>(InitializeTableClientInstanceAsync(section).GetAwaiter().GetResult());
-            
+
             services.AddIdentityServer()
            .AddApiAuthorization<ApplicationUser, ApplicationDbContext>(opt =>
            {
@@ -94,7 +100,7 @@ namespace FokkersFishing
             services.AddControllersWithViews();
             services.AddRazorPages();
 
-          
+
 
         } //end f
 
@@ -115,7 +121,7 @@ namespace FokkersFishing
             }
 
             app.UseHttpsRedirection();
-            app.UseBlazorFrameworkFiles(); 
+            app.UseBlazorFrameworkFiles();
             app.UseStaticFiles();
             app.UseRouting();
 

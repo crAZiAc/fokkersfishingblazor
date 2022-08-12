@@ -87,7 +87,7 @@
            currentCatch="@currentCatch"
            fishOptions="@fishOptions"
            dialogIsOpen="@EditDialogShown"
-           adminEdit="true"/>
+           adminEdit="true" />
 }
 
 @if (currentCatch != null & DeleteDialogShown == true)
@@ -102,7 +102,7 @@
 
 @if (selectedMeasureCatch != null & PhotoViewerMeasureShown == true)
 {
-    <PhotoViewer OnClose="@(() => PhotoViewerMeasureClose())" catchMade="@selectedMeasureCatch" dialogIsOpen="@PhotoViewerMeasureShown" url="@selectedMeasureCatch.MeasurePhotoUrl" />
+    <PhotoViewer OnClose="@(() => PhotoViewerMeasureClose())" catchMade="@selectedMeasureCatch" dialogIsOpen="@PhotoViewerMeasureShown" url="@selectedMeasureCatch.MeasurePhotoUrl" isAdmin=true />
 }
 
 @code {
