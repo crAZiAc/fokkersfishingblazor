@@ -42,7 +42,7 @@ app {
     .main .top-row {
         background-color: #f7f7f7;
         border-bottom: 1px solid #d6d5d5;
-        justify-content: flex-end;
+        justify-content: flex-start;
     }
 
         .main .top-row > a, .main .top-row .btn-link {
@@ -198,4 +198,16 @@ app {
 
 .mdc-dialog .mdc-dialog__surface {
     max-width: none !important;
+}
+
+.demo-mat-card {
+    max-width: 400px;
+}
+
+.demo-mat-card-content {
+    padding: 1rem;
+}
+
+.demo-mat-card-clean-margin {
+    margin: 0px;
 }

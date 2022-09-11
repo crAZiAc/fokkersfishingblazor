@@ -5,34 +5,34 @@
     <MatDialogTitle>Catch #: @currentCatch.CatchNumber</MatDialogTitle>
     <MatDialogContent>
         <EditForm Model="currentCatch">
-
-            <div className="input-group input-group-sm mb-3">
-                <div className="input-group-prepend" />
-                <MatTextField @bind-Value="@currentCatch.CatchNumber" ReadOnly="true" Label="Catch #" Disabled="true" FullWidth="false" Outlined="false" />
-                <MatTextField @bind-Value="@currentCatch.LogDate" ReadOnly="true" Disabled="true" Label="Log Date" FullWidth="false" Outlined="false" />
-                <MatDatePicker @bind-Value="@currentCatch.CatchDate" EnableTime="true" Label="Catch Date and Time" Enable24hours="true" EnableSeconds="false" EnableWeekNumbers="true" FullWidth="false" Outlined="false" />
-                <MatTextField @bind-Value="@currentCatch.Length" Label="Fish Length" FullWidth="false" Outlined="false" />
-                <MatSelect Label="Fish Type" @bind-Value="currentCatch.Fish" FullWidth="false" Outlined="false">
+            <p><MatTextField @bind-Value="@currentCatch.CatchNumber" ReadOnly="true" Label="Catch #" Disabled="true" FullWidth="false" Outlined="false" Dense="true" /></p>
+            <p><MatTextField @bind-Value="@currentCatch.LogDate" ReadOnly="true" Disabled="true" Label="Log Date" FullWidth="false" Outlined="false" Dense="true" /></p>
+            <p><MatDatePicker @bind-Value="@currentCatch.CatchDate" EnableTime="true" Label="Catch Date and Time" Enable24hours="true" EnableSeconds="false" EnableWeekNumbers="true" FullWidth="false" Outlined="false" Dense="true" /></p>
+            <p><MatTextField @bind-Value="@currentCatch.Length" Label="Fish Length" FullWidth="false" Outlined="false" Dense="true" /></p>
+            <p>
+                <MatSelect Label="Fish Type" @bind-Value="currentCatch.Fish" FullWidth="false" Outlined="false" Dense="true">
                     @foreach (Fish fish in fishOptions)
                     {
                         <MatOptionString Value="@fish.Name">@fish.Name</MatOptionString>
                     }
                 </MatSelect>
-                @if (!adminEdit)
-                {
+            </p>
+            @if (!adminEdit)
+            {
+                <p>
                     <table>
                         <tr>
-                            <td width="25%">
+                            <td width="50px">
                                 <MatFileUpload OnChange="@MeasureFilesReady" Label="Upload picture of catch with measure" AllowMultiple="false"></MatFileUpload>
                             </td>
 
-                            <td width="25%">
+                            <td width="25px">
                                 @if (measureFile != null)
                                 {
                                     <MatIcon Icon="check"></MatIcon>
                                 }
                             </td>
-                            <td width="50%">
+                            <td width="100px">
                                 @if (measureFile != null)
                                 {
                                     <label>@selectedMeasureFileMessage</label>
@@ -40,17 +40,17 @@
                             </td>
                         </tr>
                         <tr>
-                            <td width="25%">
+                            <td width="50px">
                                 <MatFileUpload OnChange="@CatchFilesReady" Label="Upload picture of fish and fisherman" AllowMultiple="false"></MatFileUpload>
                             </td>
 
-                            <td width="50%">
+                            <td width="25px">
                                 @if (catchFile != null)
                                 {
                                     <MatIcon Icon="check"></MatIcon>
                                 }
                             </td>
-                            <td width="50%">
+                            <td width="100px">
                                 @if (catchFile != null)
                                 {
                                     <label>@selectedCatchFileMessage</label>
@@ -58,23 +58,23 @@
                             </td>
                         </tr>
                     </table>
-                }
-                else
-                {
-                    <MatChipSet Choice="true" SelectedChipChanged="@StatusChanged">
-                        <MatChip Label="Approved" LeadingIcon="@MatIconNames.Done_all" style="color: lightgreen;background-color: green" Value="CatchStatusEnum.Approved"></MatChip>
-                        <MatChip Label="Pending" LeadingIcon="@MatIconNames.Schedule" style="color: lightyellow;background-color:#ffc107" Value="CatchStatusEnum.Pending"></MatChip>
-                        <MatChip Label="Rejected" LeadingIcon="@MatIconNames.Pan_tool" style="color: indianred;background-color:red" Value="CatchStatusEnum.Rejected"></MatChip>
-                    </MatChipSet>
-                    <p class="mt-2">Status: @currentCatch.Status.ToString()</p>
-                }
-            </div>
+                </p>
+            }
+            else
+            {
+                <MatChipSet Choice="true" SelectedChipChanged="@StatusChanged">
+                    <MatChip Label="Approved" LeadingIcon="@MatIconNames.Done_all" style="color: lightgreen;background-color: green" Value="CatchStatusEnum.Approved"></MatChip>
+                    <MatChip Label="Pending" LeadingIcon="@MatIconNames.Schedule" style="color: lightyellow;background-color:#ffc107" Value="CatchStatusEnum.Pending"></MatChip>
+                    <MatChip Label="Rejected" LeadingIcon="@MatIconNames.Pan_tool" style="color: darkgoldenrod;background-color:indianred" Value="CatchStatusEnum.Rejected"></MatChip>
+                </MatChipSet>
+                <p class="mt-2">Status: @currentCatch.Status.ToString()</p>
+            }
 
         </EditForm>
     </MatDialogContent>
     <MatDialogActions>
         <MatButton OnClick="@(() => OnSave.InvokeAsync(catchFiles))" Class="btn btn-primary">Save</MatButton>
-        <MatButton OnClick="@OnCancel" Class="btn btn-secondary" s>Cancel</MatButton>
+        <MatButton OnClick="@OnCancel" Class="btn btn-secondary" >Cancel</MatButton>
     </MatDialogActions>
 </MatDialog>
 

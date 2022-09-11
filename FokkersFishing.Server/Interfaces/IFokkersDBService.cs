@@ -27,13 +27,20 @@ namespace FokkersFishing.Interfaces
         Task<int> GetGlobalCatchNumberCount();
 
         // Fish
-        Task<IEnumerable<FishData>> GetFishAsync();
+        Task<List<FishData>> GetFishAsync();
 
         // Fishermen
-        Task<IEnumerable<FisherMan>> GetFishermenAsync();
+        Task<List<FisherMan>> GetFishermenAsync();
 
         // Leaderboard
         Task<List<CatchData>> GetLeaderboardItemsAsync();
         Task<List<Catch>> GetTopCatchAsync(string fish);
+
+        // Competition
+        Task<List<CompetitionData>> GetCompetitionsAsync();
+        Task<CompetitionData> GetCompetitionAsync(string rowKey);
+        Task AddCompetitionAsync(CompetitionData item);
+        Task DeleteCompetitionAsync(string rowKey);
+        Task UpdateCompetitionAsync(CompetitionData item);
     } // end i
 } // end ns

@@ -14,6 +14,9 @@ namespace FokkersFishing.Shared.Models
         [JsonProperty(PropertyName = "id")]
         public Guid Id { get; set; }
 
+        [JsonProperty(PropertyName = "competitionId")]
+        public Guid CompetitionId { get; set; }
+
         [JsonProperty(PropertyName = "catchNumber")]
         public int CatchNumber { get; set; }
 

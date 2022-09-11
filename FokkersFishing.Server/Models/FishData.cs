@@ -16,7 +16,6 @@ namespace FokkersFishing.Models
         {
             PartitionKey = "Fish";
         }
-
         public Fish GetFish()
         {
             return new Fish

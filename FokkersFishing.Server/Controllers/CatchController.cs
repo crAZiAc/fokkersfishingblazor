@@ -36,7 +36,7 @@ namespace FokkersFishing.Controllers
             _userHelper = new UserHelper(_httpContextAccessor, _dbContext);
         }
 
-        #region User Calls
+        #region Catch Calls
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<IEnumerable<Catch>>> Get()
@@ -53,6 +53,29 @@ namespace FokkersFishing.Controllers
             foreach (CatchData catchMadeData in catchesMadeData)
             {
                 catchesMade.Add(catchMadeData.GetCatch());
+            }
+            return catchesMade.ToList();
+        }
+
+        [HttpGet("{competitionId}")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<IEnumerable<Catch>>> GetCompetitionCatches(Guid competitionId)
+        {
+            // Check incoming ID and get username
+            ApplicationUser user = _userHelper.GetUser();
+            IEnumerable<CatchData> catchesMadeData = null;
+            catchesMadeData = await _fokkersDbService.GetUserItemsAsync(user.Email);
+            if (catchesMadeData == null)
+            {
+                return NotFound();
+            }
+            List<Catch> catchesMade = new List<Catch>();
+            foreach (CatchData catchMadeData in catchesMadeData)
+            {
+                if (catchMadeData.CompetitionId == competitionId)
+                {
+                    catchesMade.Add(catchMadeData.GetCatch());
+                }
             }
             return catchesMade.ToList();
         }
@@ -105,6 +128,7 @@ namespace FokkersFishing.Controllers
             newCatch.RowKey = catchMade.Id.ToString();
             newCatch.UserEmail = catchMade.UserEmail;
             newCatch.Status = CatchStatusEnum.Pending;
+            newCatch.CompetitionId = catchMade.CompetitionId;
 
             await _fokkersDbService.AddItemAsync(newCatch);
             return CreatedAtAction(nameof(GetByIdUser), new { id = catchMade.Id }, catchMade);
@@ -136,6 +160,7 @@ namespace FokkersFishing.Controllers
                     updateCatch.MeasurePhotoUrl = catchMade.MeasurePhotoUrl;
                     updateCatch.MeasureThumbnailUrl = catchMade.MeasureThumbnailUrl;
                     updateCatch.Status = CatchStatusEnum.Pending;
+                    updateCatch.CompetitionId = catchMade.CompetitionId;
 
                     await _fokkersDbService.UpdateItemAsync(updateCatch);
                     return catchMade;
@@ -234,6 +259,7 @@ namespace FokkersFishing.Controllers
             updateCatch.Fish = catchMade.Fish;
             updateCatch.Length = catchMade.Length;
             updateCatch.Status = catchMade.Status;
+            updateCatch.CompetitionId = catchMade.CompetitionId;
 
             await _fokkersDbService.UpdateItemAsync(updateCatch);
             return catchMade;

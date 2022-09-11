@@ -1,0 +1,32 @@
+﻿@inject IHttpClientFactory ClientFactory
+@inject HttpClient HttpClient
+@using Microsoft.AspNetCore.Identity;
+
+<MatDialog @bind-IsOpen="@dialogIsOpen">
+    <MatDialogTitle>User: @currentCompetition.CompetitionName</MatDialogTitle>
+    <MatDialogContent>
+        <EditForm Model="@currentCompetition">
+
+            <div className="input-group input-group-sm mb-3">
+                <div className="input-group-prepend" />
+                <MatTextField @bind-Value="currentCompetition.CompetitionName" Label="Competition Name" FullWidth="false" Outlined="false" />
+                <MatDatePicker @bind-Value="@currentCompetition.StartDate" EnableTime="true" Label="Start Date" Enable24hours="true" EnableSeconds="false" EnableWeekNumbers="true" FullWidth="false" Outlined="false" />
+                <MatDatePicker @bind-Value="@currentCompetition.EndDate" EnableTime="true" Label="End Date" Enable24hours="true" EnableSeconds="false" EnableWeekNumbers="true" FullWidth="false" Outlined="false" />
+                <MatCheckbox @bind-Value="currentCompetition.Active" Label="Active?" />
+            </div>
+
+        </EditForm>
+    </MatDialogContent>
+    <MatDialogActions>
+        <MatButton OnClick="@OnCompetitionSave" Class="btn btn-primary">Save</MatButton>
+        <MatButton OnClick="@OnCompetitionCancel" Class="btn btn-secondary">Cancel</MatButton>
+    </MatDialogActions>
+</MatDialog>
+
+
+@code {
+    [Parameter] public Competition currentCompetition { get; set; }
+    [Parameter] public EventCallback OnCompetitionSave { get; set; }
+    [Parameter] public EventCallback OnCompetitionCancel { get; set; }
+    [Parameter] public bool dialogIsOpen { get; set; }
+}

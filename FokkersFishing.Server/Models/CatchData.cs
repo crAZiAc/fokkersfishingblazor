@@ -11,6 +11,7 @@ namespace FokkersFishing.Models
     public class CatchData : BaseEntity, ITableEntity
     {
         public int CatchNumber { get; set; }
+        public Guid CompetitionId { get; set; }
 
         public string UserEmail { get; set; }
 
@@ -37,6 +38,7 @@ namespace FokkersFishing.Models
                 MeasurePhotoUrl = this.MeasurePhotoUrl,
                 CatchThumbnailUrl = this.CatchThumbnailUrl,
                 MeasureThumbnailUrl = this.MeasureThumbnailUrl,
+                CompetitionId = this.CompetitionId,
                 Status = this.Status
             };
         }

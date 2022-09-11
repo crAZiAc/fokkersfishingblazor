@@ -30,25 +30,23 @@
             }
             <MatCard class="demo-mat-card">
                 <MatCardContent>
-                    <MatCardMedia Wide="true" ImageUrl="@image">
-                        <div class="demo-mat-card-content" style="color: @textColor;">
-                            <MatHeadline6 class="demo-mat-card-clean-margin">
-                                Catch # @catchRow.CatchNumber (@catchRow.Fish - @catchRow.Length cm)
-                                <br>
-                                @catchRow.UserEmail
-                            </MatHeadline6>
-                            <MatSubtitle2 class="demo-mat-card-clean-margin">
-                                Catch date: @catchRow.CatchDate.ToLocalTime()
-                                <br />
-                                Global Catch # @catchRow.GlobalCatchNumber
-                            </MatSubtitle2>
-                        </div>
-                    </MatCardMedia>
-                    <MatBody2 class="demo-mat-card-content demo-mat-card-clean-margin">
+                    <div class="demo-mat-card-content" style="color: @textColor;">
+                        <MatHeadline6 class="demo-mat-card-clean-margin">
+                            Catch # @catchRow.CatchNumber (@catchRow.Fish - @catchRow.Length cm)
+                            <br>
+                            @catchRow.UserName
+                        </MatHeadline6>
+                        <MatSubtitle2 class="demo-mat-card-clean-margin">
+                            Catch date: @catchRow.CatchDate.ToLocalTime()
+                            <br />
+                            Global Catch # @catchRow.GlobalCatchNumber
+                        </MatSubtitle2>
+                          <MatBody2 class="demo-mat-card-content demo-mat-card-clean-margin">
                         Logged: @catchRow.LogDate.ToLocalTime()
                         <br />
                         Edited: @catchRow.EditDate.ToLocalTime()
                     </MatBody2>
+                    </div>
                 </MatCardContent>
                 <MatCardActions>
                     <MatCardActionIcons>
@@ -67,16 +65,30 @@
                                 }
                             case CatchStatusEnum.Rejected:
                                 {
-                                    <MatFAB Icon="@MatIconNames.Pan_tool" Label="Rejected" style="color: indianred;background-color:red" />
+                                    <MatFAB Icon="@MatIconNames.Pan_tool" Label="Rejected"  style="color: darkgoldenrod;background-color:indianred" />
                                     break;
                                 }
                         }
-                        <MatIconButton Icon="@MatIconNames.Photo" @onclick="@(() => PhotoViewerShowMeasure(catchRow))"></MatIconButton>
                         <MatIconButton Icon="@MatIconNames.Edit" @onclick="@(() => ShowEditDialog(catchRow.Id))"></MatIconButton>
                         <MatIconButton Icon="@MatIconNames.Delete" @onclick="@(() => ShowDeleteDialog(catchRow.Id))"></MatIconButton>
                     </MatCardActionIcons>
                 </MatCardActions>
+            
+            <MatTabGroup>
+                <MatTab Label="Catch">
+                    <img src="@image" style=" max-width: 100%;height: auto;">
+                </MatTab>
+                <MatTab Label="Measure">
+                    <MatCard class="demo-mat-card">
+                        <MatCardContent>
+                            <img src="@catchRow.MeasurePhotoUrl" style=" max-width: 100%;height: auto;">
+                            <a href="@catchRow.MeasurePhotoUrl">Download measure photo</a>
+                        </MatCardContent>
+                    </MatCard>
+                </MatTab>
+            </MatTabGroup>
             </MatCard>
+            <br />
         }
     }
 </div>
@@ -87,7 +99,7 @@
            currentCatch="@currentCatch"
            fishOptions="@fishOptions"
            dialogIsOpen="@EditDialogShown"
-           adminEdit="true"/>
+           adminEdit="true" />
 }
 
 @if (currentCatch != null & DeleteDialogShown == true)

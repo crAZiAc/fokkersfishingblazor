@@ -14,7 +14,6 @@
     }
     else
     {
-        <h3>Users</h3>
         <MatTable Items="@users" class="mat-elevation-z5" Striped="true"
               RowClass="tester"
               SortBy="Length"
@@ -56,9 +55,9 @@
         currentUser = users.FirstOrDefault();
     }
 
-    protected void DeleteUser(User userToEdit)
+    protected void DeleteUser(User userToDelete)
     {
-        currentUser = userToEdit;
+        currentUser = userToDelete;
         isDeleteDialogOpen = true;
         StateHasChanged();
     }

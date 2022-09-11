@@ -14,6 +14,7 @@ namespace FokkersFishing.Services
     {
         private TableClient _catchContainer;
         private TableClient _fishContainer;
+        private TableClient _competitionContainer;
         private string _connectionString;
 
         public string StorageConnectionString
@@ -29,12 +30,14 @@ namespace FokkersFishing.Services
             _connectionString = connectionString;
             this._catchContainer = dbClient.GetTableClient("Catches");
             this._fishContainer = dbClient.GetTableClient("Fish");
+            this._competitionContainer = dbClient.GetTableClient("Competitions");
 
             this._catchContainer.CreateIfNotExists();
             this._fishContainer.CreateIfNotExists();
+            this._competitionContainer.CreateIfNotExists();
         }
 
-        // Catches
+        #region Catches
         public async Task AddItemAsync(CatchData item)
         {
             await this._catchContainer.AddEntityAsync<CatchData>(item);
@@ -221,9 +224,9 @@ namespace FokkersFishing.Services
             await this._catchContainer.UpdateEntityAsync<CatchData>(item, item.ETag);
         }
 
-
-        // Fish
-        public async Task<IEnumerable<FishData>> GetFishAsync()
+        #endregion
+        #region Fish
+        public async Task<List<FishData>> GetFishAsync()
         {
             var query = from f in _fishContainer.Query<FishData>()
                         orderby f.Name
@@ -239,7 +242,7 @@ namespace FokkersFishing.Services
             return null;
         }
 
-        public async Task<IEnumerable<FisherMan>> GetFishermenAsync()
+        public async Task<List<FisherMan>> GetFishermenAsync()
         {
             var query = from c in _catchContainer.Query<CatchData>()
                         where c.Status == CatchStatusEnum.Approved
@@ -260,8 +263,62 @@ namespace FokkersFishing.Services
             }
             return null;
         }
+        #endregion
+        #region Competition
+        public async Task<List<CompetitionData>> GetCompetitionsAsync()
+        {
+            var query = from c in _competitionContainer.Query<CompetitionData>()
+                        orderby c.StartDate
+                        select c;
+            try
+            {
+                return query.ToList();
+            }
+            catch (Exception ex)
+            {
 
-      
+            }
+            return null;
+        }
+
+        public async Task<CompetitionData> GetCompetitionAsync(string rowKey)
+        {
+            try
+            {
+                var query = from c in _competitionContainer.Query<CompetitionData>()
+                            where c.RowKey == rowKey
+                            where c.PartitionKey == "Competition"
+                            select c;
+                return query.FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+        public async Task AddCompetitionAsync(CompetitionData item)
+        {
+            try
+            {
+
+                await this._competitionContainer.AddEntityAsync<CompetitionData>(item);
+            }
+            catch (Exception ex)
+            {
+            }
+        }
+
+        public async Task DeleteCompetitionAsync(string rowKey)
+        {
+            await this._competitionContainer.DeleteEntityAsync("Competition", rowKey);
+        }
+
+        public async Task UpdateCompetitionAsync(CompetitionData item)
+        {
+            await this._competitionContainer.UpdateEntityAsync<CompetitionData>(item, item.ETag);
+        }
+        #endregion
+
     } // end c
 } // end ns
 

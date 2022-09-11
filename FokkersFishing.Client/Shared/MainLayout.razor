@@ -1,4 +1,6 @@
 ﻿@inherits LayoutComponentBase
+@inject IHttpClientFactory ClientFactory
+@inject FokkersFishing.Client.Helpers.CompetitionState competitionState
 
 <div class="sidebar">
     <NavMenu />
@@ -6,10 +8,45 @@
 
 <div class="main">
     <div class="top-row px-4 auth">
-        <LoginDisplay />
+        <table width="100%">
+            <tr>
+                <td width="50%">
+                @if (competitionState.Active)
+                {
+                    <h4 style="color: darkgrey">Competition running: @competitionState.CompetitionName</h4>
+                }
+                </td>
+                <td width="25%">
+                <LoginDisplay />
+                </td>
+            </tr>
+        </table>
     </div>
 
     <div class="content px-4">
         @Body
     </div>
 </div>
+
+
+@code
+{
+    protected async override Task OnInitializedAsync()
+    {
+        var client = ClientFactory.CreateClient("serverNoAuth");
+        var competitions = await client.GetFromJsonAsync<List<Competition>>("competition");
+        var activeCompetitions = from ac in competitions
+                                 where ac.Active == true
+                                 select ac;
+
+        if (activeCompetitions.Count() > 0)
+        {
+            competitionState.CompetitionName = activeCompetitions.FirstOrDefault().CompetitionName;
+            competitionState.Active = activeCompetitions.FirstOrDefault().Active;
+            competitionState.StartDate = activeCompetitions.FirstOrDefault().StartDate;
+            competitionState.EndDate = activeCompetitions.FirstOrDefault().EndDate;
+            competitionState.CompetitionId = activeCompetitions.FirstOrDefault().Id;
+
+        }
+    }
+}

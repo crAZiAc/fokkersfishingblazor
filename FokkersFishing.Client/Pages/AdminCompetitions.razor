@@ -1,0 +1,159 @@
+﻿@page "/admincompetitions"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@inject IHttpClientFactory ClientFactory
+@inject IMatToaster Toaster
+@attribute [Authorize(Roles = "Administrator")]
+
+<h1>Fokkers Competitions</h1>
+<div class="main">
+    @if (competitions == null)
+    {
+        <p><em>Loading Competitions...</em></p>
+        <MatProgressBar Indeterminate="true"></MatProgressBar>
+    }
+    else
+    {
+        <button type="button" class="btn btn-primary" @onclick="@((x) => AddNewCompetition())">Add new competition</button>
+        <MatTable Items="@competitions" class="mat-elevation-z5" Striped="true"
+              RowClass="tester"
+              SortBy="Length"
+              PageSize="10"
+              FilterByColumnName="CompetitionName"
+              ShowPaging="false">
+            <MatTableHeader>
+                <th width="25%">Competition Name</th>
+                <th width="25%">Start Date</th>
+                <th width="25%">End Date</th>
+                <th width="25%">Active</th>
+            </MatTableHeader>
+            <MatTableRow>
+                <td>@context.CompetitionName</td>
+                <td>@context.StartDate</td>
+                <td>@context.EndDate</td>
+                <td>@context.Active</td>
+                <td>
+                    <MatIconButton Icon="@MatIconNames.Edit" OnClick="@(() => EditCompetition(@context))" />
+                    <MatIconButton Icon="@MatIconNames.Delete" OnClick="@(() => DeleteCompetition(@context))" />
+                </td>
+            </MatTableRow>
+        </MatTable>
+        <EditCompetition currentCompetition="@currentCompetition" dialogIsOpen="isDialogOpen" OnCompetitionSave="OnCompetitionSave" OnCompetitionCancel="OnCompetitionCancel" />
+        <ConfirmCompetitionDelete currentCompetition="@currentCompetition" dialogIsOpen="isDeleteDialogOpen" OnConfirm="@(() => OnCompetitionDeleteConfirm(currentCompetition))" OnCancel="@OnCompetitionDeleteCancel" />
+    }
+</div>
+
+@code {
+    List<Competition> competitions;
+    Competition currentCompetition;
+    bool isDialogOpen = false;
+    bool isDeleteDialogOpen = false;
+    string roles = string.Empty;
+    public bool newCompetitionAdded = false;
+
+    protected async override Task OnInitializedAsync()
+    {
+        var client = ClientFactory.CreateClient("server");
+        competitions = await client.GetFromJsonAsync<List<Competition>>("competition");
+        if (competitions.Count > 0)
+        {
+            currentCompetition = competitions.FirstOrDefault();
+        }
+        else
+        {
+            currentCompetition = new Competition();
+        }
+    }
+
+    private async void AddNewCompetition()
+    {
+        Competition newCompetition = new Competition
+            {
+                StartDate = DateTime.Now,
+                EndDate = DateTime.Now.AddHours(8)
+            };
+
+        newCompetitionAdded = true;
+        currentCompetition = newCompetition;
+        isDialogOpen = true;
+        StateHasChanged();
+    }
+
+    protected void DeleteCompetition(Competition competitionToDelete)
+    {
+        currentCompetition = competitionToDelete;
+        isDeleteDialogOpen = true;
+        StateHasChanged();
+    }
+
+    protected void EditCompetition(Competition userToEdit)
+    {
+        currentCompetition = userToEdit;
+        isDialogOpen = true;
+        StateHasChanged();
+    }
+
+    protected async void OnCompetitionSave()
+    {
+        var client = ClientFactory.CreateClient("server");
+        HttpResponseMessage response = null;
+        if (newCompetitionAdded)
+        {
+            response = await client.PostAsJsonAsync("competition", currentCompetition);
+            if (response.StatusCode != System.Net.HttpStatusCode.Created)
+            {
+                StateHasChanged();
+            }
+            else
+            {
+                currentCompetition = await response.Content.ReadFromJsonAsync<Competition>();
+                competitions.Add(currentCompetition);
+            }
+        }
+
+        response = await client.PutAsJsonAsync("competition/" + currentCompetition.Id, currentCompetition);
+        if (response.StatusCode != System.Net.HttpStatusCode.OK)
+        {
+            Toaster.Add($"Competition #: {currentCompetition.CompetitionName}", MatToastType.Warning, "Saving competition failed", "", config =>
+           {
+               config.ShowCloseButton = true;
+               config.ShowProgressBar = true;
+               config.MaximumOpacity = 100;
+
+               config.ShowTransitionDuration = 250;
+               config.VisibleStateDuration = 2000;
+               config.HideTransitionDuration = 500;
+           });
+        }
+        else
+        {
+            currentCompetition = await response.Content.ReadFromJsonAsync<Competition>();
+            newCompetitionAdded = false;
+        }
+        isDialogOpen = false;
+        StateHasChanged();
+    }
+
+    protected void OnCompetitionCancel()
+    {
+        isDialogOpen = false;
+        StateHasChanged();
+    }
+
+    private void OnCompetitionDeleteCancel()
+    {
+        isDeleteDialogOpen = false;
+        StateHasChanged();
+    }
+
+    private void OnCompetitionDeleteConfirm(Competition competitionToBeDeleted)
+    {
+        var client = ClientFactory.CreateClient("server");
+        client.DeleteAsync($"competition/{competitionToBeDeleted.Id}");
+        competitions.Remove(competitionToBeDeleted);
+        isDeleteDialogOpen = false;
+        StateHasChanged();
+    }
+}
+
+

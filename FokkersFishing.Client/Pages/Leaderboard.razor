@@ -2,71 +2,80 @@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @inject IHttpClientFactory ClientFactory
+@inject FokkersFishing.Client.Helpers.CompetitionState competitionState
 
 <h1>Fokkers Leaderboard</h1>
-<div class="main">
-    @if (catches == null)
-    {
-        <p><em>Loading Catches Leaderboard...</em></p>
-        <MatProgressBar Indeterminate="true"></MatProgressBar>
-    }
-    else
-    {
+@if (competitionState.Active == false)
+{
+    <div class="main">
 
-        <h3>Top Catches</h3>
-        <MatTable Items="@catches" class="mat-elevation-z5" Striped="true"
-                  RowClass="tester"
-                  SortBy="Length"
-                  PageSize="10"
-                  FilterByColumnName="Fish"
-                  ShowPaging="false">
-            <MatTableHeader>
-                <th width="10%">Catch #</th>
-                <th width="30%">Catch Date</th>
-                <th width="10%">Fish</th>
-                <th width="20%">Fish Length</th>
-                <th width="20%">Fisherman</th>
-            </MatTableHeader>
-            <MatTableRow>
-                <td>@context.GlobalCatchNumber</td>
-                <td>@context.CatchDate</td>
-                <td>@context.Fish</td>
-                <td>@context.Length</td>
-                <td>@context.UserName</td>
-            </MatTableRow>
-        </MatTable>
-    }
-</div>
+        @if (catches == null)
+        {
+            <p><em>Loading Catches Leaderboard...</em></p>
+            <MatProgressBar Indeterminate="true"></MatProgressBar>
+        }
+        else
+        {
 
-<div class="main">
-    @if (fishermen == null)
-    {
-        <p><em>Loading Fishermen Leaderboard...</em></p>
-        <MatProgressBar Indeterminate="true"></MatProgressBar>
-    }
-    else
-    {
+            <h3>Top Catches</h3>
+            <MatTable Items="@catches" class="mat-elevation-z5" Striped="true"
+              RowClass="tester"
+              SortBy="Length"
+              PageSize="10"
+              FilterByColumnName="Fish"
+              ShowPaging="false">
+                <MatTableHeader>
+                    <th width="10%">Catch #</th>
+                    <th width="30%">Catch Date</th>
+                    <th width="10%">Fish</th>
+                    <th width="20%">Fish Length</th>
+                    <th width="20%">Fisherman</th>
+                </MatTableHeader>
+                <MatTableRow>
+                    <td>@context.GlobalCatchNumber</td>
+                    <td>@context.CatchDate</td>
+                    <td>@context.Fish</td>
+                    <td>@context.Length</td>
+                    <td>@context.UserName</td>
+                </MatTableRow>
+            </MatTable>
+        }
+    </div>
 
-        <h3>Top Fishermen</h3>
-        <MatTable Items="@fishermen" class="mat-elevation-z5" Striped="true"
-                  RowClass="tester"
-                  SortBy="TotalLength" PageSize="10"
-                  FilterByColumnName="UserName"
-                  ShowPaging="false">
-            <MatTableHeader>
-                <th width="30%">Fisherman</th>
-                <th width="30%">Total Fish Length</th>
-                <th width="30%">Total Fish Caught</th>
-            </MatTableHeader>
-            <MatTableRow>
-                <td>@context.UserName</td>
-                <td>@context.TotalLength</td>
-                <td>@context.FishCount</td>
-            </MatTableRow>
-        </MatTable>
-        
-    }
-</div>
+    <div class="main">
+        @if (fishermen == null)
+        {
+            <p><em>Loading Fishermen Leaderboard...</em></p>
+            <MatProgressBar Indeterminate="true"></MatProgressBar>
+        }
+        else
+        {
+
+            <h3>Top Fishermen</h3>
+            <MatTable Items="@fishermen" class="mat-elevation-z5" Striped="true"
+              RowClass="tester"
+              SortBy="TotalLength" PageSize="10"
+              FilterByColumnName="UserName"
+              ShowPaging="false">
+                <MatTableHeader>
+                    <th width="30%">Fisherman</th>
+                    <th width="30%">Total Fish Length</th>
+                    <th width="30%">Total Fish Caught</th>
+                </MatTableHeader>
+                <MatTableRow>
+                    <td>@context.UserName</td>
+                    <td>@context.TotalLength</td>
+                    <td>@context.FishCount</td>
+                </MatTableRow>
+            </MatTable>
+
+        }
+    </div>
+}
+else
+{
+    <h3 style="color: indianred">Competition Active. Leaderboard disabled for the duration of the competition</h3>
+}
 
 @code {
     List<Catch> catches;
