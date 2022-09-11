@@ -89,7 +89,7 @@
            currentCatch="@currentCatch"
            fishOptions="@fishOptions"
            dialogIsOpen="@EditDialogShown"
-           adminEdit="false"/>
+           adminEdit="false" />
 }
 
 @if (currentCatch != null & DeleteDialogShown == true)
@@ -120,6 +120,7 @@
     Catch selectedMeasureCatch;
     public IMatFileUploadEntry selectedMeasureFile;
     public IMatFileUploadEntry selectedCatchFile;
+    public bool NewCatchAdded = false;
 
     protected async override Task OnInitializedAsync()
     {
@@ -147,21 +148,26 @@
                 Status = CatchStatusEnum.Pending
             };
 
-        var client = ClientFactory.CreateClient("server");
-        HttpResponseMessage response = await client.PostAsJsonAsync("catch", newCatch);
-        if (response.StatusCode != System.Net.HttpStatusCode.Created)
-        {
-            StateHasChanged();
-        }
-        else
-        {
+        NewCatchAdded = true;
+        currentCatch = newCatch;
+        EditDialogShown = true;
+        StateHasChanged();
 
-            newCatch = await response.Content.ReadFromJsonAsync<Catch>();
-            catches.Add(newCatch);
-            currentCatch = newCatch;
-            EditDialogShown = true;
-            StateHasChanged();
-        }
+        //var client = ClientFactory.CreateClient("server");
+        //HttpResponseMessage response = await client.PostAsJsonAsync("catch", newCatch);
+        //if (response.StatusCode != System.Net.HttpStatusCode.Created)
+        //{
+        //    StateHasChanged();
+        //}
+        //else
+        //{
+
+        //    newCatch = await response.Content.ReadFromJsonAsync<Catch>();
+        //    catches.Add(newCatch);
+        //    currentCatch = newCatch;
+        //    EditDialogShown = true;
+        //    StateHasChanged();
+        //}
     }
 
 
@@ -263,6 +269,21 @@
         var client = ClientFactory.CreateClient("server");
         StateHasChanged();
 
+        HttpResponseMessage response = null;
+        if (NewCatchAdded)
+        {
+            response = await client.PostAsJsonAsync("catch", currentCatch);
+            if (response.StatusCode != System.Net.HttpStatusCode.Created)
+            {
+                StateHasChanged();
+            }
+            else
+            {
+                currentCatch = await response.Content.ReadFromJsonAsync<Catch>();
+                catches.Add(currentCatch);
+            }
+        }
+
         // Upload photos
         if (selectedMeasureFile != null)
         {
@@ -298,7 +319,7 @@
             }
         }
 
-        HttpResponseMessage response = await client.PutAsJsonAsync("catch/" + currentCatch.Id, currentCatch);
+        response = await client.PutAsJsonAsync("catch/" + currentCatch.Id, currentCatch);
         if (response.StatusCode != System.Net.HttpStatusCode.OK)
         {
             Toaster.Add($"Catch #: {currentCatch.CatchNumber}, Type: {currentCatch.Fish}", MatToastType.Warning, "Saving catch failed", "", config =>
@@ -318,6 +339,8 @@
             currentCatch = await response.Content.ReadFromJsonAsync<Catch>();
             StateHasChanged();
         }
+
+        NewCatchAdded = false;
         selectedMeasureFile = null;
         selectedCatchFile = null;
         StateHasChanged();

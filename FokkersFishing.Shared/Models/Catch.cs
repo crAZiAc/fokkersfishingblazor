@@ -20,6 +20,8 @@ namespace FokkersFishing.Shared.Models
         [JsonProperty(PropertyName = "userEmail")]
         public string UserEmail { get; set; }
 
+        public string UserName { get; set; }
+
         [JsonProperty(PropertyName = "fish")]
         public string Fish { get; set; }
 

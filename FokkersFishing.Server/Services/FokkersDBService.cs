@@ -178,7 +178,12 @@ namespace FokkersFishing.Services
                         select c;
             try
             {
-                return query.FirstOrDefault().CatchNumber;
+                if (query.Count() > 0)
+                {
+                    return query.FirstOrDefault().CatchNumber;
+                }
+                else
+                    return 0;
             }
             catch (Exception ex)
             {
@@ -195,7 +200,14 @@ namespace FokkersFishing.Services
                         select c;
             try
             {
-                return query.FirstOrDefault().GlobalCatchNumber;
+                if (query.Count() > 0)
+                {
+                    return query.FirstOrDefault().GlobalCatchNumber;
+                }
+                else
+                {
+                    return 0;
+                }
             }
             catch (Exception ex)
             {

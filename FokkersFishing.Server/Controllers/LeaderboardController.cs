@@ -48,6 +48,7 @@ namespace FokkersFishing.Controllers
             foreach (CatchData catchMadeData in catchesMadeData)
             {
                 Catch catchMade = catchMadeData.GetCatch();
+                catchMade.UserName = _userHelper.GetUser(catchMade.UserEmail).UserName;
                 catchesMade.Add(catchMade);
             }
             return catchesMade.ToList();

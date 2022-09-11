@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <RazorLangVersion>3.0</RazorLangVersion>
+    <UserSecretsId>aae83b6d-a546-49e5-8308-8122b298b5be</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
