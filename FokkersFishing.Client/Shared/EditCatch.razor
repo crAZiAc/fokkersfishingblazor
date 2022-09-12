@@ -73,8 +73,8 @@
         </EditForm>
     </MatDialogContent>
     <MatDialogActions>
-        <MatButton OnClick="@(() => OnSave.InvokeAsync(catchFiles))" Class="btn btn-primary">Save</MatButton>
-        <MatButton OnClick="@OnCancel" Class="btn btn-secondary" >Cancel</MatButton>
+        <MatButton OnClick="@SaveClicked" Class="btn btn-primary" Disabled="@isSaving">Save</MatButton>
+        <MatButton OnClick="@OnCancel" Class="btn btn-secondary" Disabled="@isSaving" >Cancel</MatButton>
     </MatDialogActions>
 </MatDialog>
 
@@ -87,6 +87,7 @@
     [Parameter] public bool HasChanged { get; set; }
     [Parameter] public bool dialogIsOpen { get; set; }
     [Parameter] public bool adminEdit { get; set; }
+    private bool isSaving = false;
 
 
     Dictionary<string, IMatFileUploadEntry> catchFiles { get; set; } = new Dictionary<string, IMatFileUploadEntry>();
@@ -123,4 +124,12 @@
         currentCatch.Status = ((CatchStatusEnum)selectedChip.Value);
         this.StateHasChanged();
     }
+
+    void SaveClicked()
+    {
+        isSaving = true;
+        this.StateHasChanged();
+        OnSave.InvokeAsync(catchFiles);
+    }
+
 }

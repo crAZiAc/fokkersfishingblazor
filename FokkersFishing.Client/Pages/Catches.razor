@@ -55,6 +55,10 @@
                 </MatCardContent>
                 <MatCardActions>
                     <MatCardActionIcons>
+                        @if (catchRow.CaughtInCompetition)
+                        {
+                            <MatFAB Icon="@MatIconNames.Fitness_center" Label="Caught in competition" style="color: black;background-color: lightgrey" />                                                        
+                        }
                         @switch (catchRow.Status)
                         {
                             case CatchStatusEnum.Approved:
@@ -278,8 +282,8 @@
             config.ShowProgressBar = true;
             config.MaximumOpacity = 100;
 
-            config.ShowTransitionDuration = 500;
-            config.VisibleStateDuration = 3000;
+            config.ShowTransitionDuration = 2000;
+            config.VisibleStateDuration = 5000;
             config.HideTransitionDuration = 500;
         });
 
@@ -345,7 +349,7 @@
                 config.ShowProgressBar = true;
                 config.MaximumOpacity = 100;
 
-                config.ShowTransitionDuration = 250;
+                config.ShowTransitionDuration = 1000;
                 config.VisibleStateDuration = 2000;
                 config.HideTransitionDuration = 500;
             });
@@ -367,7 +371,7 @@
             config.ShowProgressBar = true;
             config.MaximumOpacity = 100;
 
-            config.ShowTransitionDuration = 250;
+            config.ShowTransitionDuration = 1000;
             config.VisibleStateDuration = 2000;
             config.HideTransitionDuration = 500;
         });

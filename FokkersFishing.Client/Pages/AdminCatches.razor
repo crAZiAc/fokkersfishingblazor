@@ -37,14 +37,15 @@
                 <MatCardContent>
                     <div class="demo-mat-card-content" style="color: @textColor;">
                         <MatHeadline6 class="demo-mat-card-clean-margin">
-                            Catch # @catchRow.CatchNumber (@catchRow.Fish - @catchRow.Length cm)
+                            Global Catch # @catchRow.GlobalCatchNumber (@catchRow.Fish - @catchRow.Length cm)
                             <br>
-                            @catchRow.UserName
                         </MatHeadline6>
                         <MatSubtitle2 class="demo-mat-card-clean-margin">
                             Catch date: @catchRow.CatchDate.ToLocalTime()
                             <br />
-                            Global Catch # @catchRow.GlobalCatchNumber
+                            User Catch # @catchRow.CatchNumber
+                            <br />
+                            Caught by: @catchRow.UserName
                         </MatSubtitle2>
                         <MatBody2 class="demo-mat-card-content demo-mat-card-clean-margin">
                             Logged: @catchRow.LogDate.ToLocalTime()
@@ -55,6 +56,10 @@
                 </MatCardContent>
                 <MatCardActions>
                     <MatCardActionIcons>
+                         @if (catchRow.CaughtInCompetition)
+                        {
+                            <MatFAB Icon="@MatIconNames.Fitness_center" Label="Caught in competition" style="color: black;background-color: lightgrey" />                                                        
+                        }
                         @switch (catchRow.Status)
                         {
                             case CatchStatusEnum.Approved:

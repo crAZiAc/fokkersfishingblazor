@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Azure.Data.Tables;
+using FokkersFishing.Server.Helpers;
 using FokkersFishing.Shared.Models;
 using Newtonsoft.Json;
 

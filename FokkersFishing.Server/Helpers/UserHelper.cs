@@ -70,21 +70,31 @@ namespace FokkersFishing.Server.Helpers
         public User GetUser(string userEmail)
         {
             ApplicationUser user = _dbContext.Users.FirstOrDefault(c => c.Email.ToLower() == userEmail.ToLower());
-            User userToReturn = user.GetUser();
-            foreach (var role in _dbContext.Roles)
+            if (user != null)
             {
-                var userRole = _dbContext.UserRoles.FirstOrDefault(r => r.RoleId == role.Id & r.UserId == user.Id);
-                if (userRole != null)
+                User userToReturn = user.GetUser();
+                foreach (var role in _dbContext.Roles)
                 {
-                    userToReturn.Roles.Add(new Role { Id = role.Id, Name = role.Name, IsInRole = true });
+                    var userRole = _dbContext.UserRoles.FirstOrDefault(r => r.RoleId == role.Id & r.UserId == user.Id);
+                    if (userRole != null)
+                    {
+                        userToReturn.Roles.Add(new Role { Id = role.Id, Name = role.Name, IsInRole = true });
+                    }
+                    else
+                    {
+                        userToReturn.Roles.Add(new Role { Id = role.Id, Name = role.Name, IsInRole = false }); ;
+                    }
                 }
-                else
-                {
-                    userToReturn.Roles.Add(new Role { Id = role.Id, Name = role.Name, IsInRole = false }); ;
-                }
+                return userToReturn;
             }
-            return userToReturn;
-
+            else
+            {
+                return new User
+                {
+                    Email = "non-existent",
+                    UserName = "Unknown/Deleted user"
+                };
+            }
         } // end f
 
         public User UpdateUser(User user)

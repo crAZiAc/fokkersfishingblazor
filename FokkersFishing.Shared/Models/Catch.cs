@@ -68,5 +68,20 @@ namespace FokkersFishing.Shared.Models
         [JsonProperty(PropertyName = "status")]
         public CatchStatusEnum Status { get; set; }
 
+        public bool CaughtInCompetition
+        {
+            get
+            {
+                if (this.CompetitionId != Guid.Parse("00000000-0000-0000-0000-000000000000"))
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+
     } // end c
 } // end ns

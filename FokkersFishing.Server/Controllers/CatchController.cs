@@ -52,7 +52,9 @@ namespace FokkersFishing.Controllers
             List<Catch> catchesMade = new List<Catch>();
             foreach (CatchData catchMadeData in catchesMadeData)
             {
-                catchesMade.Add(catchMadeData.GetCatch());
+                Catch catchMade = catchMadeData.GetCatch();
+                catchMade.UserName = _userHelper.GetUser(catchMade.UserEmail).UserName;
+                catchesMade.Add(catchMade);
             }
             return catchesMade.ToList();
         }
@@ -74,7 +76,9 @@ namespace FokkersFishing.Controllers
             {
                 if (catchMadeData.CompetitionId == competitionId)
                 {
-                    catchesMade.Add(catchMadeData.GetCatch());
+                    Catch catchMade = catchMadeData.GetCatch();
+                    catchMade.UserName = _userHelper.GetUser(catchMade.UserEmail).UserName;
+                    catchesMade.Add(catchMade);
                 }
             }
             return catchesMade.ToList();
@@ -221,7 +225,9 @@ namespace FokkersFishing.Controllers
             List<Catch> catchesMade = new List<Catch>();
             foreach (CatchData catchMadeData in catchesMadeData)
             {
-                catchesMade.Add(catchMadeData.GetCatch());
+                Catch catchMade = catchMadeData.GetCatch();
+                catchMade.UserName = _userHelper.GetUser(catchMade.UserEmail).UserName;
+                catchesMade.Add(catchMade);
             }
             return catchesMade.ToList();
         }
@@ -242,7 +248,9 @@ namespace FokkersFishing.Controllers
             {
                 if (catchMadeData.CompetitionId == competitionId)
                 {
-                    catchesMade.Add(catchMadeData.GetCatch());
+                    Catch catchMade = catchMadeData.GetCatch();
+                    catchMade.UserName = _userHelper.GetUser(catchMade.UserEmail).UserName;
+                    catchesMade.Add(catchMade);
                 }
             }
             return catchesMade.ToList();
@@ -262,7 +270,9 @@ namespace FokkersFishing.Controllers
             List<Catch> catchesMade = new List<Catch>();
             foreach (CatchData catchMadeData in catchesMadeData)
             {
-                catchesMade.Add(catchMadeData.GetCatch());
+                Catch catchMade = catchMadeData.GetCatch();
+                catchMade.UserName = _userHelper.GetUser(catchMade.UserEmail).UserName;
+                catchesMade.Add(catchMade);
             }
             return catchesMade.ToList();
         }
@@ -283,7 +293,9 @@ namespace FokkersFishing.Controllers
             {
                 if (catchMadeData.CompetitionId == competitionId)
                 {
-                    catchesMade.Add(catchMadeData.GetCatch());
+                    Catch catchMade = catchMadeData.GetCatch();
+                    catchMade.UserName = _userHelper.GetUser(catchMade.UserEmail).UserName;
+                    catchesMade.Add(catchMade);
                 }
             }
             return catchesMade.ToList();
