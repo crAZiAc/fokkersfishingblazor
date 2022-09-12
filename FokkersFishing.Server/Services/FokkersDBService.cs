@@ -98,6 +98,23 @@ namespace FokkersFishing.Services
             }
         }
 
+        public async Task<List<CatchData>> GetCompetitionLeaderboardItemsAsync(Guid competitionId)
+        {
+            try
+            {
+                var query = from c in _catchContainer.Query<CatchData>()
+                            where c.Status != CatchStatusEnum.Rejected
+                            where c.CompetitionId == competitionId
+                            orderby c.Length descending
+                            select c;
+                return query.ToList();
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
         public async Task<List<Catch>> GetTopCatchAsync(string fish)
         {
             try
@@ -246,6 +263,29 @@ namespace FokkersFishing.Services
         {
             var query = from c in _catchContainer.Query<CatchData>()
                         where c.Status == CatchStatusEnum.Approved
+                        group c by c.UserEmail into userGroup
+                        select new FisherMan
+                        {
+                            TotalLength = userGroup.Sum(x => x.Length),
+                            FishCount = userGroup.Count(),
+                            UserEmail = userGroup.Key
+                        };
+            try
+            {
+                return query.ToList();
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return null;
+        }
+
+        public async Task<List<FisherMan>> GetFishermenCompetitionAsync(Guid competitionId)
+        {
+            var query = from c in _catchContainer.Query<CatchData>()
+                        where c.Status != CatchStatusEnum.Rejected
+                        where c.CompetitionId == competitionId
                         group c by c.UserEmail into userGroup
                         select new FisherMan
                         {

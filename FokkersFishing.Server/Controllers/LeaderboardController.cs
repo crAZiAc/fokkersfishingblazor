@@ -54,6 +54,26 @@ namespace FokkersFishing.Controllers
             return catchesMade.ToList();
         }
 
+        [Authorize(Roles = "Administrator")]
+        [HttpGet("{competitionId}")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<IEnumerable<Catch>>> GetAllCompetition(Guid competitionId)
+        {
+            IEnumerable<CatchData> catchesMadeData = await _fokkersDbService.GetCompetitionLeaderboardItemsAsync(competitionId);
+            if (catchesMadeData == null)
+            {
+                return NotFound();
+            }
+            List<Catch> catchesMade = new List<Catch>();
+            foreach (CatchData catchMadeData in catchesMadeData)
+            {
+                Catch catchMade = catchMadeData.GetCatch();
+                catchMade.UserName = _userHelper.GetUser(catchMade.UserEmail).UserName;
+                catchesMade.Add(catchMade);
+            }
+            return catchesMade.ToList();
+        }
+
         [HttpGet("fishermen")]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<IEnumerable<FisherMan>>> GetFishermen()
@@ -64,6 +84,23 @@ namespace FokkersFishing.Controllers
                 return NotFound();
             }
             foreach(var fisher in fishermen)
+            {
+                fisher.UserName = _userHelper.GetUser(fisher.UserEmail).UserName;
+            }
+            return fishermen.OrderByDescending(f => f.TotalLength).ToList();
+        }
+
+        [Authorize(Roles = "Administrator")]
+        [HttpGet("fishermen/{competitionId}")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<IEnumerable<FisherMan>>> GetCompetitionFishermen(Guid competitionId)
+        {
+            IEnumerable<FisherMan> fishermen = await _fokkersDbService.GetFishermenCompetitionAsync(competitionId);
+            if (fishermen == null)
+            {
+                return NotFound();
+            }
+            foreach (var fisher in fishermen)
             {
                 fisher.UserName = _userHelper.GetUser(fisher.UserEmail).UserName;
             }

@@ -57,7 +57,7 @@ namespace FokkersFishing.Controllers
             return catchesMade.ToList();
         }
 
-        [HttpGet("{competitionId}")]
+        [HttpGet("competition/{competitionId}")]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<IEnumerable<Catch>>> GetCompetitionCatches(Guid competitionId)
         {
@@ -227,6 +227,28 @@ namespace FokkersFishing.Controllers
         }
 
         [Authorize(Roles = "Administrator")]
+        [HttpGet("admin/competition/{competitionId}")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<IEnumerable<Catch>>> GetAdminCompetition(Guid competitionId)
+        {
+            IEnumerable<CatchData> catchesMadeData = null;
+            catchesMadeData = await _fokkersDbService.GetAllCatches();
+            if (catchesMadeData == null)
+            {
+                return NotFound();
+            }
+            List<Catch> catchesMade = new List<Catch>();
+            foreach (CatchData catchMadeData in catchesMadeData)
+            {
+                if (catchMadeData.CompetitionId == competitionId)
+                {
+                    catchesMade.Add(catchMadeData.GetCatch());
+                }
+            }
+            return catchesMade.ToList();
+        }
+
+        [Authorize(Roles = "Administrator")]
         [HttpGet("admin/pending")]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<IEnumerable<Catch>>> GetPendingAdmin()
@@ -241,6 +263,28 @@ namespace FokkersFishing.Controllers
             foreach (CatchData catchMadeData in catchesMadeData)
             {
                 catchesMade.Add(catchMadeData.GetCatch());
+            }
+            return catchesMade.ToList();
+        }
+
+        [Authorize(Roles = "Administrator")]
+        [HttpGet("admin/pending/competition/{competitionId}")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<IEnumerable<Catch>>> GetPendingAdminCompetition(Guid competitionId)
+        {
+            IEnumerable<CatchData> catchesMadeData = null;
+            catchesMadeData = await _fokkersDbService.GetPendingCatches();
+            if (catchesMadeData == null)
+            {
+                return NotFound();
+            }
+            List<Catch> catchesMade = new List<Catch>();
+            foreach (CatchData catchMadeData in catchesMadeData)
+            {
+                if (catchMadeData.CompetitionId == competitionId)
+                {
+                    catchesMade.Add(catchMadeData.GetCatch());
+                }
             }
             return catchesMade.ToList();
         }

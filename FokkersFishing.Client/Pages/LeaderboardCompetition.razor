@@ -1,18 +1,16 @@
-﻿@page "/leaders"
+﻿@page "/leaders/competition"
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @inject IHttpClientFactory ClientFactory
 @inject FokkersFishing.Client.Helpers.CompetitionState competitionState
+@attribute [Authorize(Roles = "Administrator")]
 
-
-<h1>Fokkers Leaderboard</h1>
-@if (competitionState.Active == false)
-{
+<h1>Fokkers Competition Leaderboard</h1>
     <div class="main">
 
         @if (catches == null)
         {
-            <p><em>Loading Catches Leaderboard...</em></p>
+            <p><em>Loading Competition Catches Leaderboard...</em></p>
             <MatProgressBar Indeterminate="true"></MatProgressBar>
         }
         else
@@ -31,6 +29,7 @@
                     <th width="10%">Fish</th>
                     <th width="20%">Fish Length</th>
                     <th width="20%">Fisherman</th>
+                    <th width="20%">Status</th>
                 </MatTableHeader>
                 <MatTableRow>
                     <td>@context.GlobalCatchNumber</td>
@@ -38,6 +37,7 @@
                     <td>@context.Fish</td>
                     <td>@context.Length</td>
                     <td>@context.UserName</td>
+                    <td>@context.Status</td>
                 </MatTableRow>
             </MatTable>
         }
@@ -72,11 +72,6 @@
 
         }
     </div>
-}
-else
-{
-    <h3 style="color: indianred">Competition Active. Leaderboard disabled for the duration of the competition</h3>
-}
 
 @code {
     List<Catch> catches;
@@ -84,9 +79,9 @@ else
 
     protected async override Task OnInitializedAsync()
     {
-        var client = ClientFactory.CreateClient("serverNoAuth");
-        catches = await client.GetFromJsonAsync<List<Catch>>("leaderboard");
-        fishermen = await client.GetFromJsonAsync<List<FisherMan>>("leaderboard/fishermen");
+        var client = ClientFactory.CreateClient("server");
+        catches = await client.GetFromJsonAsync<List<Catch>>("leaderboard/" + competitionState.CompetitionId);
+        fishermen = await client.GetFromJsonAsync<List<FisherMan>>("leaderboard/fishermen/" + competitionState.CompetitionId);
     }
 }
 

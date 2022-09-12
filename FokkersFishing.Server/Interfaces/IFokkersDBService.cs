@@ -31,9 +31,11 @@ namespace FokkersFishing.Interfaces
 
         // Fishermen
         Task<List<FisherMan>> GetFishermenAsync();
+        Task<List<FisherMan>> GetFishermenCompetitionAsync(Guid competitionId);
 
         // Leaderboard
         Task<List<CatchData>> GetLeaderboardItemsAsync();
+        Task<List<CatchData>> GetCompetitionLeaderboardItemsAsync(Guid competitionId);
         Task<List<Catch>> GetTopCatchAsync(string fish);
 
         // Competition

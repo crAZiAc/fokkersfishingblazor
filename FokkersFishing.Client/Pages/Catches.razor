@@ -7,7 +7,6 @@
 @attribute [Authorize(Roles = "Administrator, User")]
 
 <div class="main">
-
     @if (catches == null & currentCatch == null)
     {
         <p><em>Loading catches for user...</em></p>
@@ -16,6 +15,10 @@
     }
     else
     {
+        @if (competitionState.Active)
+        {
+            <h4> Only showing catches in competition</h4>
+        }
         <button type="button" class="btn btn-primary" @onclick="@((x) => AddNewCatch())">Add new catch</button>
         @foreach (Catch catchRow in catches.OrderByDescending(c => c.CatchNumber))
         {
@@ -146,7 +149,7 @@
             }
             else
             {
-                catches = await client.GetFromJsonAsync<List<Catch>>("catch/" + competitionState.CompetitionId);
+                catches = await client.GetFromJsonAsync<List<Catch>>("catch/competition/" + competitionState.CompetitionId);
             }
 
             if (catches.Count > 0)
@@ -185,8 +188,6 @@
         EditDialogShown = true;
         StateHasChanged();
     }
-
-
 
     private void CancelEdit()
     {
@@ -373,4 +374,6 @@
         EditDialogShown = false;
         StateHasChanged();
     }
+
+     
 }

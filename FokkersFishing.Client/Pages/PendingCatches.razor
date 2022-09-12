@@ -1,6 +1,7 @@
 ﻿@page "/pendingcatches"
 @inject IHttpClientFactory ClientFactory
 @inject IMatToaster Toaster
+@inject FokkersFishing.Client.Helpers.CompetitionState competitionState
 @using System.ComponentModel
 @using System.IO
 @attribute [Authorize(Roles = "Administrator")]
@@ -14,6 +15,10 @@
     }
     else
     {
+        @if (competitionState.Active)
+        {
+            <MatCheckbox Label="Only show pending catches in competition" @bind-Value="OnlyShowCompetitionCatches" />
+        }
         @foreach (Catch catchRow in catches)
         {
             string image = string.Empty;
@@ -41,11 +46,11 @@
                             <br />
                             Global Catch # @catchRow.GlobalCatchNumber
                         </MatSubtitle2>
-                          <MatBody2 class="demo-mat-card-content demo-mat-card-clean-margin">
-                        Logged: @catchRow.LogDate.ToLocalTime()
-                        <br />
-                        Edited: @catchRow.EditDate.ToLocalTime()
-                    </MatBody2>
+                        <MatBody2 class="demo-mat-card-content demo-mat-card-clean-margin">
+                            Logged: @catchRow.LogDate.ToLocalTime()
+                            <br />
+                            Edited: @catchRow.EditDate.ToLocalTime()
+                        </MatBody2>
                     </div>
                 </MatCardContent>
                 <MatCardActions>
@@ -65,7 +70,7 @@
                                 }
                             case CatchStatusEnum.Rejected:
                                 {
-                                    <MatFAB Icon="@MatIconNames.Pan_tool" Label="Rejected"  style="color: darkgoldenrod;background-color:indianred" />
+                                    <MatFAB Icon="@MatIconNames.Pan_tool" Label="Rejected" style="color: darkgoldenrod;background-color:indianred" />
                                     break;
                                 }
                         }
@@ -73,20 +78,20 @@
                         <MatIconButton Icon="@MatIconNames.Delete" @onclick="@(() => ShowDeleteDialog(catchRow.Id))"></MatIconButton>
                     </MatCardActionIcons>
                 </MatCardActions>
-            
-            <MatTabGroup>
-                <MatTab Label="Catch">
-                    <img src="@image" style=" max-width: 100%;height: auto;">
-                </MatTab>
-                <MatTab Label="Measure">
-                    <MatCard class="demo-mat-card">
-                        <MatCardContent>
-                            <img src="@catchRow.MeasurePhotoUrl" style=" max-width: 100%;height: auto;">
-                            <a href="@catchRow.MeasurePhotoUrl">Download measure photo</a>
-                        </MatCardContent>
-                    </MatCard>
-                </MatTab>
-            </MatTabGroup>
+
+                <MatTabGroup>
+                    <MatTab Label="Catch">
+                        <img src="@image" style=" max-width: 100%;height: auto;">
+                    </MatTab>
+                    <MatTab Label="Measure">
+                        <MatCard class="demo-mat-card">
+                            <MatCardContent>
+                                <img src="@catchRow.MeasurePhotoUrl" style=" max-width: 100%;height: auto;">
+                                <a href="@catchRow.MeasurePhotoUrl">Download measure photo</a>
+                            </MatCardContent>
+                        </MatCard>
+                    </MatTab>
+                </MatTabGroup>
             </MatCard>
             <br />
         }
@@ -130,21 +135,22 @@
     Catch selectedMeasureCatch;
     public IMatFileUploadEntry selectedMeasureFile;
     public IMatFileUploadEntry selectedCatchFile;
+    private bool m_OnlyShowCompetitionCatches = true;
+    public bool OnlyShowCompetitionCatches
+    {
+        get => m_OnlyShowCompetitionCatches;
+        set
+        {
+            m_OnlyShowCompetitionCatches = value;
+            ShowCompetitionCatchesChanged();
+        }
+    }
 
     protected async override Task OnInitializedAsync()
     {
         var client = ClientFactory.CreateClient("server");
         fishOptions = await client.GetFromJsonAsync<List<Fish>>("fish");
-        catches = await client.GetFromJsonAsync<List<Catch>>("catch/admin/pending");
-        if (catches.Count > 0)
-        {
-            currentCatch = catches.FirstOrDefault();
-        }
-        else
-        {
-            currentCatch = new Catch();
-        }
-
+        await LoadCatches(client);
     }
 
     private void CancelEdit()
@@ -275,5 +281,41 @@
         });
         EditDialogShown = false;
         StateHasChanged();
+    }
+
+    protected async Task ShowCompetitionCatchesChanged()
+    {
+        var client = ClientFactory.CreateClient("server");
+        await LoadCatches(client);
+        client.Dispose();
+        StateHasChanged();
+    }
+
+    protected async Task LoadCatches(HttpClient client)
+    {
+        if (competitionState.Active == false | OnlyShowCompetitionCatches == false)
+        {
+            catches = await client.GetFromJsonAsync<List<Catch>>("catch/admin/pending");
+            if (catches.Count > 0)
+            {
+                currentCatch = catches.FirstOrDefault();
+            }
+            else
+            {
+                currentCatch = new Catch();
+            }
+        }
+        else
+        {
+            catches = await client.GetFromJsonAsync<List<Catch>>("catch/admin/pending/competition/" + competitionState.CompetitionId);
+            if (catches.Count > 0)
+            {
+                currentCatch = catches.FirstOrDefault();
+            }
+            else
+            {
+                currentCatch = new Catch();
+            }
+        }
     }
 }
