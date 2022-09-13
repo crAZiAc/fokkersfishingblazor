@@ -16,7 +16,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace FokkersFishing.Controllers
 {
-    [Authorize(Roles = "Administrator")]
+    
     [ApiController]
     [Route("[controller]")]
     public class AdminUserController : Controller
@@ -36,6 +36,7 @@ namespace FokkersFishing.Controllers
             _userHelper = new UserHelper(_httpContextAccessor, _dbContext);
         }
 
+        [Authorize(Roles = "Administrator, User")]
         [HttpGet("users")]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
@@ -52,6 +53,7 @@ namespace FokkersFishing.Controllers
             }
         }
 
+        [Authorize(Roles = "Administrator")]
         [HttpGet("roles")]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<IEnumerable<Role>>> GetRoles()
@@ -67,6 +69,7 @@ namespace FokkersFishing.Controllers
             }
         }
 
+        [Authorize(Roles = "Administrator")]
         [HttpGet("users/{userEmail}")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -76,7 +79,7 @@ namespace FokkersFishing.Controllers
             return userToReturn;
         }
 
-
+        [Authorize(Roles = "Administrator")]
         [HttpPut("users")]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<User>> UpdateUser(User user)
@@ -92,6 +95,7 @@ namespace FokkersFishing.Controllers
             }
         }
 
+        [Authorize(Roles = "Administrator")]
         [HttpPost("roles/{userEmail}/{roleName}")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -108,6 +112,7 @@ namespace FokkersFishing.Controllers
             }
         }
 
+        [Authorize(Roles = "Administrator")]
         [HttpDelete("users/{userEmail}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -118,6 +123,7 @@ namespace FokkersFishing.Controllers
             return result;
         }
 
+        [Authorize(Roles = "Administrator")]
         [HttpDelete("roles/{userEmail}/{roleName}")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

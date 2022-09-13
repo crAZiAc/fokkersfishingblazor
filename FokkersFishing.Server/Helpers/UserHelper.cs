@@ -47,7 +47,10 @@ namespace FokkersFishing.Server.Helpers
         public List<User> GetUsers()
         {
             List<User> userList = new List<User>();
-            foreach (var user in _dbContext.Users)
+            var dbUsers = from d in _dbContext.Users
+                          orderby d.UserName, d.Email
+                          select d;
+            foreach (var user in dbUsers)
             {
                 User userToAdd = new User { UserName = user.UserName, Email = user.Email};
                 foreach (var role in _dbContext.Roles)

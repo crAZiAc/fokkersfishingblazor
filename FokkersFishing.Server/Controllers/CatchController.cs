@@ -54,6 +54,10 @@ namespace FokkersFishing.Controllers
             {
                 Catch catchMade = catchMadeData.GetCatch();
                 catchMade.UserName = _userHelper.GetUser(catchMade.UserEmail).UserName;
+                if (catchMade.RegisterUserEmail != null)
+                {
+                    catchMade.RegisterUserName = _userHelper.GetUser(catchMade.RegisterUserEmail).UserName;
+                }
                 catchesMade.Add(catchMade);
             }
             return catchesMade.ToList();
@@ -78,6 +82,10 @@ namespace FokkersFishing.Controllers
                 {
                     Catch catchMade = catchMadeData.GetCatch();
                     catchMade.UserName = _userHelper.GetUser(catchMade.UserEmail).UserName;
+                    if (catchMade.RegisterUserEmail != null)
+                    {
+                        catchMade.RegisterUserName = _userHelper.GetUser(catchMade.RegisterUserEmail).UserName;
+                    }
                     catchesMade.Add(catchMade);
                 }
             }
@@ -114,12 +122,11 @@ namespace FokkersFishing.Controllers
         public async Task<ActionResult<Catch>> CreateUserCatch(Catch catchMade)
         {
             ApplicationUser user = _userHelper.GetUser();
-            catchMade.Id = Guid.NewGuid();
             catchMade.LogDate = DateTime.Now;
             catchMade.EditDate = DateTime.Now;
             catchMade.CatchNumber = _fokkersDbService.GetCatchNumberCount(user.Email).Result + 1;
             catchMade.GlobalCatchNumber = _fokkersDbService.GetGlobalCatchNumberCount().Result + 1;
-            catchMade.UserEmail = user.Email;
+            catchMade.RegisterUserEmail = user.Email;
 
             CatchData newCatch = new CatchData();
             newCatch.CatchDate = catchMade.CatchDate.ToUniversalTime();
@@ -131,8 +138,15 @@ namespace FokkersFishing.Controllers
             newCatch.LogDate = catchMade.LogDate.ToUniversalTime();
             newCatch.RowKey = catchMade.Id.ToString();
             newCatch.UserEmail = catchMade.UserEmail;
+            newCatch.RegisterUserEmail = catchMade.RegisterUserEmail;
             newCatch.Status = CatchStatusEnum.Pending;
             newCatch.CompetitionId = catchMade.CompetitionId;
+
+            // Photos
+            newCatch.CatchPhotoUrl = catchMade.CatchPhotoUrl;
+            newCatch.CatchThumbnailUrl = catchMade.CatchThumbnailUrl;
+            newCatch.MeasurePhotoUrl = catchMade.MeasurePhotoUrl;
+            newCatch.MeasureThumbnailUrl = catchMade.MeasureThumbnailUrl;
 
             await _fokkersDbService.AddItemAsync(newCatch);
             return CreatedAtAction(nameof(GetByIdUser), new { id = catchMade.Id }, catchMade);
@@ -143,7 +157,6 @@ namespace FokkersFishing.Controllers
         public async Task<ActionResult<Catch>> PutUser(Guid id, Catch catchMade)
         {
             ApplicationUser user = _userHelper.GetUser();
-            catchMade.UserEmail = user.Email;
             catchMade.EditDate = DateTime.Now;
 
             CatchData updateCatch = await _fokkersDbService.GetUserItemAsync(id.ToString(), user.Email);
@@ -159,6 +172,7 @@ namespace FokkersFishing.Controllers
                     updateCatch.Length = catchMade.Length;
                     updateCatch.LogDate = catchMade.LogDate.ToUniversalTime();
                     updateCatch.UserEmail = catchMade.UserEmail;
+                    updateCatch.RegisterUserEmail = catchMade.RegisterUserEmail;
                     updateCatch.CatchPhotoUrl = catchMade.CatchPhotoUrl;
                     updateCatch.CatchThumbnailUrl = catchMade.CatchThumbnailUrl;
                     updateCatch.MeasurePhotoUrl = catchMade.MeasurePhotoUrl;
@@ -178,7 +192,6 @@ namespace FokkersFishing.Controllers
             {
                 return Forbid();
             }
-
         }
 
         [HttpDelete("{id}")]
@@ -227,6 +240,10 @@ namespace FokkersFishing.Controllers
             {
                 Catch catchMade = catchMadeData.GetCatch();
                 catchMade.UserName = _userHelper.GetUser(catchMade.UserEmail).UserName;
+                if (catchMade.RegisterUserEmail != null)
+                {
+                    catchMade.RegisterUserName = _userHelper.GetUser(catchMade.RegisterUserEmail).UserName;
+                }
                 catchesMade.Add(catchMade);
             }
             return catchesMade.ToList();
@@ -250,6 +267,10 @@ namespace FokkersFishing.Controllers
                 {
                     Catch catchMade = catchMadeData.GetCatch();
                     catchMade.UserName = _userHelper.GetUser(catchMade.UserEmail).UserName;
+                    if (catchMade.RegisterUserEmail != null)
+                    {
+                        catchMade.RegisterUserName = _userHelper.GetUser(catchMade.RegisterUserEmail).UserName;
+                    }
                     catchesMade.Add(catchMade);
                 }
             }
@@ -272,6 +293,10 @@ namespace FokkersFishing.Controllers
             {
                 Catch catchMade = catchMadeData.GetCatch();
                 catchMade.UserName = _userHelper.GetUser(catchMade.UserEmail).UserName;
+                if (catchMade.RegisterUserEmail != null)
+                {
+                    catchMade.RegisterUserName = _userHelper.GetUser(catchMade.RegisterUserEmail).UserName;
+                }
                 catchesMade.Add(catchMade);
             }
             return catchesMade.ToList();
@@ -295,6 +320,10 @@ namespace FokkersFishing.Controllers
                 {
                     Catch catchMade = catchMadeData.GetCatch();
                     catchMade.UserName = _userHelper.GetUser(catchMade.UserEmail).UserName;
+                    if (catchMade.RegisterUserEmail != null)
+                    {
+                        catchMade.RegisterUserName = _userHelper.GetUser(catchMade.RegisterUserEmail).UserName;
+                    }
                     catchesMade.Add(catchMade);
                 }
             }
@@ -306,7 +335,6 @@ namespace FokkersFishing.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<Catch>> PutAdmin(Guid id, Catch catchMade)
         {
-            ApplicationUser user = _userHelper.GetUser();
             catchMade.EditDate = DateTime.Now;
 
             CatchData updateCatch = await _fokkersDbService.GetItemAsync(id.ToString());

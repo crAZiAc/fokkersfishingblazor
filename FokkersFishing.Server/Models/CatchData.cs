@@ -16,6 +16,8 @@ namespace FokkersFishing.Models
 
         public string UserEmail { get; set; }
 
+        public string RegisterUserEmail { get; set; }
+
         public string Fish { get; set; }
 
         public double Length { get; set; }
@@ -35,6 +37,7 @@ namespace FokkersFishing.Models
                 Length = this.Length,
                 LogDate = this.LogDate.ToLocalTime(),
                 UserEmail = this.UserEmail,
+                RegisterUserEmail = this.RegisterUserEmail,
                 CatchPhotoUrl = this.CatchPhotoUrl,
                 MeasurePhotoUrl = this.MeasurePhotoUrl,
                 CatchThumbnailUrl = this.CatchThumbnailUrl,
@@ -55,7 +58,6 @@ namespace FokkersFishing.Models
 
         public string CatchThumbnailUrl { get; set; }
         public CatchStatusEnum Status { get; set; }
-
         public CatchData()
         {
             PartitionKey = "Catches";

@@ -17,6 +17,15 @@
                     }
                 </MatSelect>
             </p>
+            <p>
+                <MatSelect Label="Fisherman" @bind-Value="@currentCatch.UserEmail" FullWidth="false" Outlined="false">
+                    @foreach (User user in users)
+                    {
+                        <MatOptionString Value="@user.Email">@user.UserName</MatOptionString>
+                    }
+                </MatSelect>
+                <label>@currentCatch.UserEmail</label>
+            </p>
             @if (!adminEdit)
             {
                 <p>
@@ -74,7 +83,7 @@
     </MatDialogContent>
     <MatDialogActions>
         <MatButton OnClick="@SaveClicked" Class="btn btn-primary" Disabled="@isSaving">Save</MatButton>
-        <MatButton OnClick="@OnCancel" Class="btn btn-secondary" Disabled="@isSaving" >Cancel</MatButton>
+        <MatButton OnClick="@OnCancel" Class="btn btn-secondary" Disabled="@isSaving">Cancel</MatButton>
     </MatDialogActions>
 </MatDialog>
 
@@ -82,6 +91,7 @@
 @code {
     [Parameter] public Catch currentCatch { get; set; }
     [Parameter] public List<Fish> fishOptions { get; set; }
+    [Parameter] public List<User> users { get; set; }
     [Parameter] public EventCallback<Dictionary<string, IMatFileUploadEntry>> OnSave { get; set; }
     [Parameter] public EventCallback OnCancel { get; set; }
     [Parameter] public bool HasChanged { get; set; }
@@ -131,5 +141,4 @@
         this.StateHasChanged();
         OnSave.InvokeAsync(catchFiles);
     }
-
 }

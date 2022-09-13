@@ -10,7 +10,7 @@
 {
     if (competitionState.Active)
     {
-        <h3 style="color: lightseagreen">Competition Active. Leaderboard will be disabled 2 hours before end of competition (Competition will end in @competitionState.TimeTillEnd.Days days, @competitionState.TimeTillEnd.Hours hours, @competitionState.TimeTillEnd.Minutes minutes) </h3>
+        <h4 style="color: lightseagreen">Competition Active. Leaderboard will be disabled 2 hours before end of competition (Competition will end in @competitionState.TimeTillEnd.Days days, @competitionState.TimeTillEnd.Hours hours, @competitionState.TimeTillEnd.Minutes minutes) </h4>
     }
     <div class="main">
 
@@ -21,8 +21,14 @@
         }
         else
         {
-
-            <h3>Top Catches</h3>
+            @if (competitionState.Active)
+            {
+                <h3>Top 10 Catches for competition</h3>
+            }
+            else
+            {
+                <h3>Top 10 Catches</h3>
+            }
             <MatTable Items="@catches" class="mat-elevation-z5" Striped="true"
               RowClass="tester"
               SortBy="Length"
@@ -43,9 +49,34 @@
                     <td>@context.Length</td>
                     <td>@context.UserName</td>
                     <td>
-                        @if (context.CaughtInCompetition)
+                        @if (@competitionState.Active)
                         {
-                    <MatFAB Icon="@MatIconNames.Fitness_center" Label="Caught in competition" style="color: black;background-color: lightgrey" />
+                    @switch (context.Status)
+                            {
+                                case CatchStatusEnum.Approved:
+                                    {
+                                <MatFAB Icon="@MatIconNames.Done_all" Label="Approved" style="color: lightgreen;background-color: green" />
+                                        break;
+                                    }
+                                case CatchStatusEnum.Pending:
+                                    {
+                                <MatFAB Icon="@MatIconNames.Schedule" Label="Pending" style="color: lightyellow;background-color:#ffc107" />
+
+                                        break;
+                                    }
+                                case CatchStatusEnum.Rejected:
+                                    {
+                                <MatFAB Icon="@MatIconNames.Pan_tool" Label="Rejected" style="color: darkgoldenrod;background-color:indianred" />
+                                        break;
+                                    }
+                            }
+                        }
+                        else
+                        {
+                    @if (context.CaughtInCompetition)
+                            {
+                        <MatFAB Icon="@MatIconNames.Fitness_center" Label="Caught in competition" style="color: black;background-color: lightgrey" />
+                            }
                         }
             </td>
         </MatTableRow>
@@ -61,8 +92,14 @@
         }
         else
         {
-
-            <h3>Top Fishermen</h3>
+            @if (competitionState.Active)
+            {
+                <h3>Top 10 Fishermen for competition</h3>
+            }
+            else
+            {
+                <h3>Top 10 Fishermen</h3>
+            }
             <MatTable Items="@fishermen" class="mat-elevation-z5" Striped="true"
               RowClass="tester"
               SortBy="TotalLength" PageSize="10"
@@ -95,8 +132,30 @@ else
     protected async override Task OnInitializedAsync()
     {
         var client = ClientFactory.CreateClient("serverNoAuth");
-        catches = await client.GetFromJsonAsync<List<Catch>>("leaderboard");
-        fishermen = await client.GetFromJsonAsync<List<FisherMan>>("leaderboard/fishermen");
+        if (competitionState.Active)
+        {
+            try
+            {
+                catches = await client.GetFromJsonAsync<List<Catch>>("leaderboard/open/" + competitionState.CompetitionId);
+                fishermen = await client.GetFromJsonAsync<List<FisherMan>>("leaderboard/fishermen/open/" + competitionState.CompetitionId);
+            }
+            catch (Exception ex)
+            {
+
+            }
+        }
+        else
+        {
+            try
+            {
+                catches = await client.GetFromJsonAsync<List<Catch>>("leaderboard");
+                fishermen = await client.GetFromJsonAsync<List<FisherMan>>("leaderboard/fishermen");
+            }
+            catch (Exception ex)
+            {
+
+            }
+        }
     }
 }
 

@@ -35,8 +35,20 @@
                 textColor = "red";
             }
 
-            <MatCard class="demo-mat-card">
-                <MatCardContent>
+            string imageMeasure = string.Empty;
+            if (catchRow.MeasurePhotoUrl != null)
+            {
+                imageMeasure = catchRow.MeasurePhotoUrl;
+                textColor = "grey";
+            }
+            else
+            {
+                imageMeasure = "https://fokkersfishingstorage.blob.core.windows.net/catches/NoCatch.png";
+                textColor = "red";
+            }
+
+            <MatCard class="demo-mat-card" >
+                <MatCardContent >
                     <div class="demo-mat-card-content" style="color: @textColor;">
                         <MatHeadline6 class="demo-mat-card-clean-margin">
                             Catch # @catchRow.CatchNumber (@catchRow.Fish - @catchRow.Length cm)
@@ -52,50 +64,47 @@
                             Edited: @catchRow.EditDate.ToLocalTime()
                         </MatBody2>
                     </div>
-                </MatCardContent>
-                <MatCardActions>
-                    <MatCardActionIcons>
-                        @if (catchRow.CaughtInCompetition)
-                        {
-                            <MatFAB Icon="@MatIconNames.Fitness_center" Label="Caught in competition" style="color: black;background-color: lightgrey" />                                                        
-                        }
-                        @switch (catchRow.Status)
-                        {
-                            case CatchStatusEnum.Approved:
-                                {
-                                    <MatFAB Icon="@MatIconNames.Done_all" Label="Approved" style="color: lightgreen;background-color: green" />
-                                    <MatIconButton Icon="@MatIconNames.Delete" @onclick="@(() => ShowDeleteDialog(catchRow.Id))"></MatIconButton>
-                                    break;
-                                }
-                            case CatchStatusEnum.Pending:
-                                {
-                                    <MatFAB Icon="@MatIconNames.Schedule" Label="Pending" style="color: lightyellow;background-color:#ffc107" />
-                                    <MatIconButton Icon="@MatIconNames.Edit" @onclick="@(() => ShowEditDialog(catchRow.Id))"></MatIconButton>
-                                    <MatIconButton Icon="@MatIconNames.Delete" @onclick="@(() => ShowDeleteDialog(catchRow.Id))"></MatIconButton>
+                    <MatCardActions>
+                        <MatCardActionIcons>
+                            @if (catchRow.CaughtInCompetition)
+                            {
+                                <MatFAB Icon="@MatIconNames.Fitness_center" Label="Caught in competition" style="color: black;background-color: lightgrey" />
+                            }
+                            @switch (catchRow.Status)
+                            {
+                                case CatchStatusEnum.Approved:
+                                    {
+                                        <MatFAB Icon="@MatIconNames.Done_all" Label="Approved" style="color: lightgreen;background-color: green" />
+                                        <MatIconButton Icon="@MatIconNames.Delete" @onclick="@(() => ShowDeleteDialog(catchRow.Id))"></MatIconButton>
+                                        break;
+                                    }
+                                case CatchStatusEnum.Pending:
+                                    {
+                                        <MatFAB Icon="@MatIconNames.Schedule" Label="Pending" style="color: lightyellow;background-color:#ffc107" />
+                                        <MatIconButton Icon="@MatIconNames.Edit" @onclick="@(() => ShowEditDialog(catchRow.Id))"></MatIconButton>
+                                        <MatIconButton Icon="@MatIconNames.Delete" @onclick="@(() => ShowDeleteDialog(catchRow.Id))"></MatIconButton>
 
-                                    break;
-                                }
-                            case CatchStatusEnum.Rejected:
-                                {
-                                    <MatFAB Icon="@MatIconNames.Pan_tool" Label="Rejected" style="color: darkgoldenrod;background-color:indianred" />
-                                    break;
-                                }
-                        }
-                    </MatCardActionIcons>
-                </MatCardActions>
-                <MatTabGroup>
+                                        break;
+                                    }
+                                case CatchStatusEnum.Rejected:
+                                    {
+                                        <MatFAB Icon="@MatIconNames.Pan_tool" Label="Rejected" style="color: darkgoldenrod;background-color:indianred" />
+                                        break;
+                                    }
+                            }
+                        </MatCardActionIcons>
+                    </MatCardActions>
+                </MatCardContent>
+               
+            </MatCard>
+             <MatTabGroup>
                     <MatTab Label="Catch">
                         <img src="@image" style=" max-width: 100%;height: auto;">
                     </MatTab>
                     <MatTab Label="Measure">
-                        <MatCard class="demo-mat-card">
-                            <MatCardContent>
-                                <img src="@catchRow.MeasurePhotoUrl" style=" max-width: 100%;height: auto;">
-                            </MatCardContent>
-                        </MatCard>
+                        <img src="@imageMeasure" style=" max-width: 100%;height: auto;">
                     </MatTab>
                 </MatTabGroup>
-            </MatCard>
             <br />
         }
     }
@@ -107,7 +116,8 @@
            currentCatch="@currentCatch"
            fishOptions="@fishOptions"
            dialogIsOpen="@EditDialogShown"
-           adminEdit="false" />
+           adminEdit="false"
+           users="@users" />
 }
 
 @if (currentCatch != null & DeleteDialogShown == true)
@@ -128,6 +138,7 @@
 @code {
     List<Catch> catches;
     List<Fish> fishOptions;
+    List<User> users;
 
     public Catch currentCatch;
     bool EditDialogShown = false;
@@ -147,6 +158,7 @@
         try
         {
             fishOptions = await client.GetFromJsonAsync<List<Fish>>("fish");
+            users = await client.GetFromJsonAsync<List<User>>("adminuser/users");
             if (competitionState.Active == false)
             {
                 catches = await client.GetFromJsonAsync<List<Catch>>("catch");
@@ -177,6 +189,7 @@
         Catch newCatch = new Catch
             {
                 Length = 0,
+                Id = Guid.NewGuid(),
                 Fish = "Pike",
                 CatchDate = DateTime.Now,
                 Status = CatchStatusEnum.Pending
@@ -276,7 +289,99 @@
     {
         IMatFileUploadEntry selectedMeasureFile = catchFiles["measure"];
         IMatFileUploadEntry selectedCatchFile = catchFiles["catch"];
-        Toaster.Add($"Catch #: {currentCatch.CatchNumber}, Type: {currentCatch.Fish}", MatToastType.Info, "Saving catch", "", config =>
+
+        var client = ClientFactory.CreateClient("server");
+        HttpResponseMessage response = null;
+        if (NewCatchAdded)
+        {
+            // Upload photos
+            if (selectedMeasureFile != null)
+            {
+                Toaster.Add($"New Catch, Type: {currentCatch.Fish}", MatToastType.Light, "Uploading measure photo", "", config =>
+    {
+        config.ShowCloseButton = true;
+        config.ShowProgressBar = true;
+        config.MaximumOpacity = 100;
+
+        config.ShowTransitionDuration = 1500;
+        config.VisibleStateDuration = 3000;
+        config.HideTransitionDuration = 500;
+    });
+                Photo measurePhoto = new Photo { Id = currentCatch.Id, PhotoType = PhotoTypeEnum.Measure };
+                MemoryStream stream = new MemoryStream();
+                await selectedMeasureFile.WriteToStreamAsync(stream);
+
+                measurePhoto.ImageContent = stream.ToArray();
+                stream.Close();
+                HttpResponseMessage responsePhoto = await client.PostAsJsonAsync<Photo>($"photo", measurePhoto);
+                if (responsePhoto.StatusCode == System.Net.HttpStatusCode.Created)
+                {
+                    UploadPhotoResponse photoResponse = await responsePhoto.Content.ReadFromJsonAsync<UploadPhotoResponse>();
+                    currentCatch.MeasurePhotoUrl = photoResponse.PhotoUrl;
+                    currentCatch.MeasureThumbnailUrl = photoResponse.ThumbnailUrl;
+                }
+            }
+
+            if (selectedCatchFile != null)
+            {
+                Toaster.Add($"New Catch, Type: {currentCatch.Fish}", MatToastType.Light, "Uploading catch photo", "", config =>
+    {
+        config.ShowCloseButton = true;
+        config.ShowProgressBar = true;
+        config.MaximumOpacity = 100;
+
+        config.ShowTransitionDuration = 1500;
+        config.VisibleStateDuration = 3000;
+        config.HideTransitionDuration = 500;
+    });
+                Photo catchPhoto = new Photo { Id = currentCatch.Id, PhotoType = PhotoTypeEnum.Catch };
+                MemoryStream stream = new MemoryStream();
+                await selectedCatchFile.WriteToStreamAsync(stream);
+
+                catchPhoto.ImageContent = stream.ToArray();
+                stream.Close();
+                HttpResponseMessage responsePhoto = await client.PostAsJsonAsync<Photo>($"photo", catchPhoto);
+                if (responsePhoto.StatusCode == System.Net.HttpStatusCode.Created)
+                {
+                    UploadPhotoResponse photoResponse = await responsePhoto.Content.ReadFromJsonAsync<UploadPhotoResponse>();
+                    currentCatch.CatchPhotoUrl = photoResponse.PhotoUrl;
+                    currentCatch.CatchThumbnailUrl = photoResponse.ThumbnailUrl;
+                }
+            }
+
+            // Create new catch
+            Toaster.Add($"New Catch, Type: {currentCatch.Fish}", MatToastType.Info, "Creating catch data", "", config =>
+    {
+        config.ShowCloseButton = true;
+        config.ShowProgressBar = true;
+        config.MaximumOpacity = 100;
+
+        config.ShowTransitionDuration = 750;
+        config.VisibleStateDuration = 2000;
+        config.HideTransitionDuration = 500;
+    });
+            response = await client.PostAsJsonAsync("catch", currentCatch);
+            if (response.StatusCode != System.Net.HttpStatusCode.Created)
+            {
+                StateHasChanged();
+            }
+            else
+            {
+                currentCatch = await response.Content.ReadFromJsonAsync<Catch>();
+
+                if (currentCatch.UserEmail == currentCatch.RegisterUserEmail)
+                {
+                    catches.Add(currentCatch);
+                }
+            }
+
+            NewCatchAdded = false;
+            StateHasChanged();
+
+        } // POST
+        else
+        {
+            Toaster.Add($"Catch #: {currentCatch.CatchNumber}, Type: {currentCatch.Fish}", MatToastType.Info, "Saving catch", "", config =>
         {
             config.ShowCloseButton = true;
             config.ShowProgressBar = true;
@@ -286,82 +391,65 @@
             config.VisibleStateDuration = 5000;
             config.HideTransitionDuration = 500;
         });
-
-        var client = ClientFactory.CreateClient("server");
-        StateHasChanged();
-
-        HttpResponseMessage response = null;
-        if (NewCatchAdded)
-        {
-            response = await client.PostAsJsonAsync("catch", currentCatch);
-            if (response.StatusCode != System.Net.HttpStatusCode.Created)
+            StateHasChanged();
+            // Upload photos
+            if (selectedMeasureFile != null)
             {
+                Photo measurePhoto = new Photo { Id = currentCatch.Id, PhotoType = PhotoTypeEnum.Measure };
+                MemoryStream stream = new MemoryStream();
+                await selectedMeasureFile.WriteToStreamAsync(stream);
+
+                measurePhoto.ImageContent = stream.ToArray();
+                stream.Close();
+                HttpResponseMessage responsePhoto = await client.PostAsJsonAsync<Photo>($"photo", measurePhoto);
+                if (responsePhoto.StatusCode == System.Net.HttpStatusCode.Created)
+                {
+                    UploadPhotoResponse photoResponse = await responsePhoto.Content.ReadFromJsonAsync<UploadPhotoResponse>();
+                    currentCatch.MeasurePhotoUrl = photoResponse.PhotoUrl;
+                    currentCatch.MeasureThumbnailUrl = photoResponse.ThumbnailUrl;
+                }
+            }
+
+            if (selectedCatchFile != null)
+            {
+                Photo catchPhoto = new Photo { Id = currentCatch.Id, PhotoType = PhotoTypeEnum.Catch };
+                MemoryStream stream = new MemoryStream();
+                await selectedCatchFile.WriteToStreamAsync(stream);
+
+                catchPhoto.ImageContent = stream.ToArray();
+                stream.Close();
+                HttpResponseMessage responsePhoto = await client.PostAsJsonAsync<Photo>($"photo", catchPhoto);
+                if (responsePhoto.StatusCode == System.Net.HttpStatusCode.Created)
+                {
+                    UploadPhotoResponse photoResponse = await responsePhoto.Content.ReadFromJsonAsync<UploadPhotoResponse>();
+                    currentCatch.CatchPhotoUrl = photoResponse.PhotoUrl;
+                    currentCatch.CatchThumbnailUrl = photoResponse.ThumbnailUrl;
+                }
+            }
+
+            response = await client.PutAsJsonAsync("catch/" + currentCatch.Id, currentCatch);
+            if (response.StatusCode != System.Net.HttpStatusCode.OK)
+            {
+                Toaster.Add($"Catch #: {currentCatch.CatchNumber}, Type: {currentCatch.Fish}", MatToastType.Warning, "Saving catch failed", "", config =>
+                {
+                    config.ShowCloseButton = true;
+                    config.ShowProgressBar = true;
+                    config.MaximumOpacity = 100;
+
+                    config.ShowTransitionDuration = 1000;
+                    config.VisibleStateDuration = 2000;
+                    config.HideTransitionDuration = 500;
+                });
                 StateHasChanged();
             }
             else
             {
                 currentCatch = await response.Content.ReadFromJsonAsync<Catch>();
-                catches.Add(currentCatch);
+                StateHasChanged();
             }
-        }
+        } // PUT
 
-        // Upload photos
-        if (selectedMeasureFile != null)
-        {
-            Photo measurePhoto = new Photo { Id = currentCatch.Id, PhotoType = PhotoTypeEnum.Measure };
-            MemoryStream stream = new MemoryStream();
-            await selectedMeasureFile.WriteToStreamAsync(stream);
 
-            measurePhoto.ImageContent = stream.ToArray();
-            stream.Close();
-            HttpResponseMessage responsePhoto = await client.PostAsJsonAsync<Photo>($"photo", measurePhoto);
-            if (responsePhoto.StatusCode == System.Net.HttpStatusCode.Created)
-            {
-                UploadPhotoResponse photoResponse = await responsePhoto.Content.ReadFromJsonAsync<UploadPhotoResponse>();
-                currentCatch.MeasurePhotoUrl = photoResponse.PhotoUrl;
-                currentCatch.MeasureThumbnailUrl = photoResponse.ThumbnailUrl;
-            }
-        }
-
-        if (selectedCatchFile != null)
-        {
-            Photo catchPhoto = new Photo { Id = currentCatch.Id, PhotoType = PhotoTypeEnum.Catch };
-            MemoryStream stream = new MemoryStream();
-            await selectedCatchFile.WriteToStreamAsync(stream);
-
-            catchPhoto.ImageContent = stream.ToArray();
-            stream.Close();
-            HttpResponseMessage responsePhoto = await client.PostAsJsonAsync<Photo>($"photo", catchPhoto);
-            if (responsePhoto.StatusCode == System.Net.HttpStatusCode.Created)
-            {
-                UploadPhotoResponse photoResponse = await responsePhoto.Content.ReadFromJsonAsync<UploadPhotoResponse>();
-                currentCatch.CatchPhotoUrl = photoResponse.PhotoUrl;
-                currentCatch.CatchThumbnailUrl = photoResponse.ThumbnailUrl;
-            }
-        }
-
-        response = await client.PutAsJsonAsync("catch/" + currentCatch.Id, currentCatch);
-        if (response.StatusCode != System.Net.HttpStatusCode.OK)
-        {
-            Toaster.Add($"Catch #: {currentCatch.CatchNumber}, Type: {currentCatch.Fish}", MatToastType.Warning, "Saving catch failed", "", config =>
-            {
-                config.ShowCloseButton = true;
-                config.ShowProgressBar = true;
-                config.MaximumOpacity = 100;
-
-                config.ShowTransitionDuration = 1000;
-                config.VisibleStateDuration = 2000;
-                config.HideTransitionDuration = 500;
-            });
-            StateHasChanged();
-        }
-        else
-        {
-            currentCatch = await response.Content.ReadFromJsonAsync<Catch>();
-            StateHasChanged();
-        }
-
-        NewCatchAdded = false;
         selectedMeasureFile = null;
         selectedCatchFile = null;
         StateHasChanged();
@@ -371,13 +459,13 @@
             config.ShowProgressBar = true;
             config.MaximumOpacity = 100;
 
-            config.ShowTransitionDuration = 1000;
-            config.VisibleStateDuration = 2000;
+            config.ShowTransitionDuration = 750;
+            config.VisibleStateDuration = 1500;
             config.HideTransitionDuration = 500;
         });
         EditDialogShown = false;
         StateHasChanged();
     }
 
-     
+
 }

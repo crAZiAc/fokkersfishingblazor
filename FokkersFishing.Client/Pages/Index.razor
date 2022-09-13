@@ -127,17 +127,19 @@ else
     <EditCatch OnCancel="CancelEdit" OnSave="SaveCatch"
            currentCatch="@newCatch"
            fishOptions="@fishOptions"
-           dialogIsOpen="@EditDialogShown" />
+           dialogIsOpen="@EditDialogShown"
+           users="@users"/>
 }
 
 @code {
     List<FisherMan> fishermen;
     List<BigThree> bigThree;
     List<Fish> fishOptions;
+    List<User> users;
 
     int placeCounter = 1;
     bool EditDialogShown = false;
-    bool newCatchMade = false;
+    bool NewCatchAdded = false;
     Catch newCatch;
 
     protected async override Task OnInitializedAsync()
@@ -146,6 +148,15 @@ else
         fishOptions = await client.GetFromJsonAsync<List<Fish>>("fish");
         bigThree = await client.GetFromJsonAsync<List<BigThree>>("leaderboard/bigthree");
         fishermen = await client.GetFromJsonAsync<List<FisherMan>>("leaderboard/fishermen");
+        try
+        {
+            var secureClient = ClientFactory.CreateClient("server");
+            users = await secureClient.GetFromJsonAsync<List<User>>("adminuser/users");
+        }
+        catch (Exception ex)
+        {
+            
+        }
     }
 
     private void CancelEdit()
@@ -167,7 +178,7 @@ else
         {
             newCatch.CompetitionId = competitionState.CompetitionId;
         }
-        newCatchMade = true;
+        NewCatchAdded = true;
         EditDialogShown = true;
     }
 
@@ -175,21 +186,77 @@ else
     {
         IMatFileUploadEntry selectedMeasureFile = catchFiles["measure"];
         IMatFileUploadEntry selectedCatchFile = catchFiles["catch"];
-        Toaster.Add($"Catch #: {newCatch.CatchNumber}, Type: {newCatch.Fish}", MatToastType.Info, "Saving catch", "", config =>
-        {
-            config.ShowCloseButton = true;
-            config.ShowProgressBar = true;
-            config.MaximumOpacity = 100;
-
-            config.ShowTransitionDuration = 500;
-            config.VisibleStateDuration = 3000;
-            config.HideTransitionDuration = 500;
-        });
 
         var client = ClientFactory.CreateClient("server");
-        HttpResponseMessage response;
-        if (newCatchMade)
+        HttpResponseMessage response = null;
+        if (NewCatchAdded)
         {
+            // Upload photos
+            if (selectedMeasureFile != null)
+            {
+                Toaster.Add($"New Catch, Type: {newCatch.Fish}", MatToastType.Light, "Uploading measure photo", "", config =>
+    {
+        config.ShowCloseButton = true;
+        config.ShowProgressBar = true;
+        config.MaximumOpacity = 100;
+
+        config.ShowTransitionDuration = 1500;
+        config.VisibleStateDuration = 3000;
+        config.HideTransitionDuration = 500;
+    });
+                Photo measurePhoto = new Photo { Id = newCatch.Id, PhotoType = PhotoTypeEnum.Measure };
+                MemoryStream stream = new MemoryStream();
+                await selectedMeasureFile.WriteToStreamAsync(stream);
+
+                measurePhoto.ImageContent = stream.ToArray();
+                stream.Close();
+                HttpResponseMessage responsePhoto = await client.PostAsJsonAsync<Photo>($"photo", measurePhoto);
+                if (responsePhoto.StatusCode == System.Net.HttpStatusCode.Created)
+                {
+                    UploadPhotoResponse photoResponse = await responsePhoto.Content.ReadFromJsonAsync<UploadPhotoResponse>();
+                    newCatch.MeasurePhotoUrl = photoResponse.PhotoUrl;
+                    newCatch.MeasureThumbnailUrl = photoResponse.ThumbnailUrl;
+                }
+            }
+
+            if (selectedCatchFile != null)
+            {
+                Toaster.Add($"New Catch, Type: {newCatch.Fish}", MatToastType.Light, "Uploading catch photo", "", config =>
+    {
+        config.ShowCloseButton = true;
+        config.ShowProgressBar = true;
+        config.MaximumOpacity = 100;
+
+        config.ShowTransitionDuration = 1500;
+        config.VisibleStateDuration = 3000;
+        config.HideTransitionDuration = 500;
+    });
+                Photo catchPhoto = new Photo { Id = newCatch.Id, PhotoType = PhotoTypeEnum.Catch };
+                MemoryStream stream = new MemoryStream();
+                await selectedCatchFile.WriteToStreamAsync(stream);
+
+                catchPhoto.ImageContent = stream.ToArray();
+                stream.Close();
+                HttpResponseMessage responsePhoto = await client.PostAsJsonAsync<Photo>($"photo", catchPhoto);
+                if (responsePhoto.StatusCode == System.Net.HttpStatusCode.Created)
+                {
+                    UploadPhotoResponse photoResponse = await responsePhoto.Content.ReadFromJsonAsync<UploadPhotoResponse>();
+                    newCatch.CatchPhotoUrl = photoResponse.PhotoUrl;
+                    newCatch.CatchThumbnailUrl = photoResponse.ThumbnailUrl;
+                }
+            }
+
+            // Create new catch
+            Toaster.Add($"New Catch, Type: {newCatch.Fish}", MatToastType.Info, "Creating catch data", "", config =>
+    {
+        config.ShowCloseButton = true;
+        config.ShowProgressBar = true;
+        config.MaximumOpacity = 100;
+
+        config.ShowTransitionDuration = 750;
+        config.VisibleStateDuration = 2000;
+        config.HideTransitionDuration = 500;
+    });
             response = await client.PostAsJsonAsync("catch", newCatch);
             if (response.StatusCode != System.Net.HttpStatusCode.Created)
             {
@@ -198,66 +265,12 @@ else
             else
             {
                 newCatch = await response.Content.ReadFromJsonAsync<Catch>();
-                StateHasChanged();
             }
-        }
-        StateHasChanged();
 
-        // Upload photos
-        if (selectedMeasureFile != null)
-        {
-            Photo measurePhoto = new Photo { Id = newCatch.Id, PhotoType = PhotoTypeEnum.Measure };
-            MemoryStream stream = new MemoryStream();
-            await selectedMeasureFile.WriteToStreamAsync(stream);
-
-            measurePhoto.ImageContent = stream.ToArray();
-            stream.Close();
-            HttpResponseMessage responsePhoto = await client.PostAsJsonAsync<Photo>($"photo", measurePhoto);
-            if (responsePhoto.StatusCode == System.Net.HttpStatusCode.Created)
-            {
-                UploadPhotoResponse photoResponse = await responsePhoto.Content.ReadFromJsonAsync<UploadPhotoResponse>();
-                newCatch.MeasurePhotoUrl = photoResponse.PhotoUrl;
-                newCatch.MeasureThumbnailUrl = photoResponse.ThumbnailUrl;
-            }
-        }
-
-        if (selectedCatchFile != null)
-        {
-            Photo catchPhoto = new Photo { Id = newCatch.Id, PhotoType = PhotoTypeEnum.Catch };
-            MemoryStream stream = new MemoryStream();
-            await selectedCatchFile.WriteToStreamAsync(stream);
-
-            catchPhoto.ImageContent = stream.ToArray();
-            stream.Close();
-            HttpResponseMessage responsePhoto = await client.PostAsJsonAsync<Photo>($"photo", catchPhoto);
-            if (responsePhoto.StatusCode == System.Net.HttpStatusCode.Created)
-            {
-                UploadPhotoResponse photoResponse = await responsePhoto.Content.ReadFromJsonAsync<UploadPhotoResponse>();
-                newCatch.CatchPhotoUrl = photoResponse.PhotoUrl;
-                newCatch.CatchThumbnailUrl = photoResponse.ThumbnailUrl;
-            }
-        }
-
-        response = await client.PutAsJsonAsync("catch/" + newCatch.Id, newCatch);
-        if (response.StatusCode != System.Net.HttpStatusCode.OK)
-        {
-            Toaster.Add($"Catch #: {newCatch.CatchNumber}, Type: {newCatch.Fish}", MatToastType.Warning, "Saving catch failed", "", config =>
-            {
-                config.ShowCloseButton = true;
-                config.ShowProgressBar = true;
-                config.MaximumOpacity = 100;
-
-                config.ShowTransitionDuration = 250;
-                config.VisibleStateDuration = 2000;
-                config.HideTransitionDuration = 500;
-            });
+            NewCatchAdded = false;
             StateHasChanged();
-        }
-        else
-        {
-            newCatch = await response.Content.ReadFromJsonAsync<Catch>();
-            StateHasChanged();
-        }
+
+        } // POST
         selectedMeasureFile = null;
         selectedCatchFile = null;
         StateHasChanged();
@@ -267,8 +280,8 @@ else
             config.ShowProgressBar = true;
             config.MaximumOpacity = 100;
 
-            config.ShowTransitionDuration = 250;
-            config.VisibleStateDuration = 2000;
+            config.ShowTransitionDuration = 750;
+            config.VisibleStateDuration = 1500;
             config.HideTransitionDuration = 500;
         });
         EditDialogShown = false;

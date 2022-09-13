@@ -6,72 +6,92 @@
 @attribute [Authorize(Roles = "Administrator")]
 
 <h1>Fokkers Competition Leaderboard</h1>
-    <div class="main">
+<div class="main">
 
-        @if (catches == null)
-        {
-            <p><em>Loading Competition Catches Leaderboard...</em></p>
-            <MatProgressBar Indeterminate="true"></MatProgressBar>
-        }
-        else
-        {
+    @if (catches == null)
+    {
+        <p><em>Loading Competition Catches Leaderboard...</em></p>
+        <MatProgressBar Indeterminate="true"></MatProgressBar>
+    }
+    else
+    {
 
-            <h3>Top Catches</h3>
-            <MatTable Items="@catches" class="mat-elevation-z5" Striped="true"
+        <h3>Top Catches</h3>
+        <MatTable Items="@catches" class="mat-elevation-z5" Striped="true"
               RowClass="tester"
               SortBy="Length"
               PageSize="10"
               FilterByColumnName="Fish"
               ShowPaging="false">
-                <MatTableHeader>
-                    <th width="10%">Catch #</th>
-                    <th width="30%">Catch Date</th>
-                    <th width="10%">Fish</th>
-                    <th width="20%">Fish Length</th>
-                    <th width="20%">Fisherman</th>
-                    <th width="20%">Status</th>
-                </MatTableHeader>
-                <MatTableRow>
-                    <td>@context.GlobalCatchNumber</td>
-                    <td>@context.CatchDate</td>
-                    <td>@context.Fish</td>
-                    <td>@context.Length</td>
-                    <td>@context.UserName</td>
-                    <td>@context.Status</td>
-                </MatTableRow>
-            </MatTable>
-        }
-    </div>
+            <MatTableHeader>
+                <th width="10%">Catch #</th>
+                <th width="30%">Catch Date</th>
+                <th width="10%">Fish</th>
+                <th width="20%">Fish Length</th>
+                <th width="20%">Fisherman</th>
+                <th width="20%">Status</th>
+            </MatTableHeader>
+            <MatTableRow>
+                <td>@context.GlobalCatchNumber</td>
+                <td>@context.CatchDate</td>
+                <td>@context.Fish</td>
+                <td>@context.Length</td>
+                <td>@context.UserName</td>
+                <td>
+                    @switch (context.Status)
+                    {
+                        case CatchStatusEnum.Approved:
+                            {
+                            <MatFAB Icon="@MatIconNames.Done_all" Label="Approved" style="color: lightgreen;background-color: green" />
+                                break;
+                            }
+                        case CatchStatusEnum.Pending:
+                            {
+                            <MatFAB Icon="@MatIconNames.Schedule" Label="Pending" style="color: lightyellow;background-color:#ffc107" />
 
-    <div class="main">
-        @if (fishermen == null)
-        {
-            <p><em>Loading Fishermen Leaderboard...</em></p>
-            <MatProgressBar Indeterminate="true"></MatProgressBar>
-        }
-        else
-        {
+                                break;
+                            }
+                        case CatchStatusEnum.Rejected:
+                            {
+                            <MatFAB Icon="@MatIconNames.Pan_tool" Label="Rejected" style="color: darkgoldenrod;background-color:indianred" />
+                                break;
+                            }
+                    }
+            </td>
+        </MatTableRow>
+    </MatTable>
+    }
+</div>
 
-            <h3>Top Fishermen</h3>
-            <MatTable Items="@fishermen" class="mat-elevation-z5" Striped="true"
+<div class="main">
+    @if (fishermen == null)
+    {
+        <p><em>Loading Fishermen Leaderboard...</em></p>
+        <MatProgressBar Indeterminate="true"></MatProgressBar>
+    }
+    else
+    {
+
+        <h3>Top Fishermen</h3>
+        <MatTable Items="@fishermen" class="mat-elevation-z5" Striped="true"
               RowClass="tester"
               SortBy="TotalLength" PageSize="10"
               FilterByColumnName="UserName"
               ShowPaging="false">
-                <MatTableHeader>
-                    <th width="30%">Fisherman</th>
-                    <th width="30%">Total Fish Length</th>
-                    <th width="30%">Total Fish Caught</th>
-                </MatTableHeader>
-                <MatTableRow>
-                    <td>@context.UserName</td>
-                    <td>@context.TotalLength</td>
-                    <td>@context.FishCount</td>
-                </MatTableRow>
-            </MatTable>
+            <MatTableHeader>
+                <th width="30%">Fisherman</th>
+                <th width="30%">Total Fish Length</th>
+                <th width="30%">Total Fish Caught</th>
+            </MatTableHeader>
+            <MatTableRow>
+                <td>@context.UserName</td>
+                <td>@context.TotalLength</td>
+                <td>@context.FishCount</td>
+            </MatTableRow>
+        </MatTable>
 
-        }
-    </div>
+    }
+</div>
 
 @code {
     List<Catch> catches;

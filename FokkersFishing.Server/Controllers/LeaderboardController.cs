@@ -49,6 +49,10 @@ namespace FokkersFishing.Controllers
             {
                 Catch catchMade = catchMadeData.GetCatch();
                 catchMade.UserName = _userHelper.GetUser(catchMade.UserEmail).UserName;
+                if (catchMade.RegisterUserEmail != null)
+                {
+                    catchMade.RegisterUserName = _userHelper.GetUser(catchMade.RegisterUserEmail).UserName;
+                }
                 catchesMade.Add(catchMade);
             }
             return catchesMade.ToList();
@@ -69,9 +73,59 @@ namespace FokkersFishing.Controllers
             {
                 Catch catchMade = catchMadeData.GetCatch();
                 catchMade.UserName = _userHelper.GetUser(catchMade.UserEmail).UserName;
+                if (catchMade.RegisterUserEmail != null)
+                {
+                    catchMade.RegisterUserName = _userHelper.GetUser(catchMade.RegisterUserEmail).UserName;
+                }
                 catchesMade.Add(catchMade);
             }
             return catchesMade.ToList();
+        }
+
+        [HttpGet("open/{competitionId}")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<IEnumerable<Catch>>> GetAllCompetitionOpen(Guid competitionId)
+        {
+            CompetitionData competitionData = await _fokkersDbService.GetCompetitionAsync(competitionId.ToString());
+            if (competitionData != null)
+            {
+                Competition competition = competitionData.GetCompetition();
+                if (competition.TimeTillEnd.TotalMinutes > 120)
+                {
+                    IEnumerable<CatchData> catchesMadeData = await _fokkersDbService.GetCompetitionLeaderboardItemsAsync(competitionId);
+                    if (catchesMadeData == null)
+                    {
+                        return NotFound();
+                    }
+                    List<Catch> catchesMade = new List<Catch>();
+                    foreach (CatchData catchMadeData in catchesMadeData)
+                    {
+                        try
+                        {
+                            Catch catchMade = catchMadeData.GetCatch();
+                            catchMade.UserName = _userHelper.GetUser(catchMade.UserEmail).UserName;
+                            if (catchMade.RegisterUserEmail != null)
+                            {
+                                catchMade.RegisterUserName = _userHelper.GetUser(catchMade.RegisterUserEmail).UserName;
+                            }
+                            catchesMade.Add(catchMade);
+                        }
+                        catch (Exception ex)
+                        { 
+                        }
+                        
+                    }
+                    return catchesMade.ToList();
+                }
+                else
+                {
+                    return NotFound();
+                }
+            }
+            else
+            {
+                return NotFound();
+            }
         }
 
         [HttpGet("fishermen")]
@@ -83,7 +137,7 @@ namespace FokkersFishing.Controllers
             {
                 return NotFound();
             }
-            foreach(var fisher in fishermen)
+            foreach (var fisher in fishermen)
             {
                 fisher.UserName = _userHelper.GetUser(fisher.UserEmail).UserName;
             }
@@ -107,19 +161,51 @@ namespace FokkersFishing.Controllers
             return fishermen.OrderByDescending(f => f.TotalLength).ToList();
         }
 
+        [HttpGet("fishermen/open/{competitionId}")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<IEnumerable<FisherMan>>> GetCompetitionFishermenOpen(Guid competitionId)
+        {
+            CompetitionData competitionData = await _fokkersDbService.GetCompetitionAsync(competitionId.ToString());
+            if (competitionData != null)
+            {
+                Competition competition = competitionData.GetCompetition();
+                if (competition.TimeTillEnd.TotalMinutes > 120)
+                {
+                    IEnumerable<FisherMan> fishermen = await _fokkersDbService.GetFishermenCompetitionAsync(competitionId);
+                    if (fishermen == null)
+                    {
+                        return NotFound();
+                    }
+                    foreach (var fisher in fishermen)
+                    {
+                        fisher.UserName = _userHelper.GetUser(fisher.UserEmail).UserName;
+                    }
+                    return fishermen.OrderByDescending(f => f.TotalLength).ToList();
+                }
+                else
+                {
+                    return Ok();
+                }
+            }
+            else
+            {
+                return NotFound();
+            }
+        }
+
         [HttpGet("bigthree")]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<List<BigThree>>> GetBigThree()
         {
             Dictionary<string, BigThree> bigThree = new Dictionary<string, BigThree>();
             IEnumerable<FisherMan> fishermen = await _fokkersDbService.GetFishermenAsync();
-            
+
             // Fill initial dictionary
-            foreach(var fisher in fishermen)
+            foreach (var fisher in fishermen)
             {
                 bigThree.Add(fisher.UserEmail, new BigThree { Name = _userHelper.GetUser(fisher.UserEmail).UserName });
             }
-            
+
             // Pikes
             IEnumerable<Catch> pikes = await _fokkersDbService.GetTopCatchAsync("snoek");
             if (pikes != null)
@@ -152,7 +238,7 @@ namespace FokkersFishing.Controllers
             return bigThree.Values.ToList();
         }
 
-       
+
 
     } // end c
 } // end ns

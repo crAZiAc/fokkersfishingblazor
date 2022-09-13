@@ -33,6 +33,18 @@
                 image = "https://fokkersfishingstorage.blob.core.windows.net/catches/NoCatch.png";
                 textColor = "red";
             }
+
+            string imageMeasure = string.Empty;
+            if (catchRow.MeasurePhotoUrl != null)
+            {
+                imageMeasure = catchRow.MeasurePhotoUrl;
+                textColor = "grey";
+            }
+            else
+            {
+                imageMeasure = "https://fokkersfishingstorage.blob.core.windows.net/catches/NoCatch.png";
+                textColor = "red";
+            }
             <MatCard class="demo-mat-card">
                 <MatCardContent>
                     <div class="demo-mat-card-content" style="color: @textColor;">
@@ -56,9 +68,9 @@
                 </MatCardContent>
                 <MatCardActions>
                     <MatCardActionIcons>
-                         @if (catchRow.CaughtInCompetition)
+                        @if (catchRow.CaughtInCompetition)
                         {
-                            <MatFAB Icon="@MatIconNames.Fitness_center" Label="Caught in competition" style="color: black;background-color: lightgrey" />                                                        
+                            <MatFAB Icon="@MatIconNames.Fitness_center" Label="Caught in competition" style="color: black;background-color: lightgrey" />
                         }
                         @switch (catchRow.Status)
                         {
@@ -88,13 +100,10 @@
                     <MatTab Label="Catch">
                         <img src="@image" style=" max-width: 100%;height: auto;">
                     </MatTab>
-                    <MatTab Label="Measure">
-                        <MatCard class="demo-mat-card">
-                            <MatCardContent>
-                                <img src="@catchRow.MeasurePhotoUrl" style=" max-width: 100%;height: auto;">
-                                <a href="@catchRow.MeasurePhotoUrl">Download measure photo</a>
-                            </MatCardContent>
-                        </MatCard>
+                     <MatTab Label="Measure">
+                        <img src="@imageMeasure" style=" max-width: 100%;height: auto;">
+                        <br>
+                        <a href="@imageMeasure" target="_blank">Download measure photo</a>
                     </MatTab>
                 </MatTabGroup>
             </MatCard>
@@ -311,7 +320,7 @@
                 currentCatch = new Catch();
             }
         }
-        else 
+        else
         {
             catches = await client.GetFromJsonAsync<List<Catch>>("catch/admin/competition/" + competitionState.CompetitionId);
             if (catches.Count > 0)
