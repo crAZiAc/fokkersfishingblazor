@@ -121,7 +121,7 @@ namespace FokkersFishing.Controllers
             }
             
             // Pikes
-            IEnumerable<Catch> pikes = await _fokkersDbService.GetTopCatchAsync("pike");
+            IEnumerable<Catch> pikes = await _fokkersDbService.GetTopCatchAsync("snoek");
             if (pikes != null)
             {
                 foreach (var pike in pikes)
@@ -131,7 +131,7 @@ namespace FokkersFishing.Controllers
             }
 
             // Bass
-            IEnumerable<Catch> bass = await _fokkersDbService.GetTopCatchAsync("bass");
+            IEnumerable<Catch> bass = await _fokkersDbService.GetTopCatchAsync("baars");
             if (bass != null)
             {
                 foreach (var bassFish in bass)
@@ -141,7 +141,7 @@ namespace FokkersFishing.Controllers
             }
 
             // Zander
-            IEnumerable<Catch> zander = await _fokkersDbService.GetTopCatchAsync("zander");
+            IEnumerable<Catch> zander = await _fokkersDbService.GetTopCatchAsync("snoekbaars");
             if (zander != null)
             {
                 foreach (var zanderFish in zander)

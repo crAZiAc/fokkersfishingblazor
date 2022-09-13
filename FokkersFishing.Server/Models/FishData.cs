@@ -11,6 +11,7 @@ namespace FokkersFishing.Models
     public class FishData: BaseEntity, ITableEntity
     {
         public string Name { get; set; }
+        public string GenericName { get; set; }
         public string Kind { get; set; }
         public FishData()
         {
@@ -22,7 +23,8 @@ namespace FokkersFishing.Models
             {
                 Id = Guid.Parse(this.RowKey),
                 Kind = this.Kind,
-                Name = this.Name
+                Name = this.Name,
+                GenericName = this.GenericName
             };
         }
     } // end c
