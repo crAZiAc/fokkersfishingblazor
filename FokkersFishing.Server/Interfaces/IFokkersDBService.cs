@@ -44,5 +44,23 @@ namespace FokkersFishing.Interfaces
         Task AddCompetitionAsync(CompetitionData item);
         Task DeleteCompetitionAsync(string rowKey);
         Task UpdateCompetitionAsync(CompetitionData item);
+
+        // Team
+        Task<List<TeamData>> GetTeamsAsync();
+        Task<TeamData> GetTeamAsync(string rowKey);
+        Task AddTeamAsync(TeamData item);
+        Task DeleteTeamAsync(string rowKey);
+        Task UpdateTeamAsync(TeamData item);
+
+        // Team Members
+        Task<List<TeamMemberData>> GetTeamMembersAsync();
+        Task<List<TeamMemberData>> GetTeamMembersAsync(Guid teamId);
+        Task<TeamMemberData> GetTeamMemberAsync(string rowKey);
+        Task AddTeamMemberAsync(TeamMemberData item);
+        Task DeleteTeamMemberAsync(string rowKey);
+        Task DeleteTeamMembersAsync(Guid teamId);
+        Task UpdateTeamAsync(TeamMemberData item);
+        
+
     } // end i
 } // end ns

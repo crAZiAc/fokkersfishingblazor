@@ -49,7 +49,7 @@ namespace FokkersFishing.Server.Helpers
             List<User> userList = new List<User>();
             foreach (var user in _dbContext.Users)
             {
-                User userToAdd = new User { UserName = user.UserName, Email = user.Email };
+                User userToAdd = new User { UserName = user.UserName, Email = user.Email};
                 foreach (var role in _dbContext.Roles)
                 {
                     var userRole = _dbContext.UserRoles.FirstOrDefault(r => r.RoleId == role.Id & r.UserId == user.Id);
@@ -70,6 +70,36 @@ namespace FokkersFishing.Server.Helpers
         public User GetUser(string userEmail)
         {
             ApplicationUser user = _dbContext.Users.FirstOrDefault(c => c.Email.ToLower() == userEmail.ToLower());
+            if (user != null)
+            {
+                User userToReturn = user.GetUser();
+                foreach (var role in _dbContext.Roles)
+                {
+                    var userRole = _dbContext.UserRoles.FirstOrDefault(r => r.RoleId == role.Id & r.UserId == user.Id);
+                    if (userRole != null)
+                    {
+                        userToReturn.Roles.Add(new Role { Id = role.Id, Name = role.Name, IsInRole = true });
+                    }
+                    else
+                    {
+                        userToReturn.Roles.Add(new Role { Id = role.Id, Name = role.Name, IsInRole = false }); ;
+                    }
+                }
+                return userToReturn;
+            }
+            else
+            {
+                return new User
+                {
+                    Email = "non-existent",
+                    UserName = "Unknown/Deleted user"
+                };
+            }
+        } // end f
+
+        public User GetUser(Guid userId)
+        {
+            ApplicationUser user = _dbContext.Users.FirstOrDefault(c => c.Id == userId.ToString());
             if (user != null)
             {
                 User userToReturn = user.GetUser();

@@ -1,0 +1,230 @@
+﻿@page "/adminteams"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@inject IHttpClientFactory ClientFactory
+@inject IMatToaster Toaster
+@attribute [Authorize(Roles = "Administrator")]
+
+<h1>Fokkers Teams</h1>
+<div class="main">
+    @if (teams == null & users == null)
+    {
+        <p><em>Loading Teams...</em></p>
+        <MatProgressBar Indeterminate="true"></MatProgressBar>
+    }
+    else
+    {
+        <button type="button" class="btn btn-primary" @onclick="@((x) => AddNewTeam())">Add new Team</button>
+        <MatTable Items="@teams" class="mat-elevation-z5" Striped="true"
+              RowClass="tester"
+              SortBy="Length"
+              PageSize="10"
+              FilterByColumnName="TeamName"
+              ShowPaging="false">
+            <MatTableHeader>
+                <th width="25%">Team Name</th>
+                <th width="25%">Team Description</th>
+                <th width="25%">Users</th>
+            </MatTableHeader>
+            <MatTableRow>
+                <td>@context.Name</td>
+                <td>@context.Description</td>
+                <td>
+                    <MatTable Items="@context.Users" class="mat-elevation-z5" Striped="true"
+                          RowClass="tester"
+                          SortBy="UserName"
+                          PageSize="10"
+                          Context="userRow"
+                          ShowPaging="false">
+                        <MatTableRow>
+                            <td>@userRow.UserName</td>
+                            <td>@userRow.Email</td>
+                            <td>
+                                <MatIconButton Icon="@MatIconNames.Delete" OnClick="@(() => OnTeamMemberRemove(@context, @userRow.Email))" />
+                            </td>
+                        </MatTableRow>
+                    </MatTable>
+                </td>
+                <td>
+                    <MatIconButton Icon="@MatIconNames.Add_box" OnClick="@(() => AddTeamMember(@context))" />
+                    <MatIconButton Icon="@MatIconNames.Edit" OnClick="@(() => EditTeam(@context))" />
+                    <MatIconButton Icon="@MatIconNames.Delete" OnClick="@(() => DeleteTeam(@context))" />
+                </td>
+            </MatTableRow>
+        </MatTable>
+        <EditTeam currentTeam="@currentTeam" dialogIsOpen="isDialogOpen" OnTeamSave="OnTeamSave" OnTeamCancel="OnTeamCancel" />
+        <EditTeamMember @ref="editmembers" currentTeam="@currentTeam" dialogIsOpen="isAddRemoveDialogOpen" OnTeamMemberSave="@(() => OnTeamMemberAdd(currentTeam))" OnTeamMemberCancel="OnTeamMemberCancel" users="@users" />
+        <ConfirmTeamDelete currentTeam="@currentTeam" dialogIsOpen="isDeleteDialogOpen" OnConfirm="@(() => OnTeamDeleteConfirm(currentTeam))" OnCancel="@OnTeamDeleteCancel" />
+    }
+</div>
+
+@code {
+    EditTeamMember editmembers;
+    List<Team> teams;
+    List<User> users;
+    Team currentTeam;
+    bool isDialogOpen = false;
+    bool isAddRemoveDialogOpen = false;
+    bool isDeleteDialogOpen = false;
+    public bool newTeamAdded = false;
+    public string selectedUserEmail;
+
+    protected async override Task OnInitializedAsync()
+    {
+        var client = ClientFactory.CreateClient("server");
+        teams = await client.GetFromJsonAsync<List<Team>>("team");
+        if (teams.Count > 0)
+        {
+            currentTeam = teams.FirstOrDefault();
+        }
+        else
+        {
+            currentTeam = new Team();
+        }
+        users = await client.GetFromJsonAsync<List<User>>("adminuser/users");
+        if (users.Count > 0)
+        {
+            selectedUserEmail = users.FirstOrDefault().Email;
+        }
+        else
+        {
+            selectedUserEmail = string.Empty;
+        }
+    }
+
+    private async void AddNewTeam()
+    {
+        Team newTeam = new Team();
+        newTeamAdded = true;
+        currentTeam = newTeam;
+        isDialogOpen = true;
+        StateHasChanged();
+    }
+
+    protected void AddTeamMember(Team teamToAddTo)
+    {
+        currentTeam = teamToAddTo;
+        isAddRemoveDialogOpen = true;
+        StateHasChanged();
+    }
+
+    protected void DeleteTeam(Team teamToDelete)
+    {
+        currentTeam = teamToDelete;
+        isDeleteDialogOpen = true;
+        StateHasChanged();
+    }
+
+    protected void EditTeam(Team teamToEdit)
+    {
+        currentTeam = teamToEdit;
+        isDialogOpen = true;
+        StateHasChanged();
+    }
+
+    protected void OnTeamMemberAdd(Team teamToSave)
+    {
+        string selection = editmembers.selectedUserEmailToAdd;
+        // Select user
+        var selected = from s in users
+                       where s.Email == selection
+                       select s;
+        if (selected.Count() > 0)
+        {
+            User selectedUser = selected.FirstOrDefault();
+            currentTeam = teamToSave;
+            currentTeam.Users.Add(selectedUser);
+            isAddRemoveDialogOpen = false;
+            OnTeamSave();
+            StateHasChanged();
+        }
+    }
+
+    protected void OnTeamMemberRemove(Team teamToSave, string userToRemove)
+    {
+        // Select user
+        currentTeam = teamToSave;
+        var selected = from s in currentTeam.Users
+                       where s.Email == userToRemove
+                       select s;
+        if (selected.Count() > 0)
+        {
+            User selectedUser = selected.FirstOrDefault();
+            
+            currentTeam.Users.Remove(selectedUser);
+            isAddRemoveDialogOpen = false;
+            OnTeamSave();
+            StateHasChanged();
+        }
+    }
+
+    
+    protected async void OnTeamSave()
+    {
+        var client = ClientFactory.CreateClient("server");
+        HttpResponseMessage response = null;
+        if (newTeamAdded)
+        {
+            response = await client.PostAsJsonAsync("team", currentTeam);
+            if (response.StatusCode != System.Net.HttpStatusCode.Created)
+            {
+                StateHasChanged();
+            }
+            else
+            {
+                currentTeam = await response.Content.ReadFromJsonAsync<Team>();
+                teams.Add(currentTeam);
+            }
+        }
+
+        response = await client.PutAsJsonAsync("team/" + currentTeam.Id, currentTeam);
+        if (response.StatusCode != System.Net.HttpStatusCode.OK)
+        {
+            Toaster.Add($"Team #: {currentTeam.Name}", MatToastType.Warning, "Saving Team failed", "", config =>
+           {
+               config.ShowCloseButton = true;
+               config.ShowProgressBar = true;
+               config.MaximumOpacity = 100;
+
+               config.ShowTransitionDuration = 250;
+               config.VisibleStateDuration = 2000;
+               config.HideTransitionDuration = 500;
+           });
+        }
+        else
+        {
+            currentTeam = await response.Content.ReadFromJsonAsync<Team>();
+            newTeamAdded = false;
+        }
+        isDialogOpen = false;
+        StateHasChanged();
+    }
+
+    protected void OnTeamCancel()
+    {
+        isDialogOpen = false;
+        StateHasChanged();
+    }
+
+    protected void OnTeamMemberCancel()
+    {
+        isAddRemoveDialogOpen = false;
+        StateHasChanged();
+    }
+    private void OnTeamDeleteCancel()
+    {
+        isDeleteDialogOpen = false;
+        StateHasChanged();
+    }
+
+    private void OnTeamDeleteConfirm(Team TeamToBeDeleted)
+    {
+        var client = ClientFactory.CreateClient("server");
+        client.DeleteAsync($"team/{TeamToBeDeleted.Id}");
+        teams.Remove(TeamToBeDeleted);
+        isDeleteDialogOpen = false;
+        StateHasChanged();
+    }
+}
+
+

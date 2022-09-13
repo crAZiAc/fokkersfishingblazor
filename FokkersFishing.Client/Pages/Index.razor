@@ -11,8 +11,12 @@
 </AuthorizeView>
 <h1>Fokkers Top Catches</h1>
 
-@if (competitionState.Active == false)
+@if (competitionState.Active == false | (competitionState.Active == true & competitionState.TimeTillEnd.TotalMinutes > 120))
 {
+    if (competitionState.Active)
+    {
+        <h3 style="color: lightseagreen">Competition Active. Top Catches overview will be disabled 2 hours before end of competition (Competition will end in @competitionState.TimeTillEnd.Days days, @competitionState.TimeTillEnd.Hours hours, @competitionState.TimeTillEnd.Minutes minutes) </h3>
+    }
     <div class="main">
         @if (bigThree == null)
         {
@@ -115,7 +119,7 @@
 }
 else
 {
-    <h3 style="color: indianred">Competition Active. Top Catches disabled for the duration of the competition</h3>
+    <h3 style="color: indianred">Competition Active. Top Catches disabled 2 hours before end of competition (time till end: @competitionState.TimeTillEnd.Days days, @competitionState.TimeTillEnd.Hours hours, @competitionState.TimeTillEnd.Minutes minutes) </h3>
 }
 
 @if (newCatch != null & EditDialogShown == true)

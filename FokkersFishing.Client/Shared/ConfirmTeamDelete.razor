@@ -1,0 +1,23 @@
+﻿@inject HttpClient HttpClient
+
+
+<MatDialog @bind-IsOpen="@dialogIsOpen">
+    <MatDialogTitle>User: @currentTeam.Name</MatDialogTitle>
+    <MatDialogContent>
+        <p>Do you want to delete team @currentTeam.Name?</p>
+    </MatDialogContent>
+    <MatDialogActions>
+        <MatButton OnClick="@OnConfirm" Class="btn btn-danger ml-auto">Delete</MatButton>
+        <MatButton OnClick="@OnCancel" Class="btn btn-secondary mr-auto">Cancel</MatButton>
+    </MatDialogActions>
+</MatDialog>
+
+@code {
+
+    [Parameter] public Team currentTeam { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+    [Parameter] public EventCallback OnConfirm { get; set; }
+    [Parameter] public bool dialogIsOpen { get; set; }
+
+
+}

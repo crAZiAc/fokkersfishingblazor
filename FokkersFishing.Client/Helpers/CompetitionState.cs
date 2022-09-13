@@ -23,6 +23,15 @@ namespace FokkersFishing.Client.Helpers
             }
         }
 
+        public TimeSpan TimeTillEnd
+        {
+            get
+            {
+                TimeSpan timeSpan = m_EndDate - DateTime.Now;
+                return timeSpan;
+            }
+        }
+
         public Guid CompetitionId
         {
             get
@@ -62,6 +71,7 @@ namespace FokkersFishing.Client.Helpers
                 NotifyStateChanged();
             }
         }
+
 
         public DateTime EndDate
         {

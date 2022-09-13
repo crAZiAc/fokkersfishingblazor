@@ -1,0 +1,39 @@
+﻿@inject IHttpClientFactory ClientFactory
+@inject HttpClient HttpClient
+@using Microsoft.AspNetCore.Identity;
+
+<MatDialog @bind-IsOpen="@dialogIsOpen">
+    <MatDialogTitle>Team: @currentTeam.Name</MatDialogTitle>
+    <MatDialogContent>
+        <EditForm Model="@currentTeam">
+
+            <div className="input-group input-group-sm mb-3">
+                <div className="input-group-prepend" />
+                <MatSelect Label="User" @bind-Value="@selectedUserEmailToAdd" FullWidth="false" Outlined="false">
+                    @foreach (User user in currentTeam.UsersNotInTeam(users))
+                    {
+                        <MatOptionString Value="@user.Email">@user.UserName</MatOptionString>
+                    }
+                </MatSelect>
+                <label>@selectedUserEmailToAdd</label>
+            </div>
+
+        </EditForm>
+    </MatDialogContent>
+    <MatDialogActions>
+        <MatButton OnClick="@OnTeamMemberSave" Class="btn btn-primary">Save</MatButton>
+        <MatButton OnClick="@OnTeamMemberCancel" Class="btn btn-secondary">Cancel</MatButton>
+    </MatDialogActions>
+</MatDialog>
+
+
+@code {
+    [Parameter] public Team currentTeam { get; set; }
+    [Parameter] public List<User> users { get; set; }
+    [Parameter] public EventCallback OnTeamMemberSave { get; set; }
+    [Parameter] public EventCallback OnTeamMemberCancel { get; set; }
+    [Parameter] public bool dialogIsOpen { get; set; }
+    public string selectedUserEmailToAdd { get; set; }
+}
+
+

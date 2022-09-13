@@ -15,6 +15,8 @@ namespace FokkersFishing.Services
         private TableClient _catchContainer;
         private TableClient _fishContainer;
         private TableClient _competitionContainer;
+        private TableClient _teamContainer;
+        private TableClient _teamMemberContainer;
         private string _connectionString;
 
         public string StorageConnectionString
@@ -31,10 +33,14 @@ namespace FokkersFishing.Services
             this._catchContainer = dbClient.GetTableClient("Catches");
             this._fishContainer = dbClient.GetTableClient("Fish");
             this._competitionContainer = dbClient.GetTableClient("Competitions");
+            this._teamContainer = dbClient.GetTableClient("Teams");
+            this._teamMemberContainer = dbClient.GetTableClient("TeamMembers");
 
             this._catchContainer.CreateIfNotExists();
             this._fishContainer.CreateIfNotExists();
             this._competitionContainer.CreateIfNotExists();
+            this._teamContainer.CreateIfNotExists();
+            this._teamMemberContainer.CreateIfNotExists();
         }
 
         #region Catches
@@ -358,7 +364,154 @@ namespace FokkersFishing.Services
             await this._competitionContainer.UpdateEntityAsync<CompetitionData>(item, item.ETag);
         }
         #endregion
+        #region Team
+        public async Task<List<TeamData>> GetTeamsAsync()
+        {
+            var query = from c in _teamContainer.Query<TeamData>()
+                        orderby c.Name
+                        select c;
+            try
+            {
+                return query.ToList();
+            }
+            catch (Exception ex)
+            {
 
+            }
+            return null;
+        }
+
+        public async Task<TeamData> GetTeamAsync(string rowKey)
+        {
+            try
+            {
+                var query = from c in _teamContainer.Query<TeamData>()
+                            where c.RowKey == rowKey
+                            where c.PartitionKey == "Team"
+                            select c;
+                return query.FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+        public async Task AddTeamAsync(TeamData item)
+        {
+            try
+            {
+
+                await this._teamContainer.AddEntityAsync<TeamData>(item);
+            }
+            catch (Exception ex)
+            {
+            }
+        }
+
+        public async Task DeleteTeamAsync(string rowKey)
+        {
+            await this._teamContainer.DeleteEntityAsync("Team", rowKey);
+        }
+
+        public async Task UpdateTeamAsync(TeamData item)
+        {
+            await this._teamContainer.UpdateEntityAsync<TeamData>(item, item.ETag);
+        }
+
+
+
+        #endregion
+        #region Team Members
+        public async Task<List<TeamMemberData>> GetTeamMembersAsync()
+        {
+            var query = from c in _teamMemberContainer.Query<TeamMemberData>()
+                        orderby c.TeamId, c.UserEmail
+                        select c;
+            try
+            {
+                return query.ToList();
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return null;
+        }
+
+        public async Task<List<TeamMemberData>> GetTeamMembersAsync(Guid teamId)
+        {
+            var query = from c in _teamMemberContainer.Query<TeamMemberData>()
+                        where c.TeamId == teamId
+                        orderby c.UserEmail
+                        select c;
+            try
+            {
+                return query.ToList();
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return null;
+        }
+        public async Task<TeamMemberData> GetTeamMemberAsync(string rowKey)
+        {
+            try
+            {
+                var query = from c in _teamMemberContainer.Query<TeamMemberData>()
+                            where c.RowKey == rowKey
+                            where c.PartitionKey == "TeamMember"
+                            select c;
+                return query.FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+        public async Task AddTeamMemberAsync(TeamMemberData item)
+        {
+            try
+            {
+                await this._teamMemberContainer.AddEntityAsync<TeamMemberData>(item);
+            }
+            catch (Exception ex)
+            {
+            }
+        }
+
+        public async Task DeleteTeamMemberAsync(string rowKey)
+        {
+            await this._teamMemberContainer.DeleteEntityAsync("TeamMember", rowKey);
+        }
+
+        public async Task DeleteTeamMembersAsync(Guid teamId)
+        {
+            try
+            {
+                var query = from c in _teamMemberContainer.Query<TeamMemberData>()
+                            where c.TeamId == teamId
+                            where c.PartitionKey == "TeamMember"
+                            select c;
+                if (query.Count() > 0)
+                {
+                    foreach (TeamMemberData teamMemberData in query.ToList())
+                    {
+                        await this._teamMemberContainer.DeleteEntityAsync("TeamMember", teamMemberData.RowKey);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+            }
+        }
+
+        public async Task UpdateTeamAsync(TeamMemberData item)
+        {
+            await this._teamMemberContainer.UpdateEntityAsync<TeamMemberData>(item, item.ETag);
+        }
+
+        #endregion
     } // end c
 } // end ns
 

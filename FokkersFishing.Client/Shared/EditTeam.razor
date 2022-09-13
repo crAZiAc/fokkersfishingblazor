@@ -1,0 +1,30 @@
+﻿@inject IHttpClientFactory ClientFactory
+@inject HttpClient HttpClient
+@using Microsoft.AspNetCore.Identity;
+
+<MatDialog @bind-IsOpen="@dialogIsOpen">
+    <MatDialogTitle>User: @currentTeam.Name</MatDialogTitle>
+    <MatDialogContent>
+        <EditForm Model="@currentTeam">
+
+            <div className="input-group input-group-sm mb-3">
+                <div className="input-group-prepend" />
+                <MatTextField @bind-Value="currentTeam.Name" Label="Team Name" FullWidth="false" Outlined="false" />
+                <MatTextField @bind-Value="currentTeam.Description" Label="Team Description" FullWidth="false" Outlined="false" />
+            </div>
+
+        </EditForm>
+    </MatDialogContent>
+    <MatDialogActions>
+        <MatButton OnClick="@OnTeamSave" Class="btn btn-primary">Save</MatButton>
+        <MatButton OnClick="@OnTeamCancel" Class="btn btn-secondary">Cancel</MatButton>
+    </MatDialogActions>
+</MatDialog>
+
+
+@code {
+    [Parameter] public Team currentTeam { get; set; }
+    [Parameter] public EventCallback OnTeamSave { get; set; }
+    [Parameter] public EventCallback OnTeamCancel { get; set; }
+    [Parameter] public bool dialogIsOpen { get; set; }
+}

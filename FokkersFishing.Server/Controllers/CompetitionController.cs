@@ -111,7 +111,7 @@ namespace FokkersFishing.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<Catch>> DeleteCompetition(Guid id)
+        public async Task<ActionResult<Competition>> DeleteCompetition(Guid id)
         {
             var competitionData = await _fokkersDbService.GetCompetitionAsync(id.ToString());
 

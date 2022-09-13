@@ -46,5 +46,14 @@ namespace FokkersFishing.Shared.Models
                 m_EndDate = value;
             }
         }
+
+        public TimeSpan TimeTillEnd
+        {
+            get
+            {
+                TimeSpan timeSpan = m_EndDate - DateTime.Now;
+                return timeSpan;
+            }
+        }
     } // end c
 } // end ns
