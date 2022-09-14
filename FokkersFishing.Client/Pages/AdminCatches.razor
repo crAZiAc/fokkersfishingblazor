@@ -100,7 +100,7 @@
                     <MatTab Label="Catch">
                         <img src="@image" style=" max-width: 100%;height: auto;">
                     </MatTab>
-                     <MatTab Label="Measure">
+                    <MatTab Label="Measure">
                         <img src="@imageMeasure" style=" max-width: 100%;height: auto;">
                         <br>
                         <a href="@imageMeasure" target="_blank">Download measure photo</a>
@@ -118,7 +118,8 @@
            currentCatch="@currentCatch"
            fishOptions="@fishOptions"
            dialogIsOpen="@EditDialogShown"
-           adminEdit="true" />
+           adminEdit="true"
+           users="@users"/>
 }
 
 @if (currentCatch != null & DeleteDialogShown == true)
@@ -139,6 +140,7 @@
 @code {
     List<Catch> catches;
     List<Fish> fishOptions;
+    List<User> users;
 
     public Catch currentCatch;
     bool EditDialogShown = false;
@@ -164,6 +166,7 @@
     {
         var client = ClientFactory.CreateClient("server");
         fishOptions = await client.GetFromJsonAsync<List<Fish>>("fish");
+        users = await client.GetFromJsonAsync<List<User>>("adminuser/users");
         await LoadCatches(client);
         client.Dispose();
     }

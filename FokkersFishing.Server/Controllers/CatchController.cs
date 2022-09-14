@@ -180,6 +180,14 @@ namespace FokkersFishing.Controllers
                     updateCatch.Status = CatchStatusEnum.Pending;
                     updateCatch.CompetitionId = catchMade.CompetitionId;
 
+
+                    if (updateCatch.UserEmail != catchMade.UserEmail)
+                    {
+                        // Also check catchnumber for user, because we are switching users
+                        updateCatch.CatchNumber = _fokkersDbService.GetCatchNumberCount(catchMade.UserEmail).Result + 1;
+                        updateCatch.UserEmail = catchMade.UserEmail;
+                    }
+
                     await _fokkersDbService.UpdateItemAsync(updateCatch);
                     return catchMade;
                 }
@@ -344,6 +352,13 @@ namespace FokkersFishing.Controllers
             updateCatch.Length = catchMade.Length;
             updateCatch.Status = catchMade.Status;
             updateCatch.CompetitionId = catchMade.CompetitionId;
+
+            if (updateCatch.UserEmail != catchMade.UserEmail)
+            {
+                // Also check catchnumber for user, because we are switching users
+                updateCatch.CatchNumber = _fokkersDbService.GetCatchNumberCount(catchMade.UserEmail).Result + 1;
+                updateCatch.UserEmail = catchMade.UserEmail;
+            }
 
             await _fokkersDbService.UpdateItemAsync(updateCatch);
             return catchMade;
