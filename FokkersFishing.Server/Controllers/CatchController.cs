@@ -137,7 +137,15 @@ namespace FokkersFishing.Controllers
             newCatch.Length = catchMade.Length;
             newCatch.LogDate = catchMade.LogDate.ToUniversalTime();
             newCatch.RowKey = catchMade.Id.ToString();
-            newCatch.UserEmail = catchMade.UserEmail;
+            if (catchMade.UserEmail != null)
+            {
+                newCatch.UserEmail = catchMade.UserEmail;
+            }
+            else
+            {
+                newCatch.UserEmail = catchMade.RegisterUserEmail;
+                catchMade.UserEmail = catchMade.RegisterUserEmail;
+            }
             newCatch.RegisterUserEmail = catchMade.RegisterUserEmail;
             newCatch.Status = CatchStatusEnum.Pending;
             newCatch.CompetitionId = catchMade.CompetitionId;
@@ -180,12 +188,19 @@ namespace FokkersFishing.Controllers
                     updateCatch.Status = CatchStatusEnum.Pending;
                     updateCatch.CompetitionId = catchMade.CompetitionId;
 
-
-                    if (updateCatch.UserEmail != catchMade.UserEmail)
+                    if (catchMade.UserEmail != null)
                     {
-                        // Also check catchnumber for user, because we are switching users
-                        updateCatch.CatchNumber = _fokkersDbService.GetCatchNumberCount(catchMade.UserEmail).Result + 1;
-                        updateCatch.UserEmail = catchMade.UserEmail;
+                        if (updateCatch.UserEmail != catchMade.UserEmail)
+                        {
+                            // Also check catchnumber for user, because we are switching users
+                            updateCatch.CatchNumber = _fokkersDbService.GetCatchNumberCount(catchMade.UserEmail).Result + 1;
+                            updateCatch.UserEmail = catchMade.UserEmail;
+                        }
+                    }
+                    else
+                    {
+                        updateCatch.UserEmail = catchMade.RegisterUserEmail;
+                        catchMade.UserEmail = catchMade.RegisterUserEmail;
                     }
 
                     await _fokkersDbService.UpdateItemAsync(updateCatch);
@@ -353,11 +368,19 @@ namespace FokkersFishing.Controllers
             updateCatch.Status = catchMade.Status;
             updateCatch.CompetitionId = catchMade.CompetitionId;
 
-            if (updateCatch.UserEmail != catchMade.UserEmail)
+            if (catchMade.UserEmail != null)
             {
-                // Also check catchnumber for user, because we are switching users
-                updateCatch.CatchNumber = _fokkersDbService.GetCatchNumberCount(catchMade.UserEmail).Result + 1;
-                updateCatch.UserEmail = catchMade.UserEmail;
+                if (updateCatch.UserEmail != catchMade.UserEmail)
+                {
+                    // Also check catchnumber for user, because we are switching users
+                    updateCatch.CatchNumber = _fokkersDbService.GetCatchNumberCount(catchMade.UserEmail).Result + 1;
+                    updateCatch.UserEmail = catchMade.UserEmail;
+                }
+            }
+            else
+            {
+                updateCatch.UserEmail = catchMade.RegisterUserEmail;
+                catchMade.UserEmail = catchMade.RegisterUserEmail;
             }
 
             await _fokkersDbService.UpdateItemAsync(updateCatch);
