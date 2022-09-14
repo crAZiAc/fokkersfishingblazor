@@ -68,19 +68,19 @@
                         <MatCardActionIcons>
                             @if (catchRow.CaughtInCompetition)
                             {
-                                <MatFAB Icon="@MatIconNames.Fitness_center" Label="Caught in competition" style="color: black;background-color: lightgrey" />
+                                <MatFAB Icon="@MatIconNames.Fitness_center" style="color: black;background-color: lightgrey" Mini="true"/>
                             }
                             @switch (catchRow.Status)
                             {
                                 case CatchStatusEnum.Approved:
                                     {
-                                        <MatFAB Icon="@MatIconNames.Done_all" Label="Approved" style="color: lightgreen;background-color: green" />
+                                        <MatFAB Icon="@MatIconNames.Done_all" Label="Approved" style="color: lightgreen;background-color: green" Mini="true" />
                                         <MatIconButton Icon="@MatIconNames.Delete" @onclick="@(() => ShowDeleteDialog(catchRow.Id))"></MatIconButton>
                                         break;
                                     }
                                 case CatchStatusEnum.Pending:
                                     {
-                                        <MatFAB Icon="@MatIconNames.Schedule" Label="Pending" style="color: lightyellow;background-color:#ffc107" />
+                                        <MatFAB Icon="@MatIconNames.Schedule" Label="Pending" style="color: lightyellow;background-color:#ffc107" Mini="true" />
                                         <MatIconButton Icon="@MatIconNames.Edit" @onclick="@(() => ShowEditDialog(catchRow.Id))"></MatIconButton>
                                         <MatIconButton Icon="@MatIconNames.Delete" @onclick="@(() => ShowDeleteDialog(catchRow.Id))"></MatIconButton>
 
@@ -88,14 +88,13 @@
                                     }
                                 case CatchStatusEnum.Rejected:
                                     {
-                                        <MatFAB Icon="@MatIconNames.Pan_tool" Label="Rejected" style="color: darkgoldenrod;background-color:indianred" />
+                                        <MatFAB Icon="@MatIconNames.Pan_tool" Label="Rejected" style="color: darkgoldenrod;background-color:indianred"  Mini="true"/>
                                         break;
                                     }
                             }
                         </MatCardActionIcons>
                     </MatCardActions>
                 </MatCardContent>
-               
             </MatCard>
              <MatTabGroup>
                     <MatTab Label="Catch">
