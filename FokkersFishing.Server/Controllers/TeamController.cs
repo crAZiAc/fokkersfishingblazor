@@ -12,10 +12,13 @@ using System.Security.Claims;
 using FokkersFishing.Data;
 using FokkersFishing.Shared.Models;
 using FokkersFishing.Server.Helpers;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace FokkersFishing.Controllers
 {
+    
     [ApiController]
+    [Authorize]
     [Route("[controller]")]
     public class TeamController : Controller
     {
@@ -35,6 +38,7 @@ namespace FokkersFishing.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Administrator, User")]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<List<Team>>> Get()
         {
@@ -50,6 +54,33 @@ namespace FokkersFishing.Controllers
                 Team team = teamData.GetTeam();
                 var teamMembersData = await _fokkersDbService.GetTeamMembersAsync(team.Id);
                 foreach(var teamMember in teamMembersData)
+                {
+                    User user = _userHelper.GetUser(teamMember.UserEmail);
+                    team.Users.Add(user);
+                }
+                teams.Add(team);
+            }
+
+            return teams.ToList();
+        }
+
+        [HttpGet("data")]
+        [Authorize(Roles = "ApiUser", AuthenticationSchemes = AuthenticationSchemaNames.BasicAuthentication)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<List<Team>>> GetTeamData()
+        {
+            IEnumerable<TeamData> teamsData;
+            teamsData = await _fokkersDbService.GetTeamsAsync();
+            if (teamsData == null)
+            {
+                return NotFound();
+            }
+            List<Team> teams = new List<Team>();
+            foreach (TeamData teamData in teamsData)
+            {
+                Team team = teamData.GetTeam();
+                var teamMembersData = await _fokkersDbService.GetTeamMembersAsync(team.Id);
+                foreach (var teamMember in teamMembersData)
                 {
                     User user = _userHelper.GetUser(teamMember.UserEmail);
                     team.Users.Add(user);

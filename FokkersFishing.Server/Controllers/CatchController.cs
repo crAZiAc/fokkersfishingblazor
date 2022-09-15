@@ -16,7 +16,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace FokkersFishing.Controllers
 {
-    [Authorize(Roles = "Administrator, User")]
+    [Authorize(Roles = "Administrator, User, ApiUser")]
     [ApiController]
     [Route("[controller]")]
     public class CatchController : Controller
@@ -251,6 +251,31 @@ namespace FokkersFishing.Controllers
         [HttpGet("admin")]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<IEnumerable<Catch>>> GetAdmin()
+        {
+            IEnumerable<CatchData> catchesMadeData = null;
+            catchesMadeData = await _fokkersDbService.GetAllCatches();
+            if (catchesMadeData == null)
+            {
+                return NotFound();
+            }
+            List<Catch> catchesMade = new List<Catch>();
+            foreach (CatchData catchMadeData in catchesMadeData)
+            {
+                Catch catchMade = catchMadeData.GetCatch();
+                catchMade.UserName = _userHelper.GetUser(catchMade.UserEmail).UserName;
+                if (catchMade.RegisterUserEmail != null)
+                {
+                    catchMade.RegisterUserName = _userHelper.GetUser(catchMade.RegisterUserEmail).UserName;
+                }
+                catchesMade.Add(catchMade);
+            }
+            return catchesMade.ToList();
+        }
+
+        [Authorize(Roles = "ApiUser", AuthenticationSchemes = AuthenticationSchemaNames.BasicAuthentication)]
+        [HttpGet("admin/data")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<IEnumerable<Catch>>> GetAdminData()
         {
             IEnumerable<CatchData> catchesMadeData = null;
             catchesMadeData = await _fokkersDbService.GetAllCatches();

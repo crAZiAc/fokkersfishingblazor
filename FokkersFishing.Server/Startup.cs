@@ -1,8 +1,12 @@
 using Azure.Data.Tables;
 using FokkersFishing.Data;
+using FokkersFishing.Helpers;
 using FokkersFishing.Interfaces;
 using FokkersFishing.Models;
+using FokkersFishing.Server.Helpers;
+using FokkersFishing.Server.Interfaces;
 using FokkersFishing.Services;
+using FokkersFishing.Shared.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
@@ -94,8 +98,11 @@ namespace FokkersFishing
                       googleOptions.ClientId = Configuration["Authentication:Google:ClientId"];
                       googleOptions.ClientSecret = Configuration["Authentication:Google:ClientSecret"];
                       googleOptions.SaveTokens = true;
-                  });
+                  })
+                  .AddBasicAuthenticationSchema();
 
+            // configure DI for application services
+            services.AddScoped<IUserService>(us => new UserService(Configuration["Api:User"], Configuration["Api:Key"]));
 
             services.AddControllersWithViews();
             services.AddRazorPages();

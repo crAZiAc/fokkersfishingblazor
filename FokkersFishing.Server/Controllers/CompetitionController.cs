@@ -16,6 +16,7 @@ using FokkersFishing.Server.Helpers;
 namespace FokkersFishing.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("[controller]")]
     public class CompetitionController : Controller
     {
@@ -29,6 +30,7 @@ namespace FokkersFishing.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<List<Competition>>> Get()
         {
