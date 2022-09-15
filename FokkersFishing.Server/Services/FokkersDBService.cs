@@ -46,7 +46,14 @@ namespace FokkersFishing.Services
         #region Catches
         public async Task AddItemAsync(CatchData item)
         {
-            await this._catchContainer.AddEntityAsync<CatchData>(item);
+            try
+            {
+                await this._catchContainer.AddEntityAsync<CatchData>(item);
+            }
+            catch (Exception ex)
+            {
+
+            }
         }
 
         public async Task DeleteItemAsync(string rowKey)
