@@ -37,9 +37,12 @@ namespace FokkersFishing.Interfaces
         Task<List<CatchData>> GetLeaderboardItemsAsync();
         Task<List<CatchData>> GetCompetitionLeaderboardItemsAsync(Guid competitionId);
         Task<List<Catch>> GetTopCatchAsync(string fish);
+        Task<List<Catch>> GetTopCatchesByUserInCompetitionAsync(Guid competitionId, string userEmail, string fishName);
+        Task<List<CatchData>> GetCatchesByUserInCompetitionAsync(Guid competitionId, string userEmail);
 
         // Competition
         Task<List<CompetitionData>> GetCompetitionsAsync();
+        Task<List<CatchData>> GetCatchesInCompetitionsAsync(Guid competitionId);
         Task<CompetitionData> GetCompetitionAsync(string rowKey);
         Task AddCompetitionAsync(CompetitionData item);
         Task DeleteCompetitionAsync(string rowKey);
@@ -51,10 +54,12 @@ namespace FokkersFishing.Interfaces
         Task AddTeamAsync(TeamData item);
         Task DeleteTeamAsync(string rowKey);
         Task UpdateTeamAsync(TeamData item);
+        
 
         // Team Members
         Task<List<TeamMemberData>> GetTeamMembersAsync();
         Task<List<TeamMemberData>> GetTeamMembersAsync(Guid teamId);
+        Task<List<TeamMemberData>> GetTeamMembersFromMemberAsync(string userEmail);
         Task<TeamMemberData> GetTeamMemberAsync(string rowKey);
         Task AddTeamMemberAsync(TeamMemberData item);
         Task DeleteTeamMemberAsync(string rowKey);

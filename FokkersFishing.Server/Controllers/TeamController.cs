@@ -16,7 +16,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace FokkersFishing.Controllers
 {
-    
+
     [ApiController]
     [Authorize]
     [Route("[controller]")]
@@ -53,7 +53,7 @@ namespace FokkersFishing.Controllers
             {
                 Team team = teamData.GetTeam();
                 var teamMembersData = await _fokkersDbService.GetTeamMembersAsync(team.Id);
-                foreach(var teamMember in teamMembersData)
+                foreach (var teamMember in teamMembersData)
                 {
                     User user = _userHelper.GetUser(teamMember.UserEmail);
                     team.Users.Add(user);
@@ -115,6 +115,52 @@ namespace FokkersFishing.Controllers
             }
         }
 
+
+        [HttpGet("byuser")]
+        [Authorize(Roles = "Administrator, User")]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<Team>> GetTeamByUser()
+        {
+            // Get user
+            ApplicationUser user = _userHelper.GetUser();
+
+            var teamMembersData = await _fokkersDbService.GetTeamMembersFromMemberAsync(user.Email);
+            if (teamMembersData == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                var checkUser = from tm in teamMembersData
+                                where tm.UserEmail == user.Email
+                                select tm;
+                if (checkUser.Count() > 0)
+                {
+                    var teamData = await _fokkersDbService.GetTeamAsync(checkUser.FirstOrDefault().TeamId.ToString());
+                    if (teamData != null)
+                    {
+                        Team team = teamData.GetTeam();
+                        foreach (var teamMember in teamMembersData)
+                        {
+                            User userTeam = _userHelper.GetUser(teamMember.UserEmail);
+                            team.Users.Add(userTeam);
+                        }
+                        return team;
+                    }
+                    else
+                    {
+                        return NotFound();
+                    }
+                }
+                else
+                {
+                    return NotFound();
+                }
+            }
+        }
+
+
         [HttpPost]
         [Authorize(Roles = "Administrator")]
         [ProducesResponseType(StatusCodes.Status201Created)]
@@ -139,7 +185,7 @@ namespace FokkersFishing.Controllers
         {
             TeamData updateTeam = await _fokkersDbService.GetTeamAsync(id.ToString());
             if (updateTeam != null)
-             {
+            {
                 updateTeam.Name = team.Name;
                 updateTeam.Description = team.Description;
 

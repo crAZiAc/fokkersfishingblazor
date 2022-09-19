@@ -1,0 +1,119 @@
+﻿@page "/leaders/team"
+@inject IHttpClientFactory ClientFactory
+@inject IMatToaster Toaster
+@inject FokkersFishing.Client.Helpers.CompetitionState competitionState
+@using System.ComponentModel
+@using System.IO
+@attribute [Authorize(Roles = "Administrator, User")]
+
+<h1>Fokkers Competition Team Leaderboard</h1>
+    @if (competitionState.Active)
+{
+    @if (catches == null)
+    {
+        <p><em>Loading Team Catches Leaderboard...</em></p>
+        <MatProgressBar Indeterminate="true"></MatProgressBar>
+    }
+    else
+    {
+        <div class="main">
+            <h3>All Catches for team</h3>
+            <MatTable Items="@catches" class="mat-elevation-z5" Striped="true"
+              RowClass="tester"
+              SortBy="Length"
+              PageSize="25"
+              FilterByColumnName="Fish"
+              ShowPaging="true">
+                <MatTableHeader>
+                    <th width="10%">Catch #</th>
+                    <th width="30%">Catch Date</th>
+                    <th width="10%">Fish</th>
+                    <th width="20%">Fish Length</th>
+                    <th width="20%">Fisherman</th>
+                </MatTableHeader>
+                <MatTableRow>
+                    <td>@context.GlobalCatchNumber</td>
+                    <td>@context.CatchDate</td>
+                    <td>@context.Fish</td>
+                    <td>@context.Length</td>
+                    <td>@context.UserName</td>
+                    <td>
+                        @switch (context.Status)
+                        {
+                            case CatchStatusEnum.Approved:
+                                {
+                            <MatFAB Icon="@MatIconNames.Done_all" Label="Approved" style="color: lightgreen;background-color: green" />
+                                    break;
+                                }
+                            case CatchStatusEnum.Pending:
+                                {
+                            <MatFAB Icon="@MatIconNames.Schedule" Label="Pending" style="color: lightyellow;background-color:#ffc107" />
+
+                                    break;
+                                }
+                            case CatchStatusEnum.Rejected:
+                                {
+                            <MatFAB Icon="@MatIconNames.Pan_tool" Label="Rejected" style="color: darkgoldenrod;background-color:indianred" />
+                                    break;
+                                }
+                        }
+            </td>
+        </MatTableRow>
+    </MatTable>
+    @if (scores == null)
+            {
+                <p><em>Loading Team Scores...</em></p>
+                <MatProgressBar Indeterminate="true"></MatProgressBar>
+            }
+            else
+            {
+                <h3>Fish List</h3>
+                <MatTable Items="@scores" class="mat-elevation-z5" Striped="true"
+              RowClass="tester"
+              SortBy="TotalLength" PageSize="10"
+              ShowPaging="false">
+                    <MatTableHeader>
+                        <th width="30%">Fish</th>
+                        <th width="30%">Total Fish Length</th>
+                        <th width="30%">Total Fish Caught</th>
+                    </MatTableHeader>
+                    <MatTableRow>
+                        <td>@context.Fish</td>
+                        <td>@context.TotalLength</td>
+                        <td>@context.FishCount</td>
+                    </MatTableRow>
+                </MatTable>
+
+            }
+        </div>
+    }
+}
+else
+{
+    <h4>No competition active. Team Leaderboard unavailable</h4>
+}
+
+@code {
+    List<Catch> catches;
+    List<TeamScore> scores;
+
+    protected async override Task OnInitializedAsync()
+    {
+        var client = ClientFactory.CreateClient("server");
+        if (competitionState.Active)
+        {
+            try
+            {
+                catches = await client.GetFromJsonAsync<List<Catch>>("leaderboard/team/" + competitionState.CompetitionId);
+                scores = await client.GetFromJsonAsync<List<TeamScore>>("leaderboard/team/scores/" + competitionState.CompetitionId);
+
+            }
+            catch (Exception ex)
+            {
+
+            }
+        }
+    }
+}
+
+

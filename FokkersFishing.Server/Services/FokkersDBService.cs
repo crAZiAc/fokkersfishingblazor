@@ -155,6 +155,55 @@ namespace FokkersFishing.Services
             }
         }
 
+
+        public async Task<List<CatchData>> GetCatchesByUserInCompetitionAsync(Guid competitionId, string userEmail)
+        {
+            try
+            {
+                var query = from c in _catchContainer.Query<CatchData>()
+                             where c.Status == CatchStatusEnum.Approved | c.Status == CatchStatusEnum.Pending
+                             where c.UserEmail == userEmail
+                             where c.CompetitionId == competitionId
+                             orderby c.Length descending
+                             select c;
+                return query.ToList();
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
+        public async Task<List<Catch>> GetTopCatchesByUserInCompetitionAsync(Guid competitionId, string userEmail, string fishName)
+        {
+            try
+            {
+                var query = (from c in _catchContainer.Query<CatchData>()
+                            where c.Status == CatchStatusEnum.Approved | c.Status == CatchStatusEnum.Pending
+                            where c.UserEmail == userEmail
+                            where c.Fish.ToLower() == fishName.ToLower()
+                            where c.CompetitionId == competitionId
+                            orderby c.Length descending
+                            group c by new { c.Fish, c.Length, c.UserEmail } into fishGroup
+                            select new Catch
+                            {
+                                UserEmail = fishGroup.Key.UserEmail,
+                                Length = fishGroup.Key.Length,
+                                Fish = fishGroup.Key.Fish,
+                                CatchDate = fishGroup.Max(m => m.CatchDate),
+                                MeasurePhotoUrl = fishGroup.Max(m => m.MeasurePhotoUrl),
+                                CatchPhotoUrl = fishGroup.Max(m => m.CatchPhotoUrl),
+                                GlobalCatchNumber = fishGroup.Max(m => m.GlobalCatchNumber),
+                                CatchNumber = fishGroup.Max(m => m.CatchNumber)
+                            }).Take(3);
+                return query.ToList();
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
         public async Task<List<CatchData>> GetUserItemsAsync(string userEmail)
         {
             try
@@ -177,6 +226,22 @@ namespace FokkersFishing.Services
             {
                 var query = from c in _catchContainer.Query<CatchData>()
                             orderby c.GlobalCatchNumber descending
+                            select c;
+                return query.ToList();
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
+        public async Task<List<CatchData>> GetCatchesInCompetitionsAsync(Guid competitionId)
+        {
+            try
+            {
+                var query = from c in _catchContainer.Query<CatchData>()
+                            where c.CompetitionId == competitionId
+                            orderby c.Fish, c.Length descending
                             select c;
                 return query.ToList();
             }
@@ -432,6 +497,7 @@ namespace FokkersFishing.Services
         public async Task<List<TeamMemberData>> GetTeamMembersAsync()
         {
             var query = from c in _teamMemberContainer.Query<TeamMemberData>()
+                        where c.PartitionKey == "TeamMember"
                         orderby c.TeamId, c.UserEmail
                         select c;
             try
@@ -445,9 +511,31 @@ namespace FokkersFishing.Services
             return null;
         }
 
+        public async Task<List<TeamMemberData>> GetTeamMembersFromMemberAsync(string userEmail)
+        {
+            var query = from c in _teamMemberContainer.Query<TeamMemberData>()
+                        where c.UserEmail == userEmail
+                        where c.PartitionKey == "TeamMember"
+                        orderby c.TeamId, c.UserEmail
+                        select c;
+            try
+            {
+                if (query.Count() > 0)
+                {
+                    return await GetTeamMembersAsync(query.FirstOrDefault().TeamId);
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return null;
+        }
+
         public async Task<List<TeamMemberData>> GetTeamMembersAsync(Guid teamId)
         {
             var query = from c in _teamMemberContainer.Query<TeamMemberData>()
+                        where c.PartitionKey == "TeamMember"
                         where c.TeamId == teamId
                         orderby c.UserEmail
                         select c;

@@ -21,4 +21,10 @@
     <ProjectReference Include="..\FokkersFishing.Shared\FokkersFishing.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="Pages\LeaderboardTeam.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+  </ItemGroup>
+
 </Project>

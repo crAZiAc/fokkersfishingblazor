@@ -20,6 +20,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net.Mime;
@@ -65,11 +66,15 @@ namespace FokkersFishing
 
             services.AddSingleton<IFokkersDbService>(InitializeTableClientInstanceAsync(section).GetAwaiter().GetResult());
 
-            services.AddIdentityServer()
+            services.AddIdentityServer(options => 
+            { 
+                options.Authentication.CookieLifetime = TimeSpan.FromHours(2);
+            })
            .AddApiAuthorization<ApplicationUser, ApplicationDbContext>(opt =>
            {
                opt.IdentityResources["openid"].UserClaims.Add("role");
                opt.ApiResources.Single().UserClaims.Add("role");
+               opt.Clients.First().AccessTokenLifetime = 28800;
            });
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Remove("role");
 
