@@ -72,7 +72,7 @@
                 else
                 {
                     <h3>Team Ranking</h3>
-                    <MatTable Items="@scores.OrderBy(x => x.Ranking)" class="mat-elevation-z5" Striped="true"
+                    <MatTable Items="@scores.OrderBy(x => x.Rank)" class="mat-elevation-z5" Striped="true"
                   RowClass="tester"
                   SortBy="Ranking" PageSize="25"
                   ShowPaging="false">
@@ -80,33 +80,56 @@
                             <th width="25%">Ranking</th>
                             <th width="25%">Team</th>
                             <th width="25%">Score</th>
-                            <th width="25%">Total Fish Caught</th>
                         </MatTableHeader>
                         <MatTableRow>
-                            <td>@context.Ranking</td>
+                            <td>@context.Rank</td>
                             <td>@context.TeamName</td>
-                            <td>@context.TotalLength</td>
-                            <td>@context.FishCount</td>
+                            <td>@context.Score</td>
                         </MatTableRow>
                     </MatTable>
 
                 }
                 <div class="main">
-                    @if (bigthreeIndividual == null & bigthreeBiggest == null)
+                    @if (userScores == null)
                     {
-                        <p><em>Loading Individual scores...</em></p>
+                        <p><em>Loading Individual Catches...</em></p>
                         <MatProgressBar Indeterminate="true"></MatProgressBar>
                     }
                     else
                     {
                         <h3>Individual Catches</h3>
+                        <MatTable Items="@userScores" class="mat-elevation-z5" Striped="true"
+                      RowClass="tester"
+                      SortBy="Length" PageSize="10"
+                      ShowPaging="true">
+                            <MatTableHeader>
+                                <th width="25%">Fisherman</th>
+                                <th width="25%">Fish Length</th>
+                            </MatTableHeader>
+                            <MatTableRow>
+                                <td>@context.FisherMan</td>
+                                <td>@context.Length</td>
+                            </MatTableRow>
+                        </MatTable>
+
+                    }
+                </div>
+                <div class="main">
+                    @if (bigthreeIndividual == null & bigthreeBiggest == null)
+                    {
+                        <p><em>Loading Individual Big Three...</em></p>
+                        <MatProgressBar Indeterminate="true"></MatProgressBar>
+                    }
+                    else
+                    {
+                        <h3>Individual Big Three</h3>
                         <MatTable Items="@individualScores" class="mat-elevation-z5" Striped="true"
                       RowClass="tester"
                       PageSize="10"
                       ShowPaging="false">
                             <MatTableHeader>
                                 <th width="25%">Fish</th>
-                                <th width="25%">FisherMan</th>
+                                <th width="25%">Fisherman</th>
                                 <th width="25%">Length</th>
                             </MatTableHeader>
                             <MatTableRow>
@@ -117,6 +140,8 @@
                         </MatTable>
                     }
                 </div>
+
+
 
                 <h5 style="color: lightseagreen">Competition Active. Leaderboard will be disabled 2 hours before end of competition (Competition will end in @competitionState.TimeTillEnd.Days days, @competitionState.TimeTillEnd.Hours hours, @competitionState.TimeTillEnd.Minutes minutes) </h5>
                 <h5 style="color: lightblue">Team Ranking includes pending catches. The jury may correct or reject catches </h5>
@@ -227,7 +252,8 @@ else
     BigThreeWinner bigthreeBiggest;
     List<IndividualScore> individualScores = new List<IndividualScore>();
     List<Catch> catches;
-    List<TeamScore> scores;
+    IEnumerable<IndividualScore> userScores;
+    List<Ranking> scores;
     List<FisherMan> fishermen;
     Double totalLength;
 
@@ -248,7 +274,7 @@ else
                     totalLength += countBig.TotalLength;
                 }
 
-                scores = await clientOpen.GetFromJsonAsync<List<TeamScore>>("leaderboard/open/scores/" + competitionState.CompetitionId);
+                scores = await clientOpen.GetFromJsonAsync<List<Ranking>>("leaderboard/team/bigthree/all/" + competitionState.CompetitionId);
                 bigthreeIndividual = await client.GetFromJsonAsync<BigThree>("leaderboard/member/bigthree/" + competitionState.CompetitionId);
                 bigthreeBiggest = await client.GetFromJsonAsync<BigThreeWinner>("leaderboard/biggest/bigthree/" + competitionState.CompetitionId);
 
@@ -279,6 +305,17 @@ else
                         FisherMan = bigthreeBiggest.Name,
                         Length = bigthreeBiggest.TotalLength
                     });
+
+                var userCatches = await clientOpen.GetFromJsonAsync<List<Catch>>("leaderboard/open/" + competitionState.CompetitionId);
+
+                var sumScores = (from uc in userCatches
+                                 group uc by uc.UserName into fishGroup
+                                 select new IndividualScore
+                                     {
+                                         Length = fishGroup.Sum(x => x.Length),
+                                         FisherMan = fishGroup.Key
+                                     });
+                userScores = sumScores.ToList().OrderByDescending(x => x.Length);
 
             }
             catch (Exception ex)

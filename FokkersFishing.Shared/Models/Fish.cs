@@ -20,5 +20,11 @@ namespace FokkersFishing.Shared.Models
 
         [JsonProperty(PropertyName = "kind")]
         public string Kind { get; set; }
+
+        [JsonProperty(PropertyName = "predator")]
+        public bool Predator { get; set; }
+
+        [JsonProperty(PropertyName = "includeInCompetition")]
+        public bool IncludeInCompetition { get; set; }
     } // end c
 } // end ns

@@ -170,14 +170,14 @@ namespace FokkersFishing.Controllers
                     List<CatchData> catches = await _fokkersDbService.GetCatchesInCompetitionsAsync(competitionId);
 
                     var highestCatches = (from c in catches
-                                orderby c.Length descending
-                                group c by new { c.UserEmail, c.Fish } into fishGroup
-                                select new BigThreeWinner
-                                {
-                                    TotalLength = fishGroup.Max(x => x.Length),
-                                    Fish = fishGroup.Key.Fish,
-                                    Name = fishGroup.Key.UserEmail
-                                });
+                                          orderby c.Length descending
+                                          group c by new { c.UserEmail, c.Fish } into fishGroup
+                                          select new BigThreeWinner
+                                          {
+                                              TotalLength = fishGroup.Max(x => x.Length),
+                                              Fish = fishGroup.Key.Fish,
+                                              Name = fishGroup.Key.UserEmail
+                                          });
 
                     var winner = (from w in highestCatches
                                   orderby w.TotalLength descending
@@ -246,7 +246,10 @@ namespace FokkersFishing.Controllers
                                         {
                                             catchMade.RegisterUserName = _userHelper.GetUser(catchMade.RegisterUserEmail).UserName;
                                         }
-                                        bigThree[count].Pike = catchMade;
+                                        if (bigThree[count].Pike.Length < catchMade.Length)
+                                        {
+                                            bigThree[count].Pike = catchMade;
+                                        }
                                         count++;
                                     }
                                 }
@@ -263,7 +266,10 @@ namespace FokkersFishing.Controllers
                                         {
                                             catchMade.RegisterUserName = _userHelper.GetUser(catchMade.RegisterUserEmail).UserName;
                                         }
-                                        bigThree[count].Bass = catchMade;
+                                        if (bigThree[count].Bass.Length < catchMade.Length)
+                                        {
+                                            bigThree[count].Bass = catchMade;
+                                        }
                                         count++;
                                     }
                                 }
@@ -280,7 +286,10 @@ namespace FokkersFishing.Controllers
                                         {
                                             catchMade.RegisterUserName = _userHelper.GetUser(catchMade.RegisterUserEmail).UserName;
                                         }
-                                        bigThree[count].Zander = catchMade;
+                                        if (bigThree[count].Zander.Length < catchMade.Length)
+                                        {
+                                            bigThree[count].Zander = catchMade;
+                                        }
                                         count++;
                                     }
                                 }
@@ -308,6 +317,131 @@ namespace FokkersFishing.Controllers
             }
         }
 
+
+        [AllowAnonymous]
+        [HttpGet("team/bigthree/all/{competitionId}")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<List<Ranking>>> GetBigThreeCompetitionForAllTeams(Guid competitionId)
+        {
+            List<Ranking> rankList = new List<Ranking>();
+            CompetitionData competitionData = await _fokkersDbService.GetCompetitionAsync(competitionId.ToString());
+            if (competitionData != null)
+            {
+                Competition competition = competitionData.GetCompetition();
+                if (competition.TimeTillEnd.TotalMinutes > 120)
+                {
+                    // Get all teams
+                    var teamsData = await _fokkersDbService.GetTeamsAsync();
+                    foreach (TeamData teamData in teamsData)
+                    {
+                        // Get Team members
+                        List<TeamMemberData> teamMemberData = await _fokkersDbService.GetTeamMembersAsync(new Guid(teamData.RowKey));
+                        if (teamMemberData != null)
+                        {
+                            Dictionary<int, BigThree> bigThree = new Dictionary<int, BigThree>();
+                            List<Catch> catchesMade = new List<Catch>();
+                            bigThree.Add(0, new BigThree { Name = "First", Pike = new Catch(), Bass = new Catch(), Zander = new Catch() });
+                            bigThree.Add(1, new BigThree { Name = "Second", Pike = new Catch(), Bass = new Catch(), Zander = new Catch() });
+                            bigThree.Add(2, new BigThree { Name = "Third", Pike = new Catch(), Bass = new Catch(), Zander = new Catch() });
+                            foreach (TeamMemberData teamMember in teamMemberData)
+                            {
+                                IEnumerable<Catch> pikeCatches = await _fokkersDbService.GetTopCatchesByUserInCompetitionAsync(competitionId, teamMember.UserEmail, "snoek");
+                                if (pikeCatches != null)
+                                {
+                                    int count = 0;
+                                    foreach (Catch catchMadeData in pikeCatches)
+                                    {
+                                        Catch catchMade = catchMadeData;
+                                        catchMade.UserName = _userHelper.GetUser(catchMade.UserEmail).UserName;
+                                        if (catchMade.RegisterUserEmail != null)
+                                        {
+                                            catchMade.RegisterUserName = _userHelper.GetUser(catchMade.RegisterUserEmail).UserName;
+                                        }
+                                        if (bigThree[count].Pike.Length < catchMade.Length)
+                                        {
+                                            bigThree[count].Pike = catchMade;
+                                        }
+                                        count++;
+                                    }
+                                }
+
+                                IEnumerable<Catch> bassCatches = await _fokkersDbService.GetTopCatchesByUserInCompetitionAsync(competitionId, teamMember.UserEmail, "baars");
+                                if (bassCatches != null)
+                                {
+                                    int count = 0;
+                                    foreach (Catch catchMadeData in bassCatches)
+                                    {
+                                        Catch catchMade = catchMadeData;
+                                        catchMade.UserName = _userHelper.GetUser(catchMade.UserEmail).UserName;
+                                        if (catchMade.RegisterUserEmail != null)
+                                        {
+                                            catchMade.RegisterUserName = _userHelper.GetUser(catchMade.RegisterUserEmail).UserName;
+                                        }
+                                        if (bigThree[count].Bass.Length < catchMade.Length)
+                                        {
+                                            bigThree[count].Bass = catchMade;
+                                        }
+                                        count++;
+                                    }
+                                }
+
+                                IEnumerable<Catch> zanderCatches = await _fokkersDbService.GetTopCatchesByUserInCompetitionAsync(competitionId, teamMember.UserEmail, "snoekbaars");
+                                if (zanderCatches != null)
+                                {
+                                    int count = 0;
+                                    foreach (Catch catchMadeData in zanderCatches)
+                                    {
+                                        Catch catchMade = catchMadeData;
+                                        catchMade.UserName = _userHelper.GetUser(catchMade.UserEmail).UserName;
+                                        if (catchMade.RegisterUserEmail != null)
+                                        {
+                                            catchMade.RegisterUserName = _userHelper.GetUser(catchMade.RegisterUserEmail).UserName;
+                                        }
+                                        if (bigThree[count].Zander.Length < catchMade.Length)
+                                        {
+                                            bigThree[count].Zander = catchMade;
+                                        }
+                                        count++;
+                                    }
+                                }
+                            } // end teammember for
+                            // Get ranking and score
+                            Ranking ranking = new Ranking();
+                            ranking.TeamName = teamData.Name;
+                            ranking.Score = bigThree[0].TotalLength;
+                            ranking.Score += bigThree[1].TotalLength;
+                            ranking.Score += bigThree[2].TotalLength;
+                            rankList.Add(ranking);
+                        }
+                        else
+                        {
+                            return NotFound();
+                        } // end if teamdata
+                    } // end teams
+
+                    // Rank rankings
+                    int rankCount = 1;
+                    var rank = from r in rankList
+                               orderby r.Score descending
+                               select r;
+                    foreach (Ranking ranking in rank)
+                    {
+                        ranking.Rank = rankCount;
+                        rankCount++;
+                    }
+
+                    return rankList;
+                } // end totalminutes
+                else
+                {
+                    return Ok();
+                }
+            } // end competitiondata
+            else
+            {
+                return NotFound();
+            }
+        }
 
         [Authorize(Roles = "Administrator, User")]
         [HttpGet("team/{competitionId}")]
@@ -509,6 +643,7 @@ namespace FokkersFishing.Controllers
                             // Get catches for each member in competition
                             List<CatchData> catchesMember = await _fokkersDbService.GetCatchesByUserInCompetitionAsync(competitionId, teamMember.UserEmail);
                             var total = (from c in catchesMember
+                                         where c.Fish.ToLower() == "snoek" | c.Fish.ToLower() == "snoekbaars" | c.Fish.ToLower() == "baars"
                                          select c.Length).Sum();
                             var totalCount = (from c in catchesMember select c.Length).Count();
                             teamScore.TotalLength += total;
@@ -551,13 +686,17 @@ namespace FokkersFishing.Controllers
                 Competition competition = competitionData.GetCompetition();
                 if (competition.TimeTillEnd.TotalMinutes > 120)
                 {
-                    IEnumerable<CatchData> catchesMadeData = await _fokkersDbService.GetCompetitionLeaderboardItemsAsync(competitionId);
+                    List<FishData> fish = await _fokkersDbService.GetFishAsync();
+                    var predatorFish = from f in fish
+                                       where f.Predator == true
+                                       select f.Name;
+                    IEnumerable < CatchData > catchesMadeData = await _fokkersDbService.GetCompetitionLeaderboardItemsAsync(competitionId);
                     if (catchesMadeData == null)
                     {
                         return NotFound();
                     }
                     List<Catch> catchesMade = new List<Catch>();
-                    foreach (CatchData catchMadeData in catchesMadeData)
+                    foreach (CatchData catchMadeData in catchesMadeData.Where(x => predatorFish.Contains(x.Fish)))
                     {
                         try
                         {

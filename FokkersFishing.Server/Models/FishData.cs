@@ -13,6 +13,9 @@ namespace FokkersFishing.Models
         public string Name { get; set; }
         public string GenericName { get; set; }
         public string Kind { get; set; }
+        public bool Predator { get; set; }
+
+        public bool IncludeInCompetition { get; set; }
         public FishData()
         {
             PartitionKey = "Fish";
@@ -24,7 +27,9 @@ namespace FokkersFishing.Models
                 Id = Guid.Parse(this.RowKey),
                 Kind = this.Kind,
                 Name = this.Name,
-                GenericName = this.GenericName
+                GenericName = this.GenericName,
+                IncludeInCompetition = this.IncludeInCompetition,
+                Predator = this.Predator
             };
         }
     } // end c
