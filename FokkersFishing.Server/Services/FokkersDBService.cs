@@ -190,6 +190,7 @@ namespace FokkersFishing.Services
                                 UserEmail = fishGroup.Key.UserEmail,
                                 Length = fishGroup.Key.Length,
                                 Fish = fishGroup.Key.Fish,
+                                Status = fishGroup.Max(m => m.Status),
                                 CatchDate = fishGroup.Max(m => m.CatchDate),
                                 MeasurePhotoUrl = fishGroup.Max(m => m.MeasurePhotoUrl),
                                 CatchPhotoUrl = fishGroup.Max(m => m.CatchPhotoUrl),

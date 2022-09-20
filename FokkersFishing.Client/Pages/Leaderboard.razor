@@ -47,11 +47,47 @@
 
                         </MatTableHeader>
                         <MatTableRow>
-                            <td>@context.Pike.Length</td>
-                            <td>@context.Bass.Length</td>
-                            <td>@context.Zander.Length</td>
-                        </MatTableRow>
-                    </MatTable>
+                            @if (context.Pike.Status == CatchStatusEnum.Pending)
+                            {
+                    <td style="color: black;background-color: #ffc107">
+                        @context.Pike.Length
+                    </td>
+                            }
+                            else
+                            {
+                    <td style="color: black;background-color: green">
+                        @context.Pike.Length
+                    </td>
+                            }
+
+                @if (context.Bass.Status == CatchStatusEnum.Pending)
+                            {
+                    <td style="color: black;background-color: #ffc107">
+                        @context.Bass.Length
+                    </td>
+                            }
+                            else
+                            {
+                    <td style="color: black;background-color: green">
+                        @context.Bass.Length
+                    </td>
+                            }
+
+                @if (context.Zander.Status == CatchStatusEnum.Pending)
+                            {
+<td style="color: black;background-color: #ffc107">
+                        @context.Zander.Length
+                    </td>
+                            }
+                            else
+                            {
+                    <td style="color: black;background-color: green">
+                        @context.Zander.Length
+                    </td>
+                            }
+
+            </MatTableRow>
+        </MatTable>
 
                     <MatCard class="demo-mat-card">
                         <MatCardContent>
@@ -131,11 +167,33 @@
                                 <th width="25%">Fish</th>
                                 <th width="25%">Fisherman</th>
                                 <th width="25%">Length</th>
+                                <th width="25%">Status</th>
                             </MatTableHeader>
                             <MatTableRow>
                                 <td>@context.Fish</td>
                                 <td>@context.FisherMan</td>
                                 <td>@context.Length</td>
+                                <td>
+                                      @switch (context.Status)
+                            {
+                                case CatchStatusEnum.Approved:
+                                    {
+                            <MatFAB Icon="@MatIconNames.Done_all" Label="A" style="color: lightgreen;background-color: green" />
+                                        break;
+                                    }
+                                case CatchStatusEnum.Pending:
+                                    {
+                            <MatFAB Icon="@MatIconNames.Schedule" Label="P" style="color: lightyellow;background-color:#ffc107" />
+
+                                        break;
+                                    }
+                                case CatchStatusEnum.Rejected:
+                                    {
+                            <MatFAB Icon="@MatIconNames.Pan_tool" Label="R" style="color: darkgoldenrod;background-color:indianred" />
+                                        break;
+                                    }
+                            }
+                                </td>
                             </MatTableRow>
                         </MatTable>
                     }
@@ -281,6 +339,7 @@ else
                 individualScores.Add(new IndividualScore
                     {
                         Fish = "Grootste snoek",
+                        Status = bigthreeIndividual.Pike.Status,
                         FisherMan = bigthreeIndividual.Pike.UserName,
                         Length = bigthreeIndividual.Pike.Length
                     });
@@ -288,6 +347,7 @@ else
                 individualScores.Add(new IndividualScore
                     {
                         Fish = "Grootste snoekbaars",
+                        Status = bigthreeIndividual.Zander.Status,
                         FisherMan = bigthreeIndividual.Zander.UserName,
                         Length = bigthreeIndividual.Zander.Length
                     });
@@ -295,6 +355,7 @@ else
                 individualScores.Add(new IndividualScore
                     {
                         Fish = "Grootste baars",
+                        Status = bigthreeIndividual.Bass.Status,
                         FisherMan = bigthreeIndividual.Bass.UserName,
                         Length = bigthreeIndividual.Bass.Length
                     });
