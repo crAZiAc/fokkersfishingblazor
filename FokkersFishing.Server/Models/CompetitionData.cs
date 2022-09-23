@@ -13,6 +13,7 @@ namespace FokkersFishing.Models
         public string Name { get; set; }
 
         public bool Active { get; set; }
+        public bool ShowLeaderboardAfterCompetitionEnds { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         
@@ -28,7 +29,8 @@ namespace FokkersFishing.Models
                 StartDate = this.StartDate.ToLocalTime(),
                 EndDate = this.EndDate.ToLocalTime(),
                 CompetitionName = this.Name,
-                Active = this.Active
+                Active = this.Active,
+                ShowLeaderboardAfterCompetitionEnds = this.ShowLeaderboardAfterCompetitionEnds
             };
         }
     } // end c

@@ -6,7 +6,7 @@
 
 
 <h1>Fokkers Leaderboard</h1>
-@if (competitionState.Active == false | (competitionState.Active == true & competitionState.TimeTillEnd.TotalMinutes > 120)) // Competition
+@if (competitionState.Active == false | ((competitionState.Active == true & competitionState.TimeTillEnd.TotalMinutes > 120) | (competitionState.Active == true & competitionState.ShowLeaderboardAfterCompetitionEnds))) // Competition
 {
     if (competitionState.Active)
     {

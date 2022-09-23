@@ -11,7 +11,7 @@
 </AuthorizeView>
 <h1>Fokkers Top Catches</h1>
 
-@if (competitionState.Active == false | (competitionState.Active == true & competitionState.TimeTillEnd.TotalMinutes > 120))
+@if (competitionState.Active == false | ((competitionState.Active == true & competitionState.TimeTillEnd.TotalMinutes > 120) | (competitionState.Active == true & competitionState.ShowLeaderboardAfterCompetitionEnds)))
 {
     if (competitionState.Active)
     {

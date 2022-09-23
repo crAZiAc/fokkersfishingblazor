@@ -26,12 +26,14 @@
                 <th width="25%">Start Date</th>
                 <th width="25%">End Date</th>
                 <th width="25%">Active</th>
+                <th width="25%">Show Leaderboard after competition has ended</th>
             </MatTableHeader>
             <MatTableRow>
                 <td>@context.CompetitionName</td>
                 <td>@context.StartDate</td>
                 <td>@context.EndDate</td>
                 <td>@context.Active</td>
+                <td>@context.ShowLeaderboardAfterCompetitionEnds</td>
                 <td>
                     <MatIconButton Icon="@MatIconNames.Edit" OnClick="@(() => EditCompetition(@context))" />
                     <MatIconButton Icon="@MatIconNames.Delete" OnClick="@(() => DeleteCompetition(@context))" />

@@ -20,6 +20,8 @@ namespace FokkersFishing.Shared.Models
 
         [JsonProperty(PropertyName = "active")]
         public bool Active { get; set; }
+        [JsonProperty(PropertyName = "showLeaderboardAfterCompetitionEnds")]
+        public bool ShowLeaderboardAfterCompetitionEnds { get; set; }
 
         [JsonProperty(PropertyName = "startDate")]
         public DateTime StartDate

@@ -95,7 +95,7 @@ namespace FokkersFishing.Controllers
             if (competitionData != null)
             {
                 Competition competition = competitionData.GetCompetition();
-                if (competition.TimeTillEnd.TotalMinutes > 120)
+                if (competition.TimeTillEnd.TotalMinutes > 120 | competition.ShowLeaderboardAfterCompetitionEnds)
                 {
                     // Get biggest fish per type
                     List<CatchData> catches = await _fokkersDbService.GetCatchesInCompetitionsAsync(competitionId);
@@ -108,37 +108,59 @@ namespace FokkersFishing.Controllers
                                 orderby c.Length descending
                                 select c).Take(1);
 
-                    big3.Pike = pike.FirstOrDefault().GetCatch();
-                    big3.Pike.UserName = _userHelper.GetUser(big3.Pike.UserEmail).UserName;
-                    if (big3.Pike.RegisterUserEmail != null)
+                    if (pike.Count() > 0)
                     {
-                        big3.Pike.RegisterUserName = _userHelper.GetUser(big3.Pike.RegisterUserEmail).UserName;
+                        big3.Pike = pike.FirstOrDefault().GetCatch();
+                        big3.Pike.UserName = _userHelper.GetUser(big3.Pike.UserEmail).UserName;
+                        if (big3.Pike.RegisterUserEmail != null)
+                        {
+                            big3.Pike.RegisterUserName = _userHelper.GetUser(big3.Pike.RegisterUserEmail).UserName;
+                        }
+                    }
+                    else
+                    {
+                        big3.Pike = new Catch();
                     }
 
                     // Bass
+
                     var bass = (from c in catches
                                 where c.Fish.ToLower() == "baars"
                                 orderby c.Length descending
                                 select c).Take(1);
 
-                    big3.Bass = bass.FirstOrDefault().GetCatch();
-                    big3.Bass.UserName = _userHelper.GetUser(big3.Bass.UserEmail).UserName;
-                    if (big3.Bass.RegisterUserEmail != null)
+                    if (bass.Count() > 0)
                     {
-                        big3.Bass.RegisterUserName = _userHelper.GetUser(big3.Bass.RegisterUserEmail).UserName;
+                        big3.Bass = bass.FirstOrDefault().GetCatch();
+                        big3.Bass.UserName = _userHelper.GetUser(big3.Bass.UserEmail).UserName;
+                        if (big3.Bass.RegisterUserEmail != null)
+                        {
+                            big3.Bass.RegisterUserName = _userHelper.GetUser(big3.Bass.RegisterUserEmail).UserName;
+                        }
+                    }
+                    else
+                    {
+                        big3.Bass = new Catch();
                     }
 
                     // Zander
+                    
                     var zander = (from c in catches
                                   where c.Fish.ToLower() == "snoekbaars"
                                   orderby c.Length descending
                                   select c).Take(1);
-
-                    big3.Zander = zander.FirstOrDefault().GetCatch();
-                    big3.Zander.UserName = _userHelper.GetUser(big3.Zander.UserEmail).UserName;
-                    if (big3.Zander.RegisterUserEmail != null)
+                    if (zander.Count() > 0)
                     {
-                        big3.Zander.RegisterUserName = _userHelper.GetUser(big3.Zander.RegisterUserEmail).UserName;
+                        big3.Zander = zander.FirstOrDefault().GetCatch();
+                        big3.Zander.UserName = _userHelper.GetUser(big3.Zander.UserEmail).UserName;
+                        if (big3.Zander.RegisterUserEmail != null)
+                        {
+                            big3.Zander.RegisterUserName = _userHelper.GetUser(big3.Zander.RegisterUserEmail).UserName;
+                        }
+                    }
+                    else
+                    {
+                        big3.Zander = new Catch();
                     }
 
                     return big3;
@@ -164,7 +186,7 @@ namespace FokkersFishing.Controllers
             if (competitionData != null)
             {
                 Competition competition = competitionData.GetCompetition();
-                if (competition.TimeTillEnd.TotalMinutes > 120)
+                if (competition.TimeTillEnd.TotalMinutes > 120 | competition.ShowLeaderboardAfterCompetitionEnds)
                 {
                     // Get biggest fish per type
                     List<CatchData> catches = await _fokkersDbService.GetCatchesInCompetitionsAsync(competitionId);
@@ -211,7 +233,7 @@ namespace FokkersFishing.Controllers
             if (competitionData != null)
             {
                 Competition competition = competitionData.GetCompetition();
-                if (competition.TimeTillEnd.TotalMinutes > 120)
+                if (competition.TimeTillEnd.TotalMinutes > 120 | competition.ShowLeaderboardAfterCompetitionEnds)
                 {
                     // Get user
                     ApplicationUser user = _userHelper.GetUser();
@@ -328,7 +350,7 @@ namespace FokkersFishing.Controllers
             if (competitionData != null)
             {
                 Competition competition = competitionData.GetCompetition();
-                if (competition.TimeTillEnd.TotalMinutes > 120)
+                if (competition.TimeTillEnd.TotalMinutes > 120 | competition.ShowLeaderboardAfterCompetitionEnds)
                 {
                     // Get all teams
                     var teamsData = await _fokkersDbService.GetTeamsAsync();
@@ -452,7 +474,7 @@ namespace FokkersFishing.Controllers
             if (competitionData != null)
             {
                 Competition competition = competitionData.GetCompetition();
-                if (competition.TimeTillEnd.TotalMinutes > 120)
+                if (competition.TimeTillEnd.TotalMinutes > 120 | competition.ShowLeaderboardAfterCompetitionEnds)
                 {
                     // Get user
                     ApplicationUser user = _userHelper.GetUser();
@@ -523,7 +545,7 @@ namespace FokkersFishing.Controllers
             if (competitionData != null)
             {
                 Competition competition = competitionData.GetCompetition();
-                if (competition.TimeTillEnd.TotalMinutes > 120)
+                if (competition.TimeTillEnd.TotalMinutes > 120 | competition.ShowLeaderboardAfterCompetitionEnds)
                 {
                     List<TeamScore> scores = new List<TeamScore>();
 
@@ -585,7 +607,7 @@ namespace FokkersFishing.Controllers
                                                  TotalLength = compGroup.Sum(x => x.Length)
                                              };
 
-                            if (catchList != null & catchTotal != null)
+                            if (catchList.Count() > 0 & catchTotal.Count()  > 0)
                             {
                                 scores = catchList.ToList();
                                 scores.Add(catchTotal.FirstOrDefault());
@@ -625,7 +647,7 @@ namespace FokkersFishing.Controllers
             if (competitionData != null)
             {
                 Competition competition = competitionData.GetCompetition();
-                if (competition.TimeTillEnd.TotalMinutes > 120)
+                if (competition.TimeTillEnd.TotalMinutes > 120 | competition.ShowLeaderboardAfterCompetitionEnds)
                 {
                     // Get all teams
                     var teamsData = await _fokkersDbService.GetTeamsAsync();
@@ -684,7 +706,7 @@ namespace FokkersFishing.Controllers
             if (competitionData != null)
             {
                 Competition competition = competitionData.GetCompetition();
-                if (competition.TimeTillEnd.TotalMinutes > 120)
+                if (competition.TimeTillEnd.TotalMinutes > 120 | competition.ShowLeaderboardAfterCompetitionEnds)
                 {
                     List<FishData> fish = await _fokkersDbService.GetFishAsync();
                     var predatorFish = from f in fish
@@ -769,7 +791,7 @@ namespace FokkersFishing.Controllers
             if (competitionData != null)
             {
                 Competition competition = competitionData.GetCompetition();
-                if (competition.TimeTillEnd.TotalMinutes > 120)
+                if (competition.TimeTillEnd.TotalMinutes > 120 | competition.ShowLeaderboardAfterCompetitionEnds)
                 {
                     IEnumerable<FisherMan> fishermen = await _fokkersDbService.GetFishermenCompetitionAsync(competitionId);
                     if (fishermen == null)

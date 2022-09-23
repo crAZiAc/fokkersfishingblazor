@@ -6,6 +6,7 @@ namespace FokkersFishing.Client.Helpers
     {
         private string m_CompetitionName;
         private bool m_CompetitionActive;
+        private bool m_ShowLeaderboardAfterCompetitionEnds;
         private DateTime m_StartDate;
         private DateTime m_EndDate;
         private Guid m_CompetitionId;
@@ -54,6 +55,19 @@ namespace FokkersFishing.Client.Helpers
             set
             {
                 m_CompetitionActive = value;
+                NotifyStateChanged();
+            }
+        }
+
+        public bool ShowLeaderboardAfterCompetitionEnds
+        {
+            get
+            {
+                return m_ShowLeaderboardAfterCompetitionEnds;
+            }
+            set
+            {
+                m_ShowLeaderboardAfterCompetitionEnds = value;
                 NotifyStateChanged();
             }
         }

@@ -13,6 +13,7 @@
                 <MatDatePicker @bind-Value="@currentCompetition.StartDate" EnableTime="true" Label="Start Date" Enable24hours="true" EnableSeconds="false" EnableWeekNumbers="true" FullWidth="false" Outlined="false" />
                 <MatDatePicker @bind-Value="@currentCompetition.EndDate" EnableTime="true" Label="End Date" Enable24hours="true" EnableSeconds="false" EnableWeekNumbers="true" FullWidth="false" Outlined="false" />
                 <MatCheckbox @bind-Value="currentCompetition.Active" Label="Active?" />
+                <MatCheckbox @bind-Value="currentCompetition.ShowLeaderboardAfterCompetitionEnds" Label="Show leaderboard after competition has ended?" />
             </div>
 
         </EditForm>
