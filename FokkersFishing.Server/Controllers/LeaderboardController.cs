@@ -144,7 +144,7 @@ namespace FokkersFishing.Controllers
                     }
 
                     // Zander
-                    
+
                     var zander = (from c in catches
                                   where c.Fish.ToLower() == "snoekbaars"
                                   orderby c.Length descending
@@ -190,8 +190,14 @@ namespace FokkersFishing.Controllers
                 {
                     // Get biggest fish per type
                     List<CatchData> catches = await _fokkersDbService.GetCatchesInCompetitionsAsync(competitionId);
+                    List<FishData> fish = await _fokkersDbService.GetFishAsync();
+                    var competitionFish = from f in fish
+                                          where f.IncludeInCompetition == true
+                                          select f.Name;
 
-                    var highestCatches = (from c in catches
+                    IEnumerable<CatchData> catchMadeData = catches.Where(x => competitionFish.Contains(x.Fish));
+
+                    var highestCatches = (from c in catchMadeData
                                           orderby c.Length descending
                                           group c by new { c.UserEmail, c.Fish } into fishGroup
                                           select new BigThreeWinner
@@ -571,7 +577,12 @@ namespace FokkersFishing.Controllers
                                 return NotFound();
                             }
                             List<Catch> catchesMade = new List<Catch>();
-                            foreach (CatchData catchMadeData in catchesMadeData.Where(f => f.Fish.ToLower() == "snoek" | f.Fish.ToLower() == "baars" | f.Fish.ToLower() == "snoekbaars"))
+                            List<FishData> fish = await _fokkersDbService.GetFishAsync();
+                            var competitionFish = from f in fish
+                                               where f.IncludeInCompetition == true
+                                               select f.Name;
+
+                            foreach (CatchData catchMadeData in catchesMadeData.Where(x => competitionFish.Contains(x.Fish)))
                             {
                                 var checkCatch = from ut in teamMemberData
                                                  where ut.UserEmail == catchMadeData.UserEmail
@@ -607,7 +618,7 @@ namespace FokkersFishing.Controllers
                                                  TotalLength = compGroup.Sum(x => x.Length)
                                              };
 
-                            if (catchList.Count() > 0 & catchTotal.Count()  > 0)
+                            if (catchList.Count() > 0 & catchTotal.Count() > 0)
                             {
                                 scores = catchList.ToList();
                                 scores.Add(catchTotal.FirstOrDefault());
@@ -712,7 +723,7 @@ namespace FokkersFishing.Controllers
                     var predatorFish = from f in fish
                                        where f.Predator == true
                                        select f.Name;
-                    IEnumerable < CatchData > catchesMadeData = await _fokkersDbService.GetCompetitionLeaderboardItemsAsync(competitionId);
+                    IEnumerable<CatchData> catchesMadeData = await _fokkersDbService.GetCompetitionLeaderboardItemsAsync(competitionId);
                     if (catchesMadeData == null)
                     {
                         return NotFound();
