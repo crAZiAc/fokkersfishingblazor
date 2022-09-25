@@ -161,11 +161,11 @@ namespace FokkersFishing.Services
             try
             {
                 var query = from c in _catchContainer.Query<CatchData>()
-                             where c.Status == CatchStatusEnum.Approved | c.Status == CatchStatusEnum.Pending
-                             where c.UserEmail == userEmail
-                             where c.CompetitionId == competitionId
-                             orderby c.Length descending
-                             select c;
+                            where c.Status == CatchStatusEnum.Approved | c.Status == CatchStatusEnum.Pending
+                            where c.UserEmail == userEmail
+                            where c.CompetitionId == competitionId
+                            orderby c.Length descending
+                            select c;
                 return query.ToList();
             }
             catch (Exception ex)
@@ -179,24 +179,61 @@ namespace FokkersFishing.Services
             try
             {
                 var query = (from c in _catchContainer.Query<CatchData>()
-                            where c.Status == CatchStatusEnum.Approved | c.Status == CatchStatusEnum.Pending
-                            where c.UserEmail == userEmail
-                            where c.Fish.ToLower() == fishName.ToLower()
-                            where c.CompetitionId == competitionId
-                            orderby c.Length descending
-                            group c by new { c.Fish, c.Length, c.UserEmail } into fishGroup
-                            select new Catch
-                            {
-                                UserEmail = fishGroup.Key.UserEmail,
-                                Length = fishGroup.Key.Length,
-                                Fish = fishGroup.Key.Fish,
-                                Status = fishGroup.Max(m => m.Status),
-                                CatchDate = fishGroup.Max(m => m.CatchDate),
-                                MeasurePhotoUrl = fishGroup.Max(m => m.MeasurePhotoUrl),
-                                CatchPhotoUrl = fishGroup.Max(m => m.CatchPhotoUrl),
-                                GlobalCatchNumber = fishGroup.Max(m => m.GlobalCatchNumber),
-                                CatchNumber = fishGroup.Max(m => m.CatchNumber)
-                            }).Take(3);
+                             where c.Status == CatchStatusEnum.Approved | c.Status == CatchStatusEnum.Pending
+                             where c.UserEmail == userEmail
+                             where c.Fish.ToLower() == fishName.ToLower()
+                             where c.CompetitionId == competitionId
+                             orderby c.Length descending
+                             group c by new { c.Fish, c.Length, c.UserEmail } into fishGroup
+                             select new Catch
+                             {
+                                 UserEmail = fishGroup.Key.UserEmail,
+                                 RegisterUserEmail = fishGroup.Max(m => m.RegisterUserEmail),
+                                 Length = fishGroup.Key.Length,
+                                 Fish = fishGroup.Key.Fish,
+                                 Status = fishGroup.Max(m => m.Status),
+                                 CatchDate = fishGroup.Max(m => m.CatchDate),
+                                 MeasurePhotoUrl = fishGroup.Max(m => m.MeasurePhotoUrl),
+                                 CatchPhotoUrl = fishGroup.Max(m => m.CatchPhotoUrl),
+                                 GlobalCatchNumber = fishGroup.Max(m => m.GlobalCatchNumber),
+                                 CatchNumber = fishGroup.Max(m => m.CatchNumber)
+                             }).Take(3);
+                return query.ToList();
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
+
+        public async Task<List<Catch>> GetBiggestFishPerUserInCompetition(Guid competitionId)
+        {
+            try
+            {
+                var fishCompetition = from f in _fishContainer.Query<FishData>()
+                                      where f.IncludeInCompetition == true
+
+                                      select f.Name;
+                var query = (from c in _catchContainer.Query<CatchData>()
+                             where fishCompetition.ToList().Contains(c.Fish)
+                             where c.Status == CatchStatusEnum.Approved | c.Status == CatchStatusEnum.Pending
+                             where c.CompetitionId == competitionId
+                             orderby c.Length descending
+                             group c by new { c.Fish, c.UserEmail } into fishGroup
+                             select new Catch
+                             {
+                                 UserEmail = fishGroup.Key.UserEmail,
+                                 RegisterUserEmail = fishGroup.Max(m => m.RegisterUserEmail),
+                                 Length = fishGroup.Max(m => m.Length),
+                                 Fish = fishGroup.Key.Fish,
+                                 Status = fishGroup.Max(m => m.Status),
+                                 CatchDate = fishGroup.Max(m => m.CatchDate),
+                                 MeasurePhotoUrl = fishGroup.Max(m => m.MeasurePhotoUrl),
+                                 CatchPhotoUrl = fishGroup.Max(m => m.CatchPhotoUrl),
+                                 GlobalCatchNumber = fishGroup.Max(m => m.GlobalCatchNumber),
+                                 CatchNumber = fishGroup.Max(m => m.CatchNumber)
+                             });
                 return query.ToList();
             }
             catch (Exception ex)

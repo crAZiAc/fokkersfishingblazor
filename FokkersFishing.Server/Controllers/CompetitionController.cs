@@ -98,6 +98,7 @@ namespace FokkersFishing.Controllers
                 updateCompetition.StartDate = competition.StartDate.ToUniversalTime();
                 updateCompetition.EndDate = competition.EndDate.ToUniversalTime();
                 updateCompetition.ShowLeaderboardAfterCompetitionEnds = competition.ShowLeaderboardAfterCompetitionEnds;
+                updateCompetition.Active = competition.Active;
 
                 await _fokkersDbService.UpdateCompetitionAsync(updateCompetition);
                 return competition;
