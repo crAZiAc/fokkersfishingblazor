@@ -165,46 +165,58 @@ namespace FokkersFishing.Controllers
         public async Task<ActionResult<Catch>> PutUser(Guid id, Catch catchMade)
         {
             ApplicationUser user = _userHelper.GetUser();
+            List<TeamMemberData> teamMemberData = await _fokkersDbService.GetTeamMembersFromMemberAsync(user.Email);
             catchMade.EditDate = DateTime.Now;
 
-            CatchData updateCatch = await _fokkersDbService.GetUserItemAsync(id.ToString(), user.Email);
-            if (updateCatch != null)
-            {
-                if (updateCatch.Status == CatchStatusEnum.Pending)
-                {
-                    updateCatch.CatchDate = catchMade.CatchDate.ToUniversalTime();
-                    updateCatch.CatchNumber = catchMade.CatchNumber;
-                    updateCatch.EditDate = catchMade.EditDate.ToUniversalTime();
-                    updateCatch.Fish = catchMade.Fish;
-                    updateCatch.GlobalCatchNumber = catchMade.GlobalCatchNumber;
-                    updateCatch.Length = catchMade.Length;
-                    updateCatch.LogDate = catchMade.LogDate.ToUniversalTime();
-                    updateCatch.UserEmail = catchMade.UserEmail;
-                    updateCatch.RegisterUserEmail = catchMade.RegisterUserEmail;
-                    updateCatch.CatchPhotoUrl = catchMade.CatchPhotoUrl;
-                    updateCatch.CatchThumbnailUrl = catchMade.CatchThumbnailUrl;
-                    updateCatch.MeasurePhotoUrl = catchMade.MeasurePhotoUrl;
-                    updateCatch.MeasureThumbnailUrl = catchMade.MeasureThumbnailUrl;
-                    updateCatch.Status = CatchStatusEnum.Pending;
-                    updateCatch.CompetitionId = catchMade.CompetitionId;
+            var checkTeamMate = from u in teamMemberData
+                                where (u.UserEmail == user.Email | u.UserEmail == catchMade.RegisterUserEmail | u.UserEmail == catchMade.UserEmail)
+                                select u;
 
-                    if (catchMade.UserEmail != null)
+            if (checkTeamMate.Count() > 0)
+            {
+                CatchData updateCatch = await _fokkersDbService.GetItemAsync(id.ToString());
+                if (updateCatch != null)
+                {
+                    if (updateCatch.Status != CatchStatusEnum.Rejected)
                     {
-                        if (updateCatch.UserEmail != catchMade.UserEmail)
+                        updateCatch.CatchDate = catchMade.CatchDate.ToUniversalTime();
+                        updateCatch.CatchNumber = catchMade.CatchNumber;
+                        updateCatch.EditDate = catchMade.EditDate.ToUniversalTime();
+                        updateCatch.Fish = catchMade.Fish;
+                        updateCatch.GlobalCatchNumber = catchMade.GlobalCatchNumber;
+                        updateCatch.Length = catchMade.Length;
+                        updateCatch.LogDate = catchMade.LogDate.ToUniversalTime();
+                        updateCatch.UserEmail = catchMade.UserEmail;
+                        updateCatch.RegisterUserEmail = catchMade.RegisterUserEmail;
+                        updateCatch.CatchPhotoUrl = catchMade.CatchPhotoUrl;
+                        updateCatch.CatchThumbnailUrl = catchMade.CatchThumbnailUrl;
+                        updateCatch.MeasurePhotoUrl = catchMade.MeasurePhotoUrl;
+                        updateCatch.MeasureThumbnailUrl = catchMade.MeasureThumbnailUrl;
+                        updateCatch.Status = CatchStatusEnum.Pending;
+                        updateCatch.CompetitionId = catchMade.CompetitionId;
+
+                        if (catchMade.UserEmail != null)
                         {
-                            // Also check catchnumber for user, because we are switching users
-                            updateCatch.CatchNumber = _fokkersDbService.GetCatchNumberCount(catchMade.UserEmail).Result + 1;
-                            updateCatch.UserEmail = catchMade.UserEmail;
+                            if (updateCatch.UserEmail != catchMade.UserEmail)
+                            {
+                                // Also check catchnumber for user, because we are switching users
+                                updateCatch.CatchNumber = _fokkersDbService.GetCatchNumberCount(catchMade.UserEmail).Result + 1;
+                                updateCatch.UserEmail = catchMade.UserEmail;
+                            }
                         }
+                        else
+                        {
+                            updateCatch.UserEmail = catchMade.RegisterUserEmail;
+                            catchMade.UserEmail = catchMade.RegisterUserEmail;
+                        }
+
+                        await _fokkersDbService.UpdateItemAsync(updateCatch);
+                        return catchMade;
                     }
                     else
                     {
-                        updateCatch.UserEmail = catchMade.RegisterUserEmail;
-                        catchMade.UserEmail = catchMade.RegisterUserEmail;
+                        return Forbid();
                     }
-
-                    await _fokkersDbService.UpdateItemAsync(updateCatch);
-                    return catchMade;
                 }
                 else
                 {

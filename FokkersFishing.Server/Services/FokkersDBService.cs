@@ -128,6 +128,23 @@ namespace FokkersFishing.Services
             }
         }
 
+        public async Task<List<CatchData>> GetAdminCompetitionLeaderboardItemsAsync(Guid competitionId)
+        {
+            try
+            {
+                var query = from c in _catchContainer.Query<CatchData>()
+                            where c.Status != CatchStatusEnum.Rejected
+                            where c.CompetitionId == competitionId
+                            orderby c.Length descending
+                            select c;
+                return query.ToList();
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
         public async Task<List<Catch>> GetTopCatchAsync(string fish)
         {
             try
@@ -213,8 +230,8 @@ namespace FokkersFishing.Services
             {
                 var fishCompetition = from f in _fishContainer.Query<FishData>()
                                       where f.IncludeInCompetition == true
-
                                       select f.Name;
+
                 var query = (from c in _catchContainer.Query<CatchData>()
                              where fishCompetition.ToList().Contains(c.Fish)
                              where c.Status == CatchStatusEnum.Approved | c.Status == CatchStatusEnum.Pending
