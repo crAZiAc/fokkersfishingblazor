@@ -145,7 +145,7 @@ namespace FokkersFishing.Services
             }
         }
 
-        public async Task<List<Catch>> GetTopCatchAsync(string fish)
+        public async Task<List<CatchData>> GetTopCatchAsync(string fish)
         {
             try
             {
@@ -153,17 +153,7 @@ namespace FokkersFishing.Services
                             where c.Fish.ToLower() == fish.ToLower()
                             where c.Status == CatchStatusEnum.Approved
                             orderby c.Length descending
-                            group c by c.UserEmail into userGroup
-                            select new Catch
-                            {
-                                UserEmail = userGroup.Key,
-                                Length = userGroup.Max(m => m.Length),
-                                Fish = userGroup.Max(m => m.Fish),
-                                CatchDate = userGroup.Max(m => m.CatchDate),
-                                MeasurePhotoUrl = userGroup.Max(m => m.MeasurePhotoUrl),
-                                CatchPhotoUrl = userGroup.Max(m => m.CatchPhotoUrl),
-                                GlobalCatchNumber = userGroup.Max(m => m.GlobalCatchNumber)
-                            };
+                            select c;
                 return query.ToList();
             }
             catch (Exception ex)

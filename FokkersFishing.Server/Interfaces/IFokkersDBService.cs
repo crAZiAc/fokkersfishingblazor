@@ -37,7 +37,7 @@ namespace FokkersFishing.Interfaces
         Task<List<CatchData>> GetLeaderboardItemsAsync();
         Task<List<CatchData>> GetCompetitionLeaderboardItemsAsync(Guid competitionId);
         Task<List<CatchData>> GetAdminCompetitionLeaderboardItemsAsync(Guid competitionId);
-        Task<List<Catch>> GetTopCatchAsync(string fish);
+        Task<List<CatchData>> GetTopCatchAsync(string fish);
         Task<List<Catch>> GetTopCatchesByUserInCompetitionAsync(Guid competitionId, string userEmail, string fishName);
         Task<List<CatchData>> GetCatchesByUserInCompetitionAsync(Guid competitionId, string userEmail);
         Task<List<Catch>> GetBiggestFishPerUserInCompetition(Guid competitionId);

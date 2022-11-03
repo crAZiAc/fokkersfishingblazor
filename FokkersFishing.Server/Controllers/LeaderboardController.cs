@@ -337,9 +337,9 @@ namespace FokkersFishing.Controllers
                                     }
 
                                     var zanderCatches = from c in catches
-                                                         where (c.UserEmail == teamMember.UserEmail)
-                                                         where (c.Fish.ToLower() == "snoekbaars")
-                                                         orderby c.Length descending
+                                                        where (c.UserEmail == teamMember.UserEmail)
+                                                        where (c.Fish.ToLower() == "snoekbaars")
+                                                        orderby c.Length descending
                                                         select c;
 
                                     if (zanderCatches != null)
@@ -937,40 +937,40 @@ namespace FokkersFishing.Controllers
             Dictionary<string, BigThree> bigThree = new Dictionary<string, BigThree>();
             IEnumerable<FisherMan> fishermen = await _fokkersDbService.GetFishermenAsync();
 
+            IEnumerable<CatchData> pikes = await _fokkersDbService.GetTopCatchAsync("snoek");
+            IEnumerable<CatchData> bass = await _fokkersDbService.GetTopCatchAsync("baars");
+            IEnumerable<CatchData> zander = await _fokkersDbService.GetTopCatchAsync("snoekbaars");
+
             // Fill initial dictionary
             foreach (var fisher in fishermen)
             {
-                bigThree.Add(fisher.UserEmail, new BigThree { Name = _userHelper.GetUser(fisher.UserEmail).UserName });
-            }
+                BigThree newBig = new BigThree { Name = _userHelper.GetUser(fisher.UserEmail).UserName };
 
-            // Pikes
-            IEnumerable<Catch> pikes = await _fokkersDbService.GetTopCatchAsync("snoek");
-            if (pikes != null)
-            {
-                foreach (var pike in pikes)
+                // Pikes
+                newBig.Pike = new Catch();
+                var biggestPike = pikes.Where(c => c.UserEmail.ToLower() == fisher.UserEmail.ToLower()).ToList();
+                if (biggestPike.Count > 0)
                 {
-                    bigThree[pike.UserEmail].Pike = pike;
+                    newBig.Pike = biggestPike.Take(1).FirstOrDefault().GetCatch();
                 }
-            }
 
-            // Bass
-            IEnumerable<Catch> bass = await _fokkersDbService.GetTopCatchAsync("baars");
-            if (bass != null)
-            {
-                foreach (var bassFish in bass)
+                // Bass
+                newBig.Bass = new Catch();
+                var biggestBass = bass.Where(c => c.UserEmail.ToLower() == fisher.UserEmail.ToLower()).ToList();
+                if (biggestBass.Count > 0 )
                 {
-                    bigThree[bassFish.UserEmail].Bass = bassFish;
+                    newBig.Bass = biggestBass.Take(1).FirstOrDefault().GetCatch();
                 }
-            }
 
-            // Zander
-            IEnumerable<Catch> zander = await _fokkersDbService.GetTopCatchAsync("snoekbaars");
-            if (zander != null)
-            {
-                foreach (var zanderFish in zander)
+                // Zander
+                newBig.Zander = new Catch();
+                var biggestZander = zander.Where(c => c.UserEmail.ToLower() == fisher.UserEmail.ToLower()).ToList();
+                if (biggestZander.Count > 0)
                 {
-                    bigThree[zanderFish.UserEmail].Zander = zanderFish;
+                    newBig.Zander = biggestZander.Take(1).FirstOrDefault().GetCatch();
                 }
+
+                bigThree.Add(fisher.UserEmail, newBig);
             }
             return bigThree.Values.ToList();
         }
