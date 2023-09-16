@@ -478,7 +478,15 @@ namespace FokkersFishing.Services
 
         public async Task UpdateCompetitionAsync(CompetitionData item)
         {
-            await this._competitionContainer.UpdateEntityAsync<CompetitionData>(item, item.ETag);
+            try
+            {
+                await this._competitionContainer.UpdateEntityAsync<CompetitionData>(item, item.ETag);
+            }
+            catch (Exception ex)
+            {
+                
+            }
+
         }
         #endregion
         #region Team
@@ -517,7 +525,7 @@ namespace FokkersFishing.Services
         {
             try
             {
-
+               
                 await this._teamContainer.AddEntityAsync<TeamData>(item);
             }
             catch (Exception ex)
@@ -527,6 +535,8 @@ namespace FokkersFishing.Services
 
         public async Task DeleteTeamAsync(string rowKey)
         {
+            // Remove all entries in TeamMembers first
+            await this.DeleteTeamMembersAsync(Guid.Parse(rowKey));
             await this._teamContainer.DeleteEntityAsync("Team", rowKey);
         }
 

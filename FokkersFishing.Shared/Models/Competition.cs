@@ -49,12 +49,29 @@ namespace FokkersFishing.Shared.Models
             }
         }
 
+        [JsonIgnore]
         public TimeSpan TimeTillEnd
         {
             get
             {
                 TimeSpan timeSpan = m_EndDate - DateTime.Now;
                 return timeSpan;
+            }
+        }
+
+        [JsonIgnore]
+        public bool CompetitionEnded
+        {
+            get
+            {
+                if (DateTime.Now > EndDate)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
         }
     } // end c

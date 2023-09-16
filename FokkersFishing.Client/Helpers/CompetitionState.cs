@@ -33,6 +33,21 @@ namespace FokkersFishing.Client.Helpers
             }
         }
 
+        public bool CompetitionEnded
+        {
+            get
+            {
+                if (DateTime.Now > m_EndDate)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+
         public Guid CompetitionId
         {
             get

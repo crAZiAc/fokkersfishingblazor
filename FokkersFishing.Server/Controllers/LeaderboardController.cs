@@ -12,6 +12,7 @@ using System.Security.Claims;
 using FokkersFishing.Data;
 using FokkersFishing.Shared.Models;
 using FokkersFishing.Server.Helpers;
+using System.Runtime.CompilerServices;
 
 namespace FokkersFishing.Controllers
 {
@@ -95,7 +96,7 @@ namespace FokkersFishing.Controllers
             if (competitionData != null)
             {
                 Competition competition = competitionData.GetCompetition();
-                if (competition.TimeTillEnd.TotalMinutes > 120 | competition.ShowLeaderboardAfterCompetitionEnds)
+                if (competition.CompetitionEnded)
                 {
                     // Get biggest fish per type
                     List<CatchData> catches = await _fokkersDbService.GetCatchesInCompetitionsAsync(competitionId);
@@ -174,6 +175,100 @@ namespace FokkersFishing.Controllers
             }
         }
 
+        [Authorize(Roles = "Administrator, User")]
+        [HttpGet("user/bigthree/{competitionId}")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<BigThree>> GetBigThreeCompetitionForAnIndividual(Guid competitionId)
+        {
+            CompetitionData competitionData = await _fokkersDbService.GetCompetitionAsync(competitionId.ToString());
+            if (competitionData != null)
+            {
+                Competition competition = competitionData.GetCompetition();
+                if (competition.Active)
+                {
+                    // Get user
+                    ApplicationUser user = _userHelper.GetUser();
+
+                    // Get biggest fish per type
+                    List<CatchData> catches = await _fokkersDbService.GetCatchesInCompetitionsAsync(competitionId);
+
+                    BigThree big3 = new BigThree();
+
+                    // Pike
+                    var pike = (from c in catches
+                                where c.Fish.ToLower() == "snoek"
+                                where c.UserEmail == user.Email
+                                orderby c.Length descending
+                                select c).Take(1);
+
+                    if (pike.Count() > 0)
+                    {
+                        big3.Pike = pike.FirstOrDefault().GetCatch();
+                        big3.Pike.UserName = _userHelper.GetUser(big3.Pike.UserEmail).UserName;
+                        if (big3.Pike.RegisterUserEmail != null)
+                        {
+                            big3.Pike.RegisterUserName = _userHelper.GetUser(big3.Pike.RegisterUserEmail).UserName;
+                        }
+                    }
+                    else
+                    {
+                        big3.Pike = new Catch();
+                    }
+
+                    // Bass
+                    var bass = (from c in catches
+                                where c.Fish.ToLower() == "baars"
+                                where c.UserEmail == user.Email
+                                orderby c.Length descending
+                                select c).Take(1);
+
+                    if (bass.Count() > 0)
+                    {
+                        big3.Bass = bass.FirstOrDefault().GetCatch();
+                        big3.Bass.UserName = _userHelper.GetUser(big3.Bass.UserEmail).UserName;
+                        if (big3.Bass.RegisterUserEmail != null)
+                        {
+                            big3.Bass.RegisterUserName = _userHelper.GetUser(big3.Bass.RegisterUserEmail).UserName;
+                        }
+                    }
+                    else
+                    {
+                        big3.Bass = new Catch();
+                    }
+
+                    // Zander
+                    var zander = (from c in catches
+                                  where c.Fish.ToLower() == "snoekbaars"
+                                  where c.UserEmail == user.Email
+                                  orderby c.Length descending
+                                  select c).Take(1);
+                    if (zander.Count() > 0)
+                    {
+                        big3.Zander = zander.FirstOrDefault().GetCatch();
+                        big3.Zander.UserName = _userHelper.GetUser(big3.Zander.UserEmail).UserName;
+                        if (big3.Zander.RegisterUserEmail != null)
+                        {
+                            big3.Zander.RegisterUserName = _userHelper.GetUser(big3.Zander.RegisterUserEmail).UserName;
+                        }
+                    }
+                    else
+                    {
+                        big3.Zander = new Catch();
+                    }
+
+                    return big3;
+                }
+                else
+                {
+                    return Ok();
+                }
+            }
+            else
+            {
+                return NotFound();
+            }
+        }
+
 
         // bigthreeBiggest = await client.GetFromJsonAsync<BigThreeWinner>("leaderboard/biggest/bigthree/" + competitionState.CompetitionId);
         [Authorize(Roles = "Administrator, User")]
@@ -185,7 +280,7 @@ namespace FokkersFishing.Controllers
             if (competitionData != null)
             {
                 Competition competition = competitionData.GetCompetition();
-                if (competition.TimeTillEnd.TotalMinutes > 120 | competition.ShowLeaderboardAfterCompetitionEnds)
+                if (competition.Active & competition.CompetitionEnded)
                 {
                     IEnumerable<CatchData> biggestCatches = await _fokkersDbService.GetCompetitionLeaderboardItemsAsync(competitionId);
                     List<BigThree> big3list = new List<BigThree>();
@@ -257,7 +352,7 @@ namespace FokkersFishing.Controllers
 
 
         // bigthree = await client.GetFromJsonAsync<List<BigThree>>("leaderboard/team/bigthree/" + competitionState.CompetitionId);
-        [AllowAnonymous]
+        [Authorize(Roles = "Administrator, User")]
         [HttpGet("team/bigthree/{competitionId}")]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<List<BigThree>>> GetBigThreeCompetitionForTeam(Guid competitionId)
@@ -266,7 +361,7 @@ namespace FokkersFishing.Controllers
             if (competitionData != null)
             {
                 Competition competition = competitionData.GetCompetition();
-                if (competition.TimeTillEnd.TotalMinutes > 120 | competition.ShowLeaderboardAfterCompetitionEnds)
+                if (competition.Active)
                 {
                     // Get user
                     ApplicationUser user = _userHelper.GetUser();
@@ -420,9 +515,8 @@ namespace FokkersFishing.Controllers
             }
         }
 
-
         // scores = await clientOpen.GetFromJsonAsync<List<Ranking>>("leaderboard/team/bigthree/all/" + competitionState.CompetitionId);
-        [AllowAnonymous]
+        [Authorize(Roles = "Administrator, User")]
         [HttpGet("team/bigthree/all/{competitionId}")]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<List<Ranking>>> GetBigThreeCompetitionForAllTeams(Guid competitionId)
@@ -433,7 +527,7 @@ namespace FokkersFishing.Controllers
             if (competitionData != null)
             {
                 Competition competition = competitionData.GetCompetition();
-                if (competition.TimeTillEnd.TotalMinutes > 120 | competition.ShowLeaderboardAfterCompetitionEnds)
+                if (competition.Active & competition.CompetitionEnded)
                 {
                     // Get all teams
                     var teamsData = await _fokkersDbService.GetTeamsAsync();
@@ -644,6 +738,7 @@ namespace FokkersFishing.Controllers
             }
         }
 
+        
         [Authorize(Roles = "Administrator, User")]
         [HttpGet("team/scores/{competitionId}")]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -653,7 +748,7 @@ namespace FokkersFishing.Controllers
             if (competitionData != null)
             {
                 Competition competition = competitionData.GetCompetition();
-                if (competition.TimeTillEnd.TotalMinutes > 120 | competition.ShowLeaderboardAfterCompetitionEnds)
+                if (competition.Active)
                 {
                     List<TeamScore> scores = new List<TeamScore>();
 
@@ -820,7 +915,7 @@ namespace FokkersFishing.Controllers
             if (competitionData != null)
             {
                 Competition competition = competitionData.GetCompetition();
-                if (competition.TimeTillEnd.TotalMinutes > 120 | competition.ShowLeaderboardAfterCompetitionEnds)
+                if (competition.Active)
                 {
                     List<FishData> fish = await _fokkersDbService.GetFishAsync();
                     var predatorFish = from f in fish

@@ -1,4 +1,5 @@
-﻿using Azure.Data.Tables;
+﻿using AutoMapper.Configuration.Annotations;
+using Azure.Data.Tables;
 using FokkersFishing.Shared.Models;
 using Newtonsoft.Json;
 using System;
@@ -33,5 +34,6 @@ namespace FokkersFishing.Models
                 ShowLeaderboardAfterCompetitionEnds = this.ShowLeaderboardAfterCompetitionEnds
             };
         }
+
     } // end c
 } // end ns

@@ -7,9 +7,9 @@
 @attribute [Authorize(Roles = "Administrator, User")]
 
 <h1>Fokkers Competition Team Leaderboard</h1>
-    @if (competitionState.Active)
+ @if (competitionState.Active)
 {
-    @if (catches == null)
+    @if (catches == null & currentTeam == null)
     {
         <p><em>Loading Team Catches Leaderboard...</em></p>
         <MatProgressBar Indeterminate="true"></MatProgressBar>
@@ -17,13 +17,13 @@
     else
     {
         <div class="main">
-            <h3>All Catches for team</h3>
+            <h3>All Catches for team: @currentTeam.Name</h3>
             <MatTable Items="@catches" class="mat-elevation-z5" Striped="true"
-              RowClass="tester"
-              SortBy="Length"
-              PageSize="25"
-              FilterByColumnName="Fish"
-              ShowPaging="true">
+                      RowClass="tester"
+                      SortBy="Length"
+                      PageSize="25"
+                      FilterByColumnName="Fish"
+                      ShowPaging="true">
                 <MatTableHeader>
                     <th width="10%">Catch #</th>
                     <th width="30%">Catch Date</th>
@@ -46,29 +46,29 @@
                         {
                             case CatchStatusEnum.Approved:
                                 {
-                            <MatFAB Icon="@MatIconNames.Done_all" Label="Approved" style="color: lightgreen;background-color: green" />
-                            <MatIconButton Icon="@MatIconNames.Edit" @onclick="@(() => ShowEditDialog(context.Id))"></MatIconButton>
-                            <MatIconButton Icon="@MatIconNames.Delete" @onclick="@(() => ShowDeleteDialog(context.Id))"></MatIconButton>
+                                    <MatFAB Icon="@MatIconNames.Done_all" Label="Approved" style="color: lightgreen;background-color: green" />
+                                    <MatIconButton Icon="@MatIconNames.Edit" @onclick="@(() => ShowEditDialog(context.Id))"></MatIconButton>
+                                    <MatIconButton Icon="@MatIconNames.Delete" @onclick="@(() => ShowDeleteDialog(context.Id))"></MatIconButton>
                                     break;
                                 }
                             case CatchStatusEnum.Pending:
                                 {
-                            <MatFAB Icon="@MatIconNames.Schedule" Label="Pending" style="color: lightyellow;background-color:#ffc107" />
-                            <MatIconButton Icon="@MatIconNames.Edit" @onclick="@(() => ShowEditDialog(context.Id))"></MatIconButton>
-                            <MatIconButton Icon="@MatIconNames.Delete" @onclick="@(() => ShowDeleteDialog(context.Id))"></MatIconButton>
+                                    <MatFAB Icon="@MatIconNames.Schedule" Label="Pending" style="color: lightyellow;background-color:#ffc107" />
+                                    <MatIconButton Icon="@MatIconNames.Edit" @onclick="@(() => ShowEditDialog(context.Id))"></MatIconButton>
+                                    <MatIconButton Icon="@MatIconNames.Delete" @onclick="@(() => ShowDeleteDialog(context.Id))"></MatIconButton>
 
                                     break;
                                 }
                             case CatchStatusEnum.Rejected:
                                 {
-                            <MatFAB Icon="@MatIconNames.Pan_tool" Label="Rejected" style="color: darkgoldenrod;background-color:indianred" />
+                                    <MatFAB Icon="@MatIconNames.Pan_tool" Label="Rejected" style="color: darkgoldenrod;background-color:indianred" />
                                     break;
                                 }
                         }
-            </td>
-        </MatTableRow>
-    </MatTable>
-    @if (scores == null)
+                    </td>
+                </MatTableRow>
+            </MatTable>
+            @if (scores == null)
             {
                 <p><em>Loading Team Scores...</em></p>
                 <MatProgressBar Indeterminate="true"></MatProgressBar>
@@ -77,9 +77,9 @@
             {
                 <h3>Fish List</h3>
                 <MatTable Items="@scores" class="mat-elevation-z5" Striped="true"
-              RowClass="tester"
-              SortBy="TotalLength" PageSize="10"
-              ShowPaging="false">
+                          RowClass="tester"
+                          SortBy="TotalLength" PageSize="10"
+                          ShowPaging="false">
                     <MatTableHeader>
                         <th width="30%">Fish</th>
                         <th width="30%">Total Fish Length</th>
@@ -99,11 +99,11 @@
     @if (currentCatch != null & EditDialogShown == true)
     {
         <EditCatch OnCancel="CancelEdit" OnSave="SaveCatch"
-           currentCatch="@currentCatch"
-           fishOptions="@fishOptions"
-           dialogIsOpen="@EditDialogShown"
-           adminEdit="false"
-           users="@users" />
+                   currentCatch="@currentCatch"
+                   fishOptions="@fishOptions"
+                   dialogIsOpen="@EditDialogShown"
+                   adminEdit="false"
+                   users="@users" />
     }
 }
 else
@@ -116,6 +116,7 @@ else
     List<TeamScore> scores;
     List<Fish> fishOptions;
     List<User> users;
+    Team currentTeam;
 
     public Catch currentCatch;
     bool EditDialogShown = false;
@@ -133,6 +134,7 @@ else
         {
             try
             {
+                currentTeam = await client.GetFromJsonAsync<Team>("team/byuser");
                 fishOptions = await client.GetFromJsonAsync<List<Fish>>("fish");
                 users = await client.GetFromJsonAsync<List<User>>("adminuser/users");
                 catches = await client.GetFromJsonAsync<List<Catch>>("leaderboard/team/" + competitionState.CompetitionId);

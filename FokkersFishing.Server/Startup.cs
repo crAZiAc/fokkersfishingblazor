@@ -7,8 +7,10 @@ using FokkersFishing.Server.Helpers;
 using FokkersFishing.Server.Interfaces;
 using FokkersFishing.Services;
 using FokkersFishing.Shared.Models;
+using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Hosting;
@@ -20,6 +22,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
@@ -49,7 +52,7 @@ namespace FokkersFishing
 
             services.AddDbContext<ApplicationDbContext>(options =>
                options.UseSqlite(
-                   Configuration.GetConnectionString("DefaultConnection")));
+                   Configuration["ConnectionStrings:DefaultConnection"]));
 
             services.AddDefaultIdentity<ApplicationUser>(options =>
             {
@@ -66,8 +69,8 @@ namespace FokkersFishing
 
             services.AddSingleton<IFokkersDbService>(InitializeTableClientInstanceAsync(section).GetAwaiter().GetResult());
 
-            services.AddIdentityServer(options => 
-            { 
+            services.AddIdentityServer(options =>
+            {
                 options.Authentication.CookieLifetime = TimeSpan.FromHours(2);
             })
            .AddApiAuthorization<ApplicationUser, ApplicationDbContext>(opt =>
@@ -105,6 +108,11 @@ namespace FokkersFishing
                       googleOptions.SaveTokens = true;
                   })
                   .AddBasicAuthenticationSchema();
+
+            if (!string.IsNullOrEmpty(Configuration["IdentityServer:IssuerUri"]))
+            {
+                services.Configure<JwtBearerOptions>(IdentityServerJwtConstants.IdentityServerJwtBearerScheme, o => o.Authority = Configuration["IdentityServer:IssuerUri"]);
+            }
 
             // configure DI for application services
             services.AddScoped<IUserService>(us => new UserService(Configuration["Api:User"], Configuration["Api:Key"]));

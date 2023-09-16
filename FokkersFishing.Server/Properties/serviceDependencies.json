@@ -12,15 +12,14 @@
       "type": "storage",
       "connectionId": ""
     },
-    "secrets1": {
-      "ignored": "true",
-      "suggestion": "true",
-      "type": "secrets",
-      "connectionId": ""
-    },
     "appInsights1": {
       "type": "appInsights",
       "connectionId": "APPLICATIONINSIGHTS_CONNECTION_STRING"
+    },
+    "secrets1": {
+      "type": "secrets",
+      "connectionId": "VaultUri",
+      "dynamicId": null
     }
   }
 }

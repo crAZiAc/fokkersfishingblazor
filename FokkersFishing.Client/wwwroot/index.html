@@ -14,7 +14,17 @@
 </head>
 
 <body>
-    <app>Loading...</app>
+    <app>
+        <div id="app">
+            <div style="position:absolute; top:30vh; width:100%; text-align:center">
+                <h1>Fokkers Fishing App</h1>
+                <div style="display:flex; gap:10px; justify-content:center; align-items:center">
+                    <div class="spinner-border" role="status"></div>
+                    The application is loading...
+                </div>
+            </div>
+        </div>
+    </app>
 
     <div id="blazor-error-ui">
         An unhandled error has occurred.
@@ -23,7 +33,7 @@
     </div>
     <script src="_content/Microsoft.AspNetCore.Components.WebAssembly.Authentication/AuthenticationService.js"></script>
     <script src="_framework/blazor.webassembly.js"></script>
-    
+
 </body>
 
 </html>
