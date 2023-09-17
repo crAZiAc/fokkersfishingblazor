@@ -16,6 +16,7 @@ namespace FokkersFishing.Interfaces
         // Catches
         Task<CatchData> GetItemAsync(string rowKey);
         Task<CatchData> GetUserItemAsync(string rowKey, string userName);
+        Task<CatchData> GetTeamItemAsync(string rowKey, string userEmail);
         Task AddItemAsync(CatchData item);
         Task UpdateItemAsync(CatchData item);
         Task DeleteItemAsync(string rowKey);

@@ -257,6 +257,28 @@ namespace FokkersFishing.Controllers
 
             }
         }
+
+
+        [HttpDelete("team/{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<Catch>> DeleteTeamCatch(Guid id)
+        {
+            ApplicationUser user = _userHelper.GetUser();
+            var catchMade = await _fokkersDbService.GetTeamItemAsync(id.ToString(), user.Email);
+
+            if (catchMade == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                await _fokkersDbService.DeleteItemAsync(id.ToString());
+
+                return NoContent();
+            }
+        }
         #endregion
         #region Admin calls
         [Authorize(Roles = "Administrator")]

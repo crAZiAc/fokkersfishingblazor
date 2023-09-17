@@ -16,7 +16,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace FokkersFishing.Controllers
 {
-    
+
     [ApiController]
     [Route("[controller]")]
     public class AdminUserController : Controller

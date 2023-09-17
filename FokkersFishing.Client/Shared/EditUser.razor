@@ -16,14 +16,15 @@
                     <MatCheckbox @bind-Value="role.IsInRole" Label="@role.Name"/>
                 }
             </div>
-
         </EditForm>
+        
     </MatDialogContent>
     <MatDialogActions>
         <MatButton OnClick="@OnUserSave" Class="btn btn-primary">Save</MatButton>
         <MatButton OnClick="@OnUserCancel" Class="btn btn-secondary">Cancel</MatButton>
     </MatDialogActions>
 </MatDialog>
+
 
 
 @code {

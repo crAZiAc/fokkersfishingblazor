@@ -1,4 +1,6 @@
-﻿using FokkersFishing.Shared.Models;
+﻿using FokkersFishing.Data;
+using FokkersFishing.Models;
+using FokkersFishing.Shared.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Facebook;
@@ -6,6 +8,8 @@ using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.MicrosoftAccount;
 using Microsoft.AspNetCore.Authentication.Twitter;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Security.Claims;
@@ -38,7 +42,6 @@ namespace FokkersFishing.Server
                 return LoggedOutUser;
             }
         }
-
 
         [HttpGet("user/signin")]
         public async Task SignIn(string redirectUri, [FromQuery] string idp)

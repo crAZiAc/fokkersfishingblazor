@@ -62,6 +62,7 @@ namespace FokkersFishing
                 options.Password.RequireUppercase = true;
             })
                 .AddRoles<IdentityRole>()
+                .AddDefaultTokenProviders()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
             ConfigurationSection section = Configuration.GetSection("Storage") as ConfigurationSection;

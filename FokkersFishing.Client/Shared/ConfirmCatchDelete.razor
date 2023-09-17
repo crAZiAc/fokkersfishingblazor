@@ -2,9 +2,9 @@
 
 
 <MatDialog @bind-IsOpen="@dialogIsOpen">
-    <MatDialogTitle>Catch #: @catchMade.CatchNumber (@catchMade.Fish)</MatDialogTitle>
+    <MatDialogTitle>Catch #: @catchMade.CatchNumber (@catchMade.GlobalCatchNumber global) - (@catchMade.Fish)</MatDialogTitle>
     <MatDialogContent>
-        <p>Do you want to delete catch number @catchMade.CatchNumber</p>
+        <p>Do you want to delete catch number @catchMade.CatchNumber (@catchMade.GlobalCatchNumber global)</p>
     </MatDialogContent>
     <MatDialogActions>
         <MatButton OnClick="@OnConfirm" Class="btn btn-danger ml-auto">Delete</MatButton>

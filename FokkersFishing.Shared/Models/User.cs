@@ -21,6 +21,10 @@ namespace FokkersFishing.Shared.Models
             }
         }
 
+        [JsonIgnore]
+        public string LoginProvider { get; set; }
+
+      
         public User()
         {
             Roles = new List<Role>();

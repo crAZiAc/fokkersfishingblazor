@@ -94,6 +94,35 @@ namespace FokkersFishing.Services
                 return null;
             }
         }
+
+
+        public async Task<CatchData> GetTeamItemAsync(string rowKey, string userEmail)
+        {
+            try
+            {
+                var usersInTeam = await this.GetTeamMembersFromMemberAsync(userEmail);
+                if (usersInTeam.Any())
+                {
+                    foreach(TeamMemberData member in usersInTeam)
+                    {
+                        var query = from c in _catchContainer.Query<CatchData>()
+                                    where c.RowKey == rowKey
+                                    where c.PartitionKey == "Catches"
+                                    where c.UserEmail == member.UserEmail
+                                    select c;
+                        if (query.Any())
+                        {
+                            return query.FirstOrDefault();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+            return null;
+        }
         public async Task<List<CatchData>> GetLeaderboardItemsAsync()
         {
 

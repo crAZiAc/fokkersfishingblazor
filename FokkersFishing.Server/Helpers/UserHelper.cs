@@ -3,6 +3,8 @@ using FokkersFishing.Models;
 using FokkersFishing.Shared.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -65,6 +67,19 @@ namespace FokkersFishing.Server.Helpers
                         userToAdd.Roles.Add(new Role { Id = role.Id, Name = role.Name, IsInRole = false }); ;
                     }
                 }
+
+                // Get login provider
+                var logins = from l in _dbContext.UserLogins
+                             where l.UserId == user.Id
+                             select l;
+                if (logins.Any())
+                {
+                    userToAdd.LoginProvider = logins.FirstOrDefault().LoginProvider;
+                }
+                else
+                {
+                    userToAdd.LoginProvider = "Local Account";
+                }
                 userList.Add(userToAdd);
             }
             return userList;
@@ -87,6 +102,19 @@ namespace FokkersFishing.Server.Helpers
                     {
                         userToReturn.Roles.Add(new Role { Id = role.Id, Name = role.Name, IsInRole = false }); ;
                     }
+                }
+
+                // Get login provider
+                var logins = from l in _dbContext.UserLogins
+                             where l.UserId == user.Id
+                             select l;
+                if (logins.Any())
+                {
+                    userToReturn.LoginProvider = logins.FirstOrDefault().LoginProvider;
+                }
+                else
+                {
+                    userToReturn.LoginProvider = "Local Account";
                 }
                 return userToReturn;
             }
@@ -118,6 +146,18 @@ namespace FokkersFishing.Server.Helpers
                         userToReturn.Roles.Add(new Role { Id = role.Id, Name = role.Name, IsInRole = false }); ;
                     }
                 }
+                // Get login provider
+                var logins = from l in _dbContext.UserLogins
+                             where l.UserId == user.Id
+                             select l;
+                if (logins.Any())
+                {
+                    userToReturn.LoginProvider = logins.FirstOrDefault().LoginProvider;
+                }
+                else
+                {
+                    userToReturn.LoginProvider = "Local Account";
+                }
                 return userToReturn;
             }
             else
@@ -130,6 +170,23 @@ namespace FokkersFishing.Server.Helpers
             }
         } // end f
 
+
+        public User ChangePassword(string userEmail, string newPassword)
+        {
+            ApplicationUser user = _dbContext.Users.FirstOrDefault(c => c.Email.ToLower() == userEmail.ToLower());
+            if (user != null)
+            {
+                UserManager<ApplicationUser> userManager = new UserManager<ApplicationUser>(new UserStore<ApplicationUser>(_dbContext), null, null, null, null, null, null, null, null);
+
+                var token = userManager.GeneratePasswordResetTokenAsync(user).Result;
+
+                var result = userManager.ResetPasswordAsync(user, token, newPassword);
+
+                return user.GetUser();
+            }
+            return null;
+        }
+
         public User UpdateUser(User user)
         {
             ApplicationUser userToUpdate = _dbContext.Users.FirstOrDefault(c => c.Email.ToLower() == user.Email.ToLower());
@@ -139,7 +196,7 @@ namespace FokkersFishing.Server.Helpers
                 userToUpdate.EmailConfirmed = true;
                 _dbContext.SaveChanges();
 
-                foreach(var userRole in user.Roles)
+                foreach (var userRole in user.Roles)
                 {
                     var role = _dbContext.Roles.FirstOrDefault(r => r.Name.ToLower() == userRole.Name.ToLower());
                     if (role != null)
@@ -181,6 +238,18 @@ namespace FokkersFishing.Server.Helpers
                     {
                         userToReturn.Roles.Add(new Role { Id = role.Id, Name = role.Name, IsInRole = false }); ;
                     }
+                }
+                // Get login provider
+                var logins = from l in _dbContext.UserLogins
+                             where l.UserId == userToUpdate.Id
+                             select l;
+                if (logins.Any())
+                {
+                    userToReturn.LoginProvider = logins.FirstOrDefault().LoginProvider;
+                }
+                else
+                {
+                    userToReturn.LoginProvider = "Local Account";
                 }
                 return userToReturn;
             }

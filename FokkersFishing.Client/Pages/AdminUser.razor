@@ -1,6 +1,8 @@
 ﻿@page "/adminusers"
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using System.Text.Json;
+@using System.Text;
 @inject IHttpClientFactory ClientFactory
 @inject IMatToaster Toaster
 @attribute [Authorize(Roles = "Administrator")]
@@ -21,21 +23,23 @@
               FilterByColumnName="UserName"
               ShowPaging="true">
             <MatTableHeader>
-                <th width="25%">User Name</th>
-                <th width="25%">E-Mail</th>
-                <th width="25%">Roles</th>
-                <th width="25%">Commands</th>
+                <th width="20%">User Name</th>
+                <th width="20%">E-Mail</th>
+                <th width="20%">Login Provider</th>
+                <th width="20%">Roles</th>
+                <th width="20%">Commands</th>
             </MatTableHeader>
             <MatTableRow>
                 <td>@context.UserName</td>
                 <td>@context.Email</td>
+                <td>@context.LoginProvider</td>
                 <td>@context.RoleList</td>
                 <td>
                     <MatIconButton Icon="@MatIconNames.Edit" OnClick="@(() => EditUser(@context))" />
                     <MatIconButton Icon="@MatIconNames.Delete" OnClick="@(() => DeleteUser(@context))" />
                 </td>
             </MatTableRow>
-        </MatTable>
+        </MatTable> 
         <EditUser currentUser="@currentUser" dialogIsOpen="isDialogOpen" OnUserSave="@OnUserSave" OnUserCancel="OnUserCancel" />
         <ConfirmUserDelete currentUser="@currentUser" dialogIsOpen="isDeleteDialogOpen" OnConfirm="@(() => OnUserDeleteConfirm(currentUser))" OnCancel="@OnUserDeleteCancel" />
     }
@@ -72,7 +76,7 @@
     protected async void OnUserSave()
     {
         var client = ClientFactory.CreateClient("server");
-        HttpResponseMessage response = await client.PutAsJsonAsync("adminuser/users", currentUser);
+        HttpResponseMessage response = await client.PutAsJsonAsync<User>("adminuser/users", currentUser);
         if (response.StatusCode != System.Net.HttpStatusCode.OK)
         {
             Toaster.Add($"User #: {currentUser.UserName}", MatToastType.Warning, "Saving user failed", "", config =>
@@ -88,7 +92,7 @@
         }
         else
         {
-            currentUser = await response.Content.ReadFromJsonAsync<User>();
+            currentUser = await response.Content.ReadFromJsonAsync<User>();            
         }
         isDialogOpen = false;
         StateHasChanged();

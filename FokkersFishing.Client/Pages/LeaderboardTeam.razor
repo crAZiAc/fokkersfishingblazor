@@ -105,6 +105,13 @@
                    adminEdit="false"
                    users="@users" />
     }
+
+    @if (currentCatch != null & DeleteDialogShown == true)
+    {
+        <ConfirmCatchDelete OnCancel="CancelDelete" OnConfirm="@(() => DeleteCatch(currentCatch.Id))" catchMade="@currentCatch" dialogIsOpen="@DeleteDialogShown" />
+    }
+
+
 }
 else
 {
@@ -190,7 +197,7 @@ else
     private void DeleteCatch(Guid id)
     {
         var client = ClientFactory.CreateClient("server");
-        client.DeleteAsync("catch/" + id);
+        client.DeleteAsync("catch/team/" + id);
         Catch catchToBeDeleted = catches.FirstOrDefault(e => e.Id == id);
         catches.Remove(catchToBeDeleted);
         DeleteDialogShown = false;
