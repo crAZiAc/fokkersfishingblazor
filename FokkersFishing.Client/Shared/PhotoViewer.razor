@@ -1,9 +1,9 @@
 ﻿@inject HttpClient HttpClient
 
-<MatDialog @bind-IsOpen="@dialogIsOpen" Style="width: 80%;height:80%">
-    <MatDialogTitle>Catch #: @catchMade.CatchNumber (@catchMade.Fish - @catchMade.Length cm). Caught on: @catchMade.CatchDate.ToLocalTime()</MatDialogTitle>
+<MatDialog @bind-IsOpen="@dialogIsOpen" >
+    <MatDialogTitle>#: @catchMade.CatchNumber (@catchMade.Fish - @catchMade.Length cm). <br />@catchMade.CatchDate.ToLocalTime()</MatDialogTitle>
     <MatDialogContent>
-            <img src="@url" width="50%" height="50%" />
+            <img src="@url" width="300px" />
         @if (isAdmin)
         {
                 <a href="@url">Download measure photo</a>

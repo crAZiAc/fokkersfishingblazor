@@ -39,8 +39,12 @@
                     <td>@context.Fish</td>
                     <td>@context.Length</td>
                     <td>@context.UserName</td>
-                    <td><a href="@context.CatchPhotoUrl" target="_blank"><img src="@context.CatchThumbnailUrl" style=" max-width: 100%;height: auto;" /></a></td>
-                    <td><a href="@context.MeasurePhotoUrl" target="_blank"><img src="@context.MeasureThumbnailUrl" style=" max-width: 100%;height: auto;" /></a></td>
+                    <td>
+                        <img src="@context.CatchThumbnailUrl" style=" max-width: 100%;height: auto;" @onclick="@(() => PhotoViewerShowCatch(context))" />
+                    </td>
+                    <td>
+                        <img src="@context.MeasureThumbnailUrl" style=" max-width: 100%;height: auto;" @onclick="@(() => PhotoViewerShowMeasure(context))" />
+                    </td>
                     <td>
                         @switch (context.Status)
                         {
@@ -111,6 +115,15 @@
         <ConfirmCatchDelete OnCancel="CancelDelete" OnConfirm="@(() => DeleteCatch(currentCatch.Id))" catchMade="@currentCatch" dialogIsOpen="@DeleteDialogShown" />
     }
 
+    @if (selectedPhotoCatch != null & PhotoViewerCatchShown == true)
+    {
+        <PhotoViewer OnClose="@(() => PhotoViewerCatchClose())" catchMade="@selectedPhotoCatch" dialogIsOpen="@PhotoViewerCatchShown" url="@selectedPhotoCatch.CatchPhotoUrl" />
+    }
+
+    @if (selectedMeasureCatch != null & PhotoViewerMeasureShown == true)
+    {
+        <PhotoViewer OnClose="@(() => PhotoViewerMeasureClose())" catchMade="@selectedMeasureCatch" dialogIsOpen="@PhotoViewerMeasureShown" url="@selectedMeasureCatch.MeasurePhotoUrl" />
+    }
 
 }
 else
@@ -124,6 +137,9 @@ else
     List<Fish> fishOptions;
     List<User> users;
     Team currentTeam;
+
+    bool PhotoViewerCatchShown = false;
+    bool PhotoViewerMeasureShown = false;
 
     public Catch currentCatch;
     bool EditDialogShown = false;
@@ -152,6 +168,32 @@ else
 
             }
         }
+    }
+
+    public void PhotoViewerShowCatch(Catch catchSelected)
+    {
+        selectedPhotoCatch = catchSelected;
+        PhotoViewerCatchShown = true;
+        StateHasChanged();
+    }
+
+    public void PhotoViewerShowMeasure(Catch catchSelected)
+    {
+        selectedMeasureCatch = catchSelected;
+        PhotoViewerMeasureShown = true;
+        StateHasChanged();
+    }
+
+    public void PhotoViewerCatchClose()
+    {
+        PhotoViewerCatchShown = false;
+        StateHasChanged();
+    }
+
+    public void PhotoViewerMeasureClose()
+    {
+        PhotoViewerMeasureShown = false;
+        StateHasChanged();
     }
 
     public void SelectionChangedEvent(object row)

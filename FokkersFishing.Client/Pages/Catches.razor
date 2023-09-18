@@ -20,7 +20,67 @@
             <h4> Only showing catches in competition</h4>
         }
         <button type="button" class="btn btn-primary" @onclick="@((x) => AddNewCatch())">Add new catch</button>
-        @foreach (Catch catchRow in catches.OrderByDescending(c => c.CatchNumber))
+
+        <MatTable Items="@catches" class="mat-elevation-z5" Striped="true"
+                  RowClass="tester"
+                  SortBy="Length"
+                  PageSize="25"
+                  FilterByColumnName="Fish"
+                  ShowPaging="true">
+            <MatTableHeader>
+                <th width="10%">Catch #</th>
+                <th width="30%">Catch Date</th>
+                <th width="10%">Fish</th>
+                <th width="20%">Fish Length</th>
+                <th width="20%">Fisherman</th>
+                <th width="20%">Catch</th>
+                <th width="20%">Measure</th>
+            </MatTableHeader>
+            <MatTableRow>
+                <td>@context.GlobalCatchNumber</td>
+                <td>@context.CatchDate</td>
+                <td>@context.Fish</td>
+                <td>@context.Length</td>
+                <td>@context.UserName</td>
+                <td>
+                    <img src="@context.CatchThumbnailUrl" style=" max-width: 100%;height: auto;" @onclick="@(() => PhotoViewerShowCatch(context))" />
+                </td>
+                <td>
+                    <img src="@context.MeasureThumbnailUrl" style=" max-width: 100%;height: auto;" @onclick="@(() => PhotoViewerShowMeasure(context))" />
+                </td>
+                <td>
+                    @if (context.CaughtInCompetition)
+                    {
+                        <MatFAB Icon="@MatIconNames.Fitness_center" style="color: black;background-color: lightgrey" Mini="true" />
+                    }
+                    @switch (context.Status)
+                    {
+                        case CatchStatusEnum.Approved:
+                            {
+                                <MatFAB Icon="@MatIconNames.Done_all" Label="Approved" style="color: lightgreen;background-color: green" />
+                                @* <MatIconButton Icon="@MatIconNames.Edit" @onclick="@(() => ShowEditDialog(context.Id))"></MatIconButton> *@
+                                <MatIconButton Icon="@MatIconNames.Delete" @onclick="@(() => ShowDeleteDialog(context.Id))"></MatIconButton>
+                                break;
+                            }
+                        case CatchStatusEnum.Pending:
+                            {
+                                <MatFAB Icon="@MatIconNames.Schedule" Label="Pending" style="color: lightyellow;background-color:#ffc107" />
+                                <MatIconButton Icon="@MatIconNames.Edit" @onclick="@(() => ShowEditDialog(context.Id))"></MatIconButton>
+                                <MatIconButton Icon="@MatIconNames.Delete" @onclick="@(() => ShowDeleteDialog(context.Id))"></MatIconButton>
+
+                                break;
+                            }
+                        case CatchStatusEnum.Rejected:
+                            {
+                                <MatFAB Icon="@MatIconNames.Pan_tool" Label="Rejected" style="color: darkgoldenrod;background-color:indianred" />
+                                break;
+                            }
+                    }
+                </td>
+            </MatTableRow>
+        </MatTable>
+
+      @*   @foreach (Catch catchRow in catches.OrderByDescending(c => c.CatchNumber))
         {
             string image = string.Empty;
             string textColor = string.Empty;
@@ -105,7 +165,7 @@
                     </MatTab>
                 </MatTabGroup>
             <br />
-        }
+        } *@
     }
 </div>
 
