@@ -691,8 +691,6 @@ namespace FokkersFishing.Controllers
             // Get user
             ApplicationUser user = _userHelper.GetUser();
 
-            // Check if
-
             // Get Team members
             List<TeamMemberData> teamMemberData = await _fokkersDbService.GetTeamMembersFromMemberAsync(user.Email);
             if (teamMemberData != null)
@@ -709,7 +707,8 @@ namespace FokkersFishing.Controllers
                         return NotFound();
                     }
                     List<Catch> catchesMade = new List<Catch>();
-                    foreach (CatchData catchMadeData in catchesMadeData.Where(f => f.Fish.ToLower() == "snoek" | f.Fish.ToLower() == "baars" | f.Fish.ToLower() == "snoekbaars"))
+                    //foreach (CatchData catchMadeData in catchesMadeData.Where(f => f.Fish.ToLower() == "snoek" | f.Fish.ToLower() == "baars" | f.Fish.ToLower() == "snoekbaars"))
+                    foreach (CatchData catchMadeData in catchesMadeData)
                     {
                         var checkCatch = from ut in teamMemberData
                                          where ut.UserEmail == catchMadeData.UserEmail
