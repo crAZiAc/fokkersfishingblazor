@@ -9,14 +9,17 @@
 <AuthorizeView Roles="Administrator, User">
     @if (competitionState.Active)
     {
-        <button type="button" class="btn btn-primary" style="width:300px;height:100px" @onclick="@((x) => AddNewCatch())">Add new catch</button>
+        @if (!competitionState.CompetitionEnded)
+        {
+            <button type="button" class="btn btn-primary" style="width:300px;height:100px" @onclick="@((x) => AddNewCatch())">Add new catch</button>
+        }
     }
     else
     {
         <button type="button" class="btn btn-primary" @onclick="@((x) => AddNewCatch())">Add new catch</button>
     }
 
-    
+
 </AuthorizeView>
 
 
