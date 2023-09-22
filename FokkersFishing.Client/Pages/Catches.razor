@@ -19,7 +19,7 @@
         {
             <h4> Only showing catches in competition</h4>
         }
-        @if (!competitionState.CompetitionEnded)
+        @if (!competitionState.CompetitionEnded & !competitionState.CompetitionStarted)
         {
             <button type="button" class="btn btn-primary" @onclick="@((x) => AddNewCatch())">Add new catch</button>
         }

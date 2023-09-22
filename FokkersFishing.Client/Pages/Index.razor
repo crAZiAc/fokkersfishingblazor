@@ -9,7 +9,7 @@
 <AuthorizeView Roles="Administrator, User">
     @if (competitionState.Active)
     {
-        @if (!competitionState.CompetitionEnded)
+        @if (!competitionState.CompetitionEnded & !competitionState.CompetitionStarted)
         {
             <button type="button" class="btn btn-primary" style="width:300px;height:100px" @onclick="@((x) => AddNewCatch())">Add new catch</button>
         }
@@ -28,7 +28,13 @@
     <h1>Fokkers Competition: @competitionState.CompetitionName</h1>
     @if (competitionState.CompetitionEnded)
     {
+        
         <h3 style="color: lightseagreen">Competition Ended.</h3>
+    }
+    else if (competitionState.CompetitionStarted)
+    {
+        <h3 style="color: lightseagreen">Competition has not started</h3>
+        <h4 style="color: gray">Starts in <span style="color:lightcoral">@competitionState.TimeTillStarted.Days</span> days, <span style="color:lightcoral">@competitionState.TimeTillStarted.Hours</span> hours, <span style="color:lightcoral">@competitionState.TimeTillStarted.Minutes</span> minutes</h4>
     }
     else
     {
@@ -108,7 +114,7 @@ else
                 </div>
                 <MatDivider></MatDivider>
                 placeCounter++;
-            }       // end foreach
+            }
         </div>
 
 

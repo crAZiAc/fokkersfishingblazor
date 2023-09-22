@@ -33,11 +33,35 @@ namespace FokkersFishing.Client.Helpers
             }
         }
 
+        public TimeSpan TimeTillStarted
+        {
+            get
+            {
+                TimeSpan timeSpan = m_StartDate - DateTime.Now;
+                return timeSpan;
+            }
+        }
+
         public bool CompetitionEnded
         {
             get
             {
                 if (DateTime.Now > m_EndDate)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+
+        public bool CompetitionStarted
+        {
+            get
+            {
+                if (DateTime.Now < m_StartDate)
                 {
                     return true;
                 }

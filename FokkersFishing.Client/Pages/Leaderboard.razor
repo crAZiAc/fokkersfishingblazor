@@ -205,6 +205,11 @@
             {
                 <h5 style="color: lightseagreen">Competition Ended.</h5>
             }
+            else if (competitionState.CompetitionStarted)
+            {
+                <h5 style="color: lightseagreen">Competition has not started</h5>
+                <h6 style="color: gray">Starts in <span style="color:lightcoral">@competitionState.TimeTillStarted.Days</span> days, <span style="color:lightcoral">@competitionState.TimeTillStarted.Hours</span> hours, <span style="color:lightcoral">@competitionState.TimeTillStarted.Minutes</span> minutes</h6>
+            }
             else
             {
                 <h5 style="color: yellowgreen">Competition Active. Top Catches overview will be disabled during competition</h5>
