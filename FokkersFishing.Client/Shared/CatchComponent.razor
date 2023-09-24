@@ -37,7 +37,7 @@
                 <MatSortHeader SortId="fisherman"><span style="width:150px">Fisherman</span></MatSortHeader>
                 <MatSortHeader SortId="catchphoto"><span style="width:20%">Catch Photo</span></MatSortHeader>
                 <MatSortHeader SortId="measurephoto"><span style="width:20%">Measure Photo</span></MatSortHeader>
-                <MatSortHeader SortId="commands"><span style="width:20%">Measure Photo</span></MatSortHeader>
+                <MatSortHeader SortId="commands"><span style="width:20%">Commands</span></MatSortHeader>
             </MatSortHeaderRow>
         </MatTableHeader>
         <MatTableRow>
@@ -99,8 +99,8 @@
     [Parameter] public List<User> users { get; set; }
     [Parameter] public CompetitionState competitionState { get; set; }
 
-    [Parameter] public EventCallback<string> OnShowEdit { get; set; }
-    [Parameter] public EventCallback<string> OnShowDelete { get; set; }
+    [Parameter] public EventCallback<Guid> OnShowEdit { get; set; }
+    [Parameter] public EventCallback<Guid> OnShowDelete { get; set; }
     [Parameter] public EventCallback<bool> OnCompetitionCatchesChanged { get; set; }
 
     List<Catch> sortedCatches;
@@ -159,14 +159,14 @@
     private void ShowEditDialog(Guid id)
     {
         currentCatch = catches.FirstOrDefault(e => e.Id == id);
-        OnShowEdit.InvokeAsync(currentCatch.Id.ToString());
+        OnShowEdit.InvokeAsync(currentCatch.Id);
         StateHasChanged();
     }
 
     private void ShowDeleteDialog(Guid id)
     {
         currentCatch = catches.FirstOrDefault(e => e.Id == id);
-        OnShowDelete.InvokeAsync(currentCatch.Id.ToString());
+        OnShowDelete.InvokeAsync(currentCatch.Id);
         StateHasChanged();
     }
 

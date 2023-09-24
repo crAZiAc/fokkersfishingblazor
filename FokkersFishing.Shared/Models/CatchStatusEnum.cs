@@ -6,8 +6,8 @@ namespace FokkersFishing.Shared.Models
 {
     public enum CatchStatusEnum
     {
-        Approved,
-        Pending,
-        Rejected
+        Approved = 1,
+        Pending = 2,
+        Rejected = 3
     } // end e
 } // end ns

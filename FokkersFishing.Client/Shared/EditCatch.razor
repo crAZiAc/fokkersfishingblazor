@@ -2,7 +2,7 @@
 @inject HttpClient HttpClient
 
 <MatDialog @bind-IsOpen="@dialogIsOpen">
-    <MatDialogTitle>Catch #: @currentCatch.CatchNumber</MatDialogTitle>
+    <MatDialogTitle>Catch #: @currentCatch.GlobalCatchNumber</MatDialogTitle>
     <MatDialogContent>
         <EditForm Model="currentCatch">
             <p><MatTextField @bind-Value="@currentCatch.CatchNumber" ReadOnly="true" Label="Catch #" Disabled="true" FullWidth="false" Outlined="false" Dense="true" /></p>

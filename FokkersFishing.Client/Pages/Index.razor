@@ -18,8 +18,6 @@
     {
         <button type="button" class="btn btn-primary" @onclick="@((x) => AddNewCatch())">Add new catch</button>
     }
-
-
 </AuthorizeView>
 
 
@@ -28,8 +26,11 @@
     <h1>Fokkers Competition: @competitionState.CompetitionName</h1>
     @if (competitionState.CompetitionEnded)
     {
-        
         <h3 style="color: lightseagreen">Competition Ended.</h3>
+        @if (stats != null)
+        {
+            <h4>Catches made: @stats.FishCaught. Total length caught: @stats.TotalLength cm</h4>
+        }
     }
     else if (competitionState.CompetitionStarted)
     {
@@ -162,6 +163,7 @@ else
     List<BigThree> bigThree;
     List<Fish> fishOptions;
     List<User> users;
+    CompetitionStats stats;
 
     int placeCounter = 1;
     bool EditDialogShown = false;
@@ -177,11 +179,28 @@ else
             bigThree = await client.GetFromJsonAsync<List<BigThree>>("leaderboard/bigthree");
             fishermen = await client.GetFromJsonAsync<List<FisherMan>>("leaderboard/fishermen");
         }
+        else
+        {
+            if (competitionState.CompetitionEnded)
+            {
+                try
+                {
+                    stats = await client.GetFromJsonAsync<CompetitionStats>("leaderboard/stats/" + competitionState.CompetitionId);
+                    StateHasChanged();
+                }
+                catch (Exception ex)
+                {
+
+                }
+
+            }
+        }
 
         try
         {
             var secureClient = ClientFactory.CreateClient("server");
             users = await secureClient.GetFromJsonAsync<List<User>>("adminuser/users");
+            secureClient.Dispose();
         }
         catch (Exception ex)
         {
@@ -213,7 +232,8 @@ else
         EditDialogShown = true;
     }
 
-    private async Task SaveCatch(Dictionary<string, IMatFileUploadEntry> catchFiles)
+    private async Task SaveCatch(Dictionary<string, IMatFileUploadEntry>
+    catchFiles)
     {
         IMatFileUploadEntry selectedMeasureFile = catchFiles["measure"];
         IMatFileUploadEntry selectedCatchFile = catchFiles["catch"];
@@ -226,25 +246,27 @@ else
             if (selectedMeasureFile != null)
             {
                 Toaster.Add($"New Catch, Type: {newCatch.Fish}", MatToastType.Light, "Uploading measure photo", "", config =>
-    {
-        config.ShowCloseButton = true;
-        config.ShowProgressBar = true;
-        config.MaximumOpacity = 100;
+                {
+                    config.ShowCloseButton = true;
+                    config.ShowProgressBar = true;
+                    config.MaximumOpacity = 100;
 
-        config.ShowTransitionDuration = 1500;
-        config.VisibleStateDuration = 3000;
-        config.HideTransitionDuration = 500;
-    });
+                    config.ShowTransitionDuration = 1500;
+                    config.VisibleStateDuration = 3000;
+                    config.HideTransitionDuration = 500;
+                });
                 Photo measurePhoto = new Photo { Id = newCatch.Id, PhotoType = PhotoTypeEnum.Measure };
                 MemoryStream stream = new MemoryStream();
                 await selectedMeasureFile.WriteToStreamAsync(stream);
 
                 measurePhoto.ImageContent = stream.ToArray();
                 stream.Close();
-                HttpResponseMessage responsePhoto = await client.PostAsJsonAsync<Photo>($"photo", measurePhoto);
+                HttpResponseMessage responsePhoto = await client.PostAsJsonAsync<Photo>
+                    ($"photo", measurePhoto);
                 if (responsePhoto.StatusCode == System.Net.HttpStatusCode.Created)
                 {
-                    UploadPhotoResponse photoResponse = await responsePhoto.Content.ReadFromJsonAsync<UploadPhotoResponse>();
+                    UploadPhotoResponse photoResponse = await responsePhoto.Content.ReadFromJsonAsync<UploadPhotoResponse>
+                        ();
                     newCatch.MeasurePhotoUrl = photoResponse.PhotoUrl;
                     newCatch.MeasureThumbnailUrl = photoResponse.ThumbnailUrl;
                 }
@@ -253,25 +275,27 @@ else
             if (selectedCatchFile != null)
             {
                 Toaster.Add($"New Catch, Type: {newCatch.Fish}", MatToastType.Light, "Uploading catch photo", "", config =>
-    {
-        config.ShowCloseButton = true;
-        config.ShowProgressBar = true;
-        config.MaximumOpacity = 100;
+                {
+                    config.ShowCloseButton = true;
+                    config.ShowProgressBar = true;
+                    config.MaximumOpacity = 100;
 
-        config.ShowTransitionDuration = 1500;
-        config.VisibleStateDuration = 3000;
-        config.HideTransitionDuration = 500;
-    });
+                    config.ShowTransitionDuration = 1500;
+                    config.VisibleStateDuration = 3000;
+                    config.HideTransitionDuration = 500;
+                });
                 Photo catchPhoto = new Photo { Id = newCatch.Id, PhotoType = PhotoTypeEnum.Catch };
                 MemoryStream stream = new MemoryStream();
                 await selectedCatchFile.WriteToStreamAsync(stream);
 
                 catchPhoto.ImageContent = stream.ToArray();
                 stream.Close();
-                HttpResponseMessage responsePhoto = await client.PostAsJsonAsync<Photo>($"photo", catchPhoto);
+                HttpResponseMessage responsePhoto = await client.PostAsJsonAsync<Photo>
+                    ($"photo", catchPhoto);
                 if (responsePhoto.StatusCode == System.Net.HttpStatusCode.Created)
                 {
-                    UploadPhotoResponse photoResponse = await responsePhoto.Content.ReadFromJsonAsync<UploadPhotoResponse>();
+                    UploadPhotoResponse photoResponse = await responsePhoto.Content.ReadFromJsonAsync<UploadPhotoResponse>
+                        ();
                     newCatch.CatchPhotoUrl = photoResponse.PhotoUrl;
                     newCatch.CatchThumbnailUrl = photoResponse.ThumbnailUrl;
                 }
@@ -279,15 +303,15 @@ else
 
             // Create new catch
             Toaster.Add($"New Catch, Type: {newCatch.Fish}", MatToastType.Info, "Creating catch data", "", config =>
-    {
-        config.ShowCloseButton = true;
-        config.ShowProgressBar = true;
-        config.MaximumOpacity = 100;
+            {
+                config.ShowCloseButton = true;
+                config.ShowProgressBar = true;
+                config.MaximumOpacity = 100;
 
-        config.ShowTransitionDuration = 750;
-        config.VisibleStateDuration = 2000;
-        config.HideTransitionDuration = 500;
-    });
+                config.ShowTransitionDuration = 750;
+                config.VisibleStateDuration = 2000;
+                config.HideTransitionDuration = 500;
+            });
             response = await client.PostAsJsonAsync("catch", newCatch);
             if (response.StatusCode != System.Net.HttpStatusCode.Created)
             {
@@ -295,7 +319,8 @@ else
             }
             else
             {
-                newCatch = await response.Content.ReadFromJsonAsync<Catch>();
+                newCatch = await response.Content.ReadFromJsonAsync<Catch>
+                    ();
             }
 
             NewCatchAdded = false;

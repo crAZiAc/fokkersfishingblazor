@@ -6,11 +6,16 @@
 @using System.IO
 @attribute [Authorize(Roles = "Administrator")]
 
-@if (catches != null & currentCatch != null)
+ @if (catches != null & currentCatch != null)
 {
+
+    @if (competitionState.Active)
+    {
+        <h4> Only showing catches in competition</h4>
+    }
     <CatchComponent catches="@catches" competitionState="@competitionState" fishOptions="@fishOptions"
-                    OnShowDelete="@(() => ShowDeleteDialog(currentCatch.Id))"
-                    OnShowEdit="@(() => ShowEditDialog(currentCatch.Id))"
+                    OnShowDelete="ShowDeleteDialog"
+                    OnShowEdit="ShowEditDialog"
                     users="@users" />
 
     @if (currentCatch != null & EditDialogShown == true)
@@ -33,6 +38,7 @@ else
     <p><em>Loading all catches</em></p>
     <MatProgressBar Indeterminate="true"></MatProgressBar>
 }
+
 @code {
     List<Catch> catches;
     List<Catch> sortedCatches;
@@ -154,7 +160,7 @@ else
 
     protected async Task LoadCatches(HttpClient client)
     {
-        if (competitionState.Active == false )
+        if (competitionState.Active == false)
         {
             catches = await client.GetFromJsonAsync<List<Catch>>("catch/admin");
             if (catches.Count > 0)

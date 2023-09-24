@@ -13,6 +13,7 @@ using FokkersFishing.Data;
 using FokkersFishing.Shared.Models;
 using FokkersFishing.Server.Helpers;
 using System.Runtime.CompilerServices;
+using FokkersFishing.Client.Pages;
 
 namespace FokkersFishing.Controllers
 {
@@ -58,6 +59,38 @@ namespace FokkersFishing.Controllers
                 catchesMade.Add(catchMade);
             }
             return catchesMade.ToList();
+        }
+
+        [AllowAnonymous]
+        [HttpGet("stats/{competitionId}")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<CompetitionStats>> GetStats(Guid competitionId)
+        {
+            CompetitionData competitionData = await _fokkersDbService.GetCompetitionAsync(competitionId.ToString());
+            if (competitionData != null)
+            {
+                Competition competition = competitionData.GetCompetition();
+                IEnumerable<CatchData> catchesMadeData = await _fokkersDbService.GetCompetitionLeaderboardItemsAsync(competitionId);
+                if (catchesMadeData == null)
+                {
+                    return NotFound();
+                }
+                var caught = (from c in catchesMadeData
+                              where c.Status != CatchStatusEnum.Rejected
+                              select c.Length);
+                if (caught.Any())
+                {
+                    double totalCm = caught.ToList<double>().Sum();
+                    int totalCaught = catchesMadeData.Count();
+                    return new CompetitionStats
+                    {
+                        FishCaught = totalCaught,
+                        TotalLength = totalCm
+                    };
+
+                }
+            }
+            return NotFound();
         }
 
         [Authorize(Roles = "Administrator")]
@@ -737,7 +770,7 @@ namespace FokkersFishing.Controllers
             }
         }
 
-        
+
         [Authorize(Roles = "Administrator, User")]
         [HttpGet("team/scores/{competitionId}")]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -1051,7 +1084,7 @@ namespace FokkersFishing.Controllers
                 // Bass
                 newBig.Bass = new Catch();
                 var biggestBass = bass.Where(c => c.UserEmail.ToLower() == fisher.UserEmail.ToLower()).ToList();
-                if (biggestBass.Count > 0 )
+                if (biggestBass.Count > 0)
                 {
                     newBig.Bass = biggestBass.Take(1).FirstOrDefault().GetCatch();
                 }
