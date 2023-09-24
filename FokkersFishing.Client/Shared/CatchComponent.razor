@@ -1,0 +1,275 @@
+﻿@using FokkersFishing.Client.Helpers;
+<div class="main">
+    <table>
+        <tr>
+            <td>
+                <MatSelect Label="Fish" @bind-Value="SelectedFishFilter" FullWidth="false" Outlined="false" Dense="true">
+                    <MatOptionString Value="@string.Empty"></MatOptionString>
+                    @foreach (string fish in fishCatchOptions)
+                    {
+                        <MatOptionString Value="@fish">@fish</MatOptionString>
+                    }
+                </MatSelect>
+            </td>
+            <td>
+                <MatSelect Label="Fisherman" @bind-Value="SelectedFishermanFilter" FullWidth="false" Outlined="false" Dense="true">
+                    <MatOptionString Value="@string.Empty"></MatOptionString>
+                    @foreach (string fisherman in fishermanCatchOptions)
+                    {
+                        <MatOptionString Value="@fisherman">@fisherman</MatOptionString>
+                    }
+                </MatSelect>
+            </td>
+        </tr>
+    </table>
+    <MatTable Items="@filteredCatches" class="mat-elevation-z5" Striped="true"
+              RowClass="tester"
+              UseSortHeaderRow="true"
+              FilterByColumnName="GlobalCatchNumber"
+              PageSize="25"
+              ShowPaging="true">
+        <MatTableHeader>
+            <MatSortHeaderRow SortChanged="@SortData">
+                <MatSortHeader SortId="catch"><span style="width:75px">Catch #</span></MatSortHeader>
+                <MatSortHeader SortId="catchdate"><span style="width:200px">Catch Date</span></MatSortHeader>
+                <MatSortHeader SortId="fish"><span style="width:75px">Fish</span></MatSortHeader>
+                <MatSortHeader SortId="fishlength"><span style="width:75px">Fish Length</span></MatSortHeader>
+                <MatSortHeader SortId="fisherman"><span style="width:150px">Fisherman</span></MatSortHeader>
+                <MatSortHeader SortId="catchphoto"><span style="width:20%">Catch Photo</span></MatSortHeader>
+                <MatSortHeader SortId="measurephoto"><span style="width:20%">Measure Photo</span></MatSortHeader>
+                <MatSortHeader SortId="commands"><span style="width:20%">Measure Photo</span></MatSortHeader>
+            </MatSortHeaderRow>
+        </MatTableHeader>
+        <MatTableRow>
+            <td>@context.GlobalCatchNumber</td>
+            <td>@context.CatchDate</td>
+            <td>@context.Fish</td>
+            <td>@context.Length</td>
+            <td>@context.UserName</td>
+            <td>
+                <img src="@context.CatchThumbnailUrl" style=" max-width: 100%;height: auto;" @onclick="@(() => PhotoViewerShowCatch(context))" />
+            </td>
+            <td>
+                <img src="@context.MeasureThumbnailUrl" style=" max-width: 100%;height: auto;" @onclick="@(() => PhotoViewerShowMeasure(context))" />
+            </td>
+            <td>
+                @switch (context.Status)
+                {
+                    case CatchStatusEnum.Approved:
+                        {
+                            <MatFAB Icon="@MatIconNames.Done_all" Label="Approved" style="color: lightgreen;background-color: green" />
+                            <MatIconButton Icon="@MatIconNames.Edit" @onclick="@(() => ShowEditDialog(context.Id))"></MatIconButton>
+                            <MatIconButton Icon="@MatIconNames.Delete" @onclick="@(() => ShowDeleteDialog(context.Id))"></MatIconButton>
+                            break;
+                        }
+                    case CatchStatusEnum.Pending:
+                        {
+                            <MatFAB Icon="@MatIconNames.Schedule" Label="Pending" style="color: lightyellow;background-color:#ffc107" />
+                            <MatIconButton Icon="@MatIconNames.Edit" @onclick="@(() => ShowEditDialog(context.Id))"></MatIconButton>
+                            <MatIconButton Icon="@MatIconNames.Delete" @onclick="@(() => ShowDeleteDialog(context.Id))"></MatIconButton>
+
+                            break;
+                        }
+                    case CatchStatusEnum.Rejected:
+                        {
+                            <MatFAB Icon="@MatIconNames.Pan_tool" Label="Rejected" style="color: darkgoldenrod;background-color:indianred" />
+                            <MatIconButton Icon="@MatIconNames.Edit" @onclick="@(() => ShowEditDialog(context.Id))"></MatIconButton>
+                            <MatIconButton Icon="@MatIconNames.Delete" @onclick="@(() => ShowDeleteDialog(context.Id))"></MatIconButton>
+                            break;
+                        }
+                }
+            </td>
+        </MatTableRow>
+    </MatTable>
+</div>
+
+@if (selectedPhotoCatch != null & PhotoViewerCatchShown == true)
+{
+    <PhotoViewer OnClose="@(() => PhotoViewerCatchClose())" catchMade="@selectedPhotoCatch" dialogIsOpen="@PhotoViewerCatchShown" url="@selectedPhotoCatch.CatchPhotoUrl" />
+}
+
+@if (selectedMeasureCatch != null & PhotoViewerMeasureShown == true)
+{
+    <PhotoViewer OnClose="@(() => PhotoViewerMeasureClose())" catchMade="@selectedMeasureCatch" dialogIsOpen="@PhotoViewerMeasureShown" url="@selectedMeasureCatch.MeasurePhotoUrl" isAdmin=true />
+}
+
+@code {
+    [Parameter] public List<Catch> catches { get; set; }
+    [Parameter] public List<Fish> fishOptions { get; set; }
+    [Parameter] public List<User> users { get; set; }
+    [Parameter] public CompetitionState competitionState { get; set; }
+
+    [Parameter] public EventCallback<string> OnShowEdit { get; set; }
+    [Parameter] public EventCallback<string> OnShowDelete { get; set; }
+    [Parameter] public EventCallback<bool> OnCompetitionCatchesChanged { get; set; }
+
+    List<Catch> sortedCatches;
+    List<Catch> filteredCatches;
+    List<string> fishCatchOptions = new List<string>();
+    List<string> fishermanCatchOptions = new List<string>();
+    string selectedFishFilter;
+    string selectedFishermanFilter;
+
+    public Catch currentCatch;
+    bool EditDialogShown = false;
+    bool DeleteDialogShown = false;
+    bool PhotoViewerCatchShown = false;
+    bool PhotoViewerMeasureShown = false;
+    Catch selectedPhotoCatch;
+    Catch selectedMeasureCatch;
+    public IMatFileUploadEntry selectedMeasureFile;
+    public IMatFileUploadEntry selectedCatchFile;
+
+    protected async override Task OnInitializedAsync()
+    {
+        filteredCatches = catches;
+
+        var fish = (from c in catches.ToList()
+                    select c.Fish);
+        fishCatchOptions = fish.Distinct().ToList();
+
+        var fishermen = (from c in catches.ToList()
+                         select c.UserName);
+        fishermanCatchOptions = fishermen.Distinct().ToList();
+
+        fishCatchOptions.Sort();
+        fishermanCatchOptions.Sort();
+    }
+
+    public String SelectedFishFilter
+    {
+        get => selectedFishFilter;
+        set
+        {
+            selectedFishFilter = value;
+            FiltersChanged();
+        }
+    }
+
+    public String SelectedFishermanFilter
+    {
+        get => selectedFishermanFilter;
+        set
+        {
+            selectedFishermanFilter = value;
+            FiltersChanged();
+        }
+    }
+
+    private void ShowEditDialog(Guid id)
+    {
+        currentCatch = catches.FirstOrDefault(e => e.Id == id);
+        OnShowEdit.InvokeAsync(currentCatch.Id.ToString());
+        StateHasChanged();
+    }
+
+    private void ShowDeleteDialog(Guid id)
+    {
+        currentCatch = catches.FirstOrDefault(e => e.Id == id);
+        OnShowDelete.InvokeAsync(currentCatch.Id.ToString());
+        StateHasChanged();
+    }
+
+    protected void FiltersChanged()
+    {
+        if (selectedFishermanFilter != string.Empty & selectedFishFilter != string.Empty & selectedFishermanFilter != null & selectedFishFilter != null)
+        {
+            filteredCatches = catches.Where(f => f.Fish == selectedFishFilter & f.UserName == selectedFishermanFilter).ToList();
+        }
+
+        if (selectedFishermanFilter != string.Empty & selectedFishermanFilter != null & (selectedFishFilter == string.Empty | selectedFishFilter == null))
+        {
+            filteredCatches = catches.Where(fm => fm.UserName == selectedFishermanFilter).ToList();
+        }
+
+        if (selectedFishFilter != string.Empty & selectedFishFilter != null & (selectedFishermanFilter == string.Empty | selectedFishermanFilter == null))
+        {
+            filteredCatches = catches.Where(f => f.Fish == selectedFishFilter).ToList();
+        }
+
+        if ((selectedFishFilter == string.Empty | selectedFishFilter == null) & (selectedFishermanFilter == string.Empty | selectedFishermanFilter == null))
+        {
+            filteredCatches = catches;
+        }
+        StateHasChanged();
+    }
+
+    public void SelectionChangedEvent(object row)
+    {
+        if (row == null)
+        {
+            currentCatch = catches.FirstOrDefault();
+        }
+        else
+        {
+            currentCatch = ((Catch)row);
+        }
+
+        this.StateHasChanged();
+    }
+
+
+    public void PhotoViewerShowCatch(Catch catchSelected)
+    {
+        selectedPhotoCatch = catchSelected;
+        PhotoViewerCatchShown = true;
+        StateHasChanged();
+    }
+
+    public void PhotoViewerShowMeasure(Catch catchSelected)
+    {
+        selectedMeasureCatch = catchSelected;
+        PhotoViewerMeasureShown = true;
+        StateHasChanged();
+    }
+
+    public void PhotoViewerCatchClose()
+    {
+        PhotoViewerCatchShown = false;
+        StateHasChanged();
+    }
+
+    public void PhotoViewerMeasureClose()
+    {
+        PhotoViewerMeasureShown = false;
+        StateHasChanged();
+    }
+
+    protected void SortData(MatSortChangedEvent sort)
+    {
+        if (!(sort == null || sort.Direction == MatSortDirection.None || string.IsNullOrEmpty(sort.SortId)))
+        {
+            Comparison<Catch> comparison = null;
+            switch (sort.SortId)
+            {
+                case "catch":
+                    comparison = (s1, s2) => s1.GlobalCatchNumber.CompareTo(s2.GlobalCatchNumber);
+                    break;
+                case "catchdate":
+                    comparison = (s1, s2) => s1.CatchDate.CompareTo(s2.CatchDate);
+                    break;
+                case "fish":
+                    comparison = (s1, s2) => string.Compare(s1.Fish, s2.Fish, StringComparison.InvariantCultureIgnoreCase);
+                    break;
+                case "fishlength":
+                    comparison = (s1, s2) => s1.Length.CompareTo(s2.Length);
+                    break;
+                case "fisherman":
+                    comparison = (s1, s2) => string.Compare(s1.UserEmail, s2.UserEmail, StringComparison.InvariantCultureIgnoreCase);
+                    break;
+            }
+            if (comparison != null)
+            {
+                if (sort.Direction == MatSortDirection.Desc)
+                {
+                    catches.Reverse();
+                }
+                else
+                {
+                    catches.Sort(comparison);
+                }
+            }
+        }
+    }
+
+}
