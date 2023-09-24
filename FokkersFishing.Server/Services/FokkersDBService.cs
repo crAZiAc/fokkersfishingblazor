@@ -535,6 +535,26 @@ namespace FokkersFishing.Services
             return null;
         }
 
+        public async Task<TeamData> GetTeamByUserAsync(string userEmail)
+        {
+            var memberData = from m in _teamMemberContainer.Query<TeamMemberData>()
+                           where m.UserEmail.ToLower() == userEmail.ToLower()
+                           select m;
+
+            var query = from c in _teamContainer.Query<TeamData>()
+                        where c.RowKey == memberData.FirstOrDefault().TeamId.ToString()
+                        select c;
+            try
+            {
+                return query.FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return null;
+        }
+
         public async Task<TeamData> GetTeamAsync(string rowKey)
         {
             try

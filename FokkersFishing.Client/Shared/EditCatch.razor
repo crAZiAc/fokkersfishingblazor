@@ -26,7 +26,7 @@
                 </MatSelect>
             </p>
             <p><label>@currentCatch.UserEmail</label></p>
-            @if (!adminEdit)
+            @if (editState == EditStateEnum.User | editState == EditStateEnum.AdminAdd)
             {
                 <p>
                     <table>
@@ -96,7 +96,7 @@
     [Parameter] public EventCallback OnCancel { get; set; }
     [Parameter] public bool HasChanged { get; set; }
     [Parameter] public bool dialogIsOpen { get; set; }
-    [Parameter] public bool adminEdit { get; set; }
+    [Parameter] public EditStateEnum editState { get; set; }
     private bool isSaving = false;
 
 

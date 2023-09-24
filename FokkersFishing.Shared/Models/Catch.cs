@@ -25,7 +25,6 @@ namespace FokkersFishing.Shared.Models
 
         public string UserName { get; set; }
 
-
         [JsonProperty(PropertyName = "registerUserEmail")]
         public string RegisterUserEmail { get; set; }
 
@@ -49,6 +48,10 @@ namespace FokkersFishing.Shared.Models
                 m_catchDate = value;
             }
         }
+
+        // This is a non-persistent property
+        [JsonProperty(PropertyName = "teamName")]
+        public string TeamName { get; set; }
 
         [JsonProperty(PropertyName = "logDate")]
         public DateTime LogDate { get; set; }
@@ -88,6 +91,5 @@ namespace FokkersFishing.Shared.Models
                 }
             }
         }
-
     } // end c
 } // end ns

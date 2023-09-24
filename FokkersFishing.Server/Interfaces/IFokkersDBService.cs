@@ -57,7 +57,9 @@ namespace FokkersFishing.Interfaces
         Task AddTeamAsync(TeamData item);
         Task DeleteTeamAsync(string rowKey);
         Task UpdateTeamAsync(TeamData item);
-        
+
+        Task<TeamData> GetTeamByUserAsync(string userEmail);
+
 
         // Team Members
         Task<List<TeamMemberData>> GetTeamMembersAsync();

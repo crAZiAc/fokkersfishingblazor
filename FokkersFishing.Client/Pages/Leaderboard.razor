@@ -45,44 +45,15 @@
 
                     </MatTableHeader>
                     <MatTableRow>
-                        @if (context.Pike.Status == CatchStatusEnum.Pending)
-                        {
-                            <td style="color: black;background-color: #ffc107">
-                                @context.Pike.Length
-                            </td>
-                        }
-                        else
-                        {
-                            <td style="color: black;background-color: green">
-                                @context.Pike.Length
-                            </td>
-                        }
-
-                        @if (context.Bass.Status == CatchStatusEnum.Pending)
-                        {
-                            <td style="color: black;background-color: #ffc107">
-                                @context.Bass.Length
-                            </td>
-                        }
-                        else
-                        {
-                            <td style="color: black;background-color: green">
-                                @context.Bass.Length
-                            </td>
-                        }
-
-                        @if (context.Zander.Status == CatchStatusEnum.Pending)
-                        {
-                            <td style="color: black;background-color: #ffc107">
-                                @context.Zander.Length
-                            </td>
-                        }
-                        else
-                        {
-                            <td style="color: black;background-color: green">
-                                @context.Zander.Length
-                            </td>
-                        }
+                        <td style="color: black;background-color: @big3color">
+                            @context.Pike.Length
+                        </td>
+                        <td style="color: black;background-color: @big3color">
+                            @context.Bass.Length
+                        </td>
+                        <td style="color: black;background-color: @big3color">
+                            @context.Zander.Length
+                        </td>
 
                     </MatTableRow>
                 </MatTable>
@@ -116,7 +87,14 @@
                         <th width="25%">Score</th>
                     </MatTableHeader>
                     <MatTableRow>
-                        <td>@context.Rank</td>
+                        <td>
+                            <span class="big3rank">@context.Rank</span>
+                            @if (context.Big3)
+                            {
+                                <span><img src="https://fokkersfishingstorage.blob.core.windows.net/catches/Big3.png" width="59px" height="14px" /></span>
+                            }
+                            
+                        </td>
                         <td>@context.TeamName</td>
                         <td>@context.Score</td>
                     </MatTableRow>
@@ -324,6 +302,9 @@ else
     List<FisherMan> fishermen;
     Double totalLength;
 
+    string big3color = string.Empty;
+
+
     protected async override Task OnInitializedAsync()
     {
 
@@ -336,9 +317,14 @@ else
                 currentTeam = await client.GetFromJsonAsync<Team>("team/byuser");
                 bigthree = await client.GetFromJsonAsync<List<BigThree>>("leaderboard/team/bigthree/" + competitionState.CompetitionId);
 
-                foreach (BigThree countBig in bigthree)
+                big3color = Constants.BIG3_COLOR;
+                foreach (BigThree big3 in bigthree)
                 {
-                    totalLength += countBig.TotalLength;
+                    totalLength += big3.TotalLength;
+                    if (big3.Bass.Length < Constants.REQUIRED_FISH_LENGTH | big3.Pike.Length < Constants.REQUIRED_FISH_LENGTH | big3.Zander.Length < Constants.REQUIRED_FISH_LENGTH)
+                    {
+                        big3color = Constants.NO_BIG3_COLOR;
+                    }
                 }
 
                 bigthreeIndividual = await client.GetFromJsonAsync<BigThree>("leaderboard/user/bigthree/" + competitionState.CompetitionId);

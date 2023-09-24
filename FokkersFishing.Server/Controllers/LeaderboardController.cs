@@ -14,6 +14,7 @@ using FokkersFishing.Shared.Models;
 using FokkersFishing.Server.Helpers;
 using System.Runtime.CompilerServices;
 using FokkersFishing.Client.Pages;
+using System.IO.Pipelines;
 
 namespace FokkersFishing.Controllers
 {
@@ -98,7 +99,6 @@ namespace FokkersFishing.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<IEnumerable<Catch>>> GetAllCompetition(Guid competitionId)
         {
-
             IEnumerable<CatchData> catchesMadeData = await _fokkersDbService.GetAdminCompetitionLeaderboardItemsAsync(competitionId);
             if (catchesMadeData == null)
             {
@@ -109,6 +109,14 @@ namespace FokkersFishing.Controllers
             {
                 Catch catchMade = catchMadeData.GetCatch();
                 catchMade.UserName = _userHelper.GetUser(catchMade.UserEmail).UserName;
+
+                // Get team
+                TeamData team = await _fokkersDbService.GetTeamByUserAsync(catchMade.UserEmail);
+                if (team != null)
+                {
+                    catchMade.TeamName = team.Name;
+                }
+
                 if (catchMade.RegisterUserEmail != null)
                 {
                     catchMade.RegisterUserName = _userHelper.GetUser(catchMade.RegisterUserEmail).UserName;
@@ -117,8 +125,6 @@ namespace FokkersFishing.Controllers
             }
             return catchesMade.ToList();
         }
-
-
 
         [Authorize(Roles = "Administrator, User")]
         [HttpGet("member/bigthree/{competitionId}")]
@@ -647,13 +653,24 @@ namespace FokkersFishing.Controllers
                             bigThree.Add(1, new BigThree { Name = "Second", Pike = new Catch(), Bass = new Catch(), Zander = new Catch() });
                             bigThree.Add(2, new BigThree { Name = "Third", Pike = new Catch(), Bass = new Catch(), Zander = new Catch() });
 
+                            // Start positive
+                            bool big3 = true;
+
                             var pikeOrder = (from c in pikeList
                                              orderby c.Length descending
                                              select c).Take(3);
                             int count = 0;
+                            if (pikeOrder.Count() < Constants.NUMBER_OF_BIG3)
+                            {
+                                big3 = false;
+                            }
                             foreach (var pike in pikeOrder)
                             {
                                 bigThree[count].Pike = pike;
+                                if (pike.Length < Constants.REQUIRED_FISH_LENGTH)
+                                {
+                                    big3 = false;
+                                }
                                 count++;
                             }
 
@@ -661,9 +678,17 @@ namespace FokkersFishing.Controllers
                                              orderby c.Length descending
                                              select c).Take(3);
                             count = 0;
+                            if (bassOrder.Count() < Constants.NUMBER_OF_BIG3)
+                            {
+                                big3 = false;
+                            }
                             foreach (var bass in bassOrder)
                             {
                                 bigThree[count].Bass = bass;
+                                if (bass.Length < Constants.REQUIRED_FISH_LENGTH)
+                                {
+                                    big3 = false;
+                                }
                                 count++;
                             }
 
@@ -671,9 +696,17 @@ namespace FokkersFishing.Controllers
                                                orderby c.Length descending
                                                select c).Take(3);
                             count = 0;
+                            if (zanderOrder.Count() < Constants.NUMBER_OF_BIG3)
+                            {
+                                big3 = false;
+                            }
                             foreach (var zander in zanderOrder)
                             {
                                 bigThree[count].Zander = zander;
+                                if (zander.Length < Constants.REQUIRED_FISH_LENGTH)
+                                {
+                                    big3 = false;
+                                }
                                 count++;
                             }
 
@@ -684,6 +717,7 @@ namespace FokkersFishing.Controllers
                             ranking.Score = bigThree[0].TotalLength;
                             ranking.Score += bigThree[1].TotalLength;
                             ranking.Score += bigThree[2].TotalLength;
+                            ranking.Big3 = big3;
                             rankList.Add(ranking);
                         }
                         else

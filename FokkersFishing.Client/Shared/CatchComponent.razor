@@ -35,6 +35,12 @@
                 <MatSortHeader SortId="fish"><span style="width:75px">Fish</span></MatSortHeader>
                 <MatSortHeader SortId="fishlength"><span style="width:75px">Fish Length</span></MatSortHeader>
                 <MatSortHeader SortId="fisherman"><span style="width:150px">Fisherman</span></MatSortHeader>
+
+                @if (viewState == ViewStateEnum.CompetitionLeaderboard)
+                {
+                    <MatSortHeader SortId="team"><span style="width:150px">Team</span></MatSortHeader>
+                }
+
                 <MatSortHeader SortId="catchphoto"><span style="width:20%">Catch Photo</span></MatSortHeader>
                 <MatSortHeader SortId="measurephoto"><span style="width:20%">Measure Photo</span></MatSortHeader>
                 @if (viewState != ViewStateEnum.CompetitionLeaderboard)
@@ -49,6 +55,11 @@
             <td>@context.Fish</td>
             <td>@context.Length</td>
             <td>@context.UserName</td>
+
+            @if (viewState == ViewStateEnum.CompetitionLeaderboard)
+            {
+                <td>@context.TeamName</td>
+            }
             <td>
                 <img src="@context.CatchThumbnailUrl" style=" max-width: 100%;height: auto;" @onclick="@(() => PhotoViewerShowCatch(context))" />
             </td>
@@ -120,7 +131,6 @@
     [Parameter] public EventCallback<Guid> OnShowDelete { get; set; }
     [Parameter] public EventCallback<bool> OnCompetitionCatchesChanged { get; set; }
 
-    List<Catch> sortedCatches;
     List<Catch> filteredCatches;
     List<string> fishCatchOptions = new List<string>();
     List<string> fishermanCatchOptions = new List<string>();
@@ -140,7 +150,6 @@
     protected async override Task OnInitializedAsync()
     {
         filteredCatches = catches;
-
         var fish = (from c in catches.ToList()
                     select c.Fish);
         fishCatchOptions = fish.Distinct().ToList();
