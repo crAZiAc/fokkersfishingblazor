@@ -17,49 +17,7 @@
     {
 
         <h3>Top Catches</h3>
-        <MatTable Items="@catches" class="mat-elevation-z5" Striped="true"
-              RowClass="tester"
-              SortBy="Length"
-              PageSize="10"
-              FilterByColumnName="UserName"
-              ShowPaging="true">
-            <MatTableHeader>
-                <th width="10%">Catch #</th>
-                <th width="30%">Catch Date</th>
-                <th width="10%">Fish</th>
-                <th width="20%">Fish Length</th>
-                <th width="20%">Fisherman</th>
-                <th width="20%">Status</th>
-            </MatTableHeader>
-            <MatTableRow>
-                <td>@context.GlobalCatchNumber</td>
-                <td>@context.CatchDate</td>
-                <td>@context.Fish</td>
-                <td>@context.Length</td>
-                <td>@context.UserName</td>
-                <td>
-                    @switch (context.Status)
-                    {
-                        case CatchStatusEnum.Approved:
-                            {
-                            <MatFAB Icon="@MatIconNames.Done_all" Label="Approved" style="color: lightgreen;background-color: green" />
-                                break;
-                            }
-                        case CatchStatusEnum.Pending:
-                            {
-                            <MatFAB Icon="@MatIconNames.Schedule" Label="Pending" style="color: lightyellow;background-color:#ffc107" />
-
-                                break;
-                            }
-                        case CatchStatusEnum.Rejected:
-                            {
-                            <MatFAB Icon="@MatIconNames.Pan_tool" Label="Rejected" style="color: darkgoldenrod;background-color:indianred" />
-                                break;
-                            }
-                    }
-            </td>
-        </MatTableRow>
-    </MatTable>
+        <CatchComponent catches="@catches" competitionState="@competitionState" viewState=Helpers.ViewStateEnum.CompetitionLeaderboard />
     }
 </div>
 

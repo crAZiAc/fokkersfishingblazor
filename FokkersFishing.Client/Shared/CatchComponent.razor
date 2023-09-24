@@ -37,7 +37,10 @@
                 <MatSortHeader SortId="fisherman"><span style="width:150px">Fisherman</span></MatSortHeader>
                 <MatSortHeader SortId="catchphoto"><span style="width:20%">Catch Photo</span></MatSortHeader>
                 <MatSortHeader SortId="measurephoto"><span style="width:20%">Measure Photo</span></MatSortHeader>
-                <MatSortHeader SortId="commands"><span style="width:20%">Commands</span></MatSortHeader>
+                @if (viewState != ViewStateEnum.CompetitionLeaderboard)
+                {
+                    <MatSortHeader SortId="commands"><span style="width:20%">Commands</span></MatSortHeader>
+                }
             </MatSortHeaderRow>
         </MatTableHeader>
         <MatTableRow>
@@ -53,30 +56,43 @@
                 <img src="@context.MeasureThumbnailUrl" style=" max-width: 100%;height: auto;" @onclick="@(() => PhotoViewerShowMeasure(context))" />
             </td>
             <td>
-                @switch (context.Status)
+                @if (viewState != ViewStateEnum.CompetitionLeaderboard)
                 {
-                    case CatchStatusEnum.Approved:
-                        {
-                            <MatFAB Icon="@MatIconNames.Done_all" Label="Approved" style="color: lightgreen;background-color: green" />
-                            <MatIconButton Icon="@MatIconNames.Edit" @onclick="@(() => ShowEditDialog(context.Id))"></MatIconButton>
-                            <MatIconButton Icon="@MatIconNames.Delete" @onclick="@(() => ShowDeleteDialog(context.Id))"></MatIconButton>
-                            break;
-                        }
-                    case CatchStatusEnum.Pending:
-                        {
-                            <MatFAB Icon="@MatIconNames.Schedule" Label="Pending" style="color: lightyellow;background-color:#ffc107" />
-                            <MatIconButton Icon="@MatIconNames.Edit" @onclick="@(() => ShowEditDialog(context.Id))"></MatIconButton>
-                            <MatIconButton Icon="@MatIconNames.Delete" @onclick="@(() => ShowDeleteDialog(context.Id))"></MatIconButton>
+                    @if (context.CaughtInCompetition)
+                    {
+                        <MatFAB Icon="@MatIconNames.Fitness_center" style="color: black;background-color: lightgrey" Mini="true" />
+                    }
+                    @switch (context.Status)
+                    {
+                        case CatchStatusEnum.Approved:
+                            {
+                                <MatFAB Icon="@MatIconNames.Done_all" Label="Approved" style="color: lightgreen;background-color: green" />
+                                @if (viewState == ViewStateEnum.Admin | viewState == ViewStateEnum.Pending)
+                                {
+                                    <MatIconButton Icon="@MatIconNames.Edit" @onclick="@(() => ShowEditDialog(context.Id))"></MatIconButton>
+                                }
+                                <MatIconButton Icon="@MatIconNames.Delete" @onclick="@(() => ShowDeleteDialog(context.Id))"></MatIconButton>
+                                break;
+                            }
+                        case CatchStatusEnum.Pending:
+                            {
+                                <MatFAB Icon="@MatIconNames.Schedule" Label="Pending" style="color: lightyellow;background-color:#ffc107" />
+                                <MatIconButton Icon="@MatIconNames.Edit" @onclick="@(() => ShowEditDialog(context.Id))"></MatIconButton>
+                                <MatIconButton Icon="@MatIconNames.Delete" @onclick="@(() => ShowDeleteDialog(context.Id))"></MatIconButton>
 
-                            break;
-                        }
-                    case CatchStatusEnum.Rejected:
-                        {
-                            <MatFAB Icon="@MatIconNames.Pan_tool" Label="Rejected" style="color: darkgoldenrod;background-color:indianred" />
-                            <MatIconButton Icon="@MatIconNames.Edit" @onclick="@(() => ShowEditDialog(context.Id))"></MatIconButton>
-                            <MatIconButton Icon="@MatIconNames.Delete" @onclick="@(() => ShowDeleteDialog(context.Id))"></MatIconButton>
-                            break;
-                        }
+                                break;
+                            }
+                        case CatchStatusEnum.Rejected:
+                            {
+                                <MatFAB Icon="@MatIconNames.Pan_tool" Label="Rejected" style="color: darkgoldenrod;background-color:indianred" />
+                                @if (viewState == ViewStateEnum.Admin | viewState == ViewStateEnum.Pending)
+                                {
+                                    <MatIconButton Icon="@MatIconNames.Edit" @onclick="@(() => ShowEditDialog(context.Id))"></MatIconButton>
+                                }
+                                <MatIconButton Icon="@MatIconNames.Delete" @onclick="@(() => ShowDeleteDialog(context.Id))"></MatIconButton>
+                                break;
+                            }
+                    }
                 }
             </td>
         </MatTableRow>
@@ -98,6 +114,7 @@
     [Parameter] public List<Fish> fishOptions { get; set; }
     [Parameter] public List<User> users { get; set; }
     [Parameter] public CompetitionState competitionState { get; set; }
+    [Parameter] public ViewStateEnum viewState { get; set; }
 
     [Parameter] public EventCallback<Guid> OnShowEdit { get; set; }
     [Parameter] public EventCallback<Guid> OnShowDelete { get; set; }
@@ -198,7 +215,7 @@
     {
         if (row == null)
         {
-            currentCatch = catches.FirstOrDefault();
+            currentCatch = filteredCatches.FirstOrDefault();
         }
         else
         {
@@ -262,11 +279,12 @@
             {
                 if (sort.Direction == MatSortDirection.Desc)
                 {
-                    catches.Reverse();
+
+                    filteredCatches.Reverse();
                 }
                 else
                 {
-                    catches.Sort(comparison);
+                    filteredCatches.Sort(comparison);
                 }
             }
         }
