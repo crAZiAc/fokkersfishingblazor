@@ -1,4 +1,5 @@
-﻿@inject IHttpClientFactory ClientFactory
+﻿@using FokkersFishing.Client.Helpers;
+@inject IHttpClientFactory ClientFactory
 @inject HttpClient HttpClient
 
 <MatDialog @bind-IsOpen="@dialogIsOpen">
@@ -26,7 +27,7 @@
                 </MatSelect>
             </p>
             <p><label>@currentCatch.UserEmail</label></p>
-            @if (editState == EditStateEnum.User | editState == EditStateEnum.AdminAdd)
+            @if (editState == EditStateEnum.UserFull | editState == EditStateEnum.AdminAdd | editState == EditStateEnum.AdminEditFull)
             {
                 <p>
                     <table>
@@ -68,8 +69,10 @@
                         </tr>
                     </table>
                 </p>
+
+                <MatCheckbox @bind-Value="clearPhotos">Clear photos</MatCheckbox>
             }
-            else
+            @if (editState == EditStateEnum.Admin | editState == EditStateEnum.AdminEditFull)
             {
                 <MatChipSet Choice="true" SelectedChipChanged="@StatusChanged">
                     <MatChip Label="Approved" LeadingIcon="@MatIconNames.Done_all" style="color: lightgreen;background-color: green" Value="CatchStatusEnum.Approved"></MatChip>
@@ -92,13 +95,14 @@
     [Parameter] public Catch currentCatch { get; set; }
     [Parameter] public List<Fish> fishOptions { get; set; }
     [Parameter] public List<User> users { get; set; }
-    [Parameter] public EventCallback<Dictionary<string, IMatFileUploadEntry>> OnSave { get; set; }
+    [Parameter] public EventCallback<EditDialogSaveResult> OnSave { get; set; }
     [Parameter] public EventCallback OnCancel { get; set; }
     [Parameter] public bool HasChanged { get; set; }
     [Parameter] public bool dialogIsOpen { get; set; }
     [Parameter] public EditStateEnum editState { get; set; }
-    private bool isSaving = false;
+    public bool clearPhotos;
 
+    private bool isSaving = false;
 
     Dictionary<string, IMatFileUploadEntry> catchFiles { get; set; } = new Dictionary<string, IMatFileUploadEntry>();
     IMatFileUploadEntry catchFile;
@@ -139,6 +143,10 @@
     {
         isSaving = true;
         this.StateHasChanged();
-        OnSave.InvokeAsync(catchFiles);
+        OnSave.InvokeAsync(new EditDialogSaveResult
+        {
+            UploadFiles = catchFiles,
+            ClearPhotos = clearPhotos
+        });
     }
 }

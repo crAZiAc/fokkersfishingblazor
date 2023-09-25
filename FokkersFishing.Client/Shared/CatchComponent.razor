@@ -78,8 +78,10 @@
                         case CatchStatusEnum.Approved:
                             {
                                 <MatFAB Icon="@MatIconNames.Done_all" Label="Approved" style="color: lightgreen;background-color: green" />
-                                @if (viewState == ViewStateEnum.Admin | viewState == ViewStateEnum.Pending)
+
+                                @if (viewState == ViewStateEnum.Admin)
                                 {
+                                    <MatIconButton Icon="@MatIconNames.Picture_in_picture" @onclick="@(() => ShowEditFullDialog(context.Id))"></MatIconButton>
                                     <MatIconButton Icon="@MatIconNames.Edit" @onclick="@(() => ShowEditDialog(context.Id))"></MatIconButton>
                                 }
                                 <MatIconButton Icon="@MatIconNames.Delete" @onclick="@(() => ShowDeleteDialog(context.Id))"></MatIconButton>
@@ -88,6 +90,10 @@
                         case CatchStatusEnum.Pending:
                             {
                                 <MatFAB Icon="@MatIconNames.Schedule" Label="Pending" style="color: lightyellow;background-color:#ffc107" />
+                                @if (viewState != ViewStateEnum.Pending)
+                                {
+                                    <MatIconButton Icon="@MatIconNames.Picture_in_picture" @onclick="@(() => ShowEditFullDialog(context.Id))"></MatIconButton>
+                                }
                                 <MatIconButton Icon="@MatIconNames.Edit" @onclick="@(() => ShowEditDialog(context.Id))"></MatIconButton>
                                 <MatIconButton Icon="@MatIconNames.Delete" @onclick="@(() => ShowDeleteDialog(context.Id))"></MatIconButton>
 
@@ -96,8 +102,9 @@
                         case CatchStatusEnum.Rejected:
                             {
                                 <MatFAB Icon="@MatIconNames.Pan_tool" Label="Rejected" style="color: darkgoldenrod;background-color:indianred" />
-                                @if (viewState == ViewStateEnum.Admin | viewState == ViewStateEnum.Pending)
+                                @if (viewState == ViewStateEnum.Admin)
                                 {
+                                    <MatIconButton Icon="@MatIconNames.Picture_in_picture" @onclick="@(() => ShowEditFullDialog(context.Id))"></MatIconButton>
                                     <MatIconButton Icon="@MatIconNames.Edit" @onclick="@(() => ShowEditDialog(context.Id))"></MatIconButton>
                                 }
                                 <MatIconButton Icon="@MatIconNames.Delete" @onclick="@(() => ShowDeleteDialog(context.Id))"></MatIconButton>
@@ -128,6 +135,7 @@
     [Parameter] public ViewStateEnum viewState { get; set; }
 
     [Parameter] public EventCallback<Guid> OnShowEdit { get; set; }
+    [Parameter] public EventCallback<Guid> OnShowEditFull { get; set; }
     [Parameter] public EventCallback<Guid> OnShowDelete { get; set; }
     [Parameter] public EventCallback<bool> OnCompetitionCatchesChanged { get; set; }
 
@@ -186,6 +194,13 @@
     {
         currentCatch = catches.FirstOrDefault(e => e.Id == id);
         OnShowEdit.InvokeAsync(currentCatch.Id);
+        StateHasChanged();
+    }
+
+    private void ShowEditFullDialog(Guid id)
+    {
+        currentCatch = catches.FirstOrDefault(e => e.Id == id);
+        OnShowEditFull.InvokeAsync(currentCatch.Id);
         StateHasChanged();
     }
 
@@ -282,6 +297,9 @@
                     break;
                 case "fisherman":
                     comparison = (s1, s2) => string.Compare(s1.UserEmail, s2.UserEmail, StringComparison.InvariantCultureIgnoreCase);
+                    break;
+                case "team":
+                    comparison = (s1, s2) => string.Compare(s1.TeamName, s2.TeamName, StringComparison.InvariantCultureIgnoreCase);
                     break;
             }
             if (comparison != null)

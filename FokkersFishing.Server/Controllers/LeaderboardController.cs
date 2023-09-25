@@ -105,16 +105,19 @@ namespace FokkersFishing.Controllers
                 return NotFound();
             }
             List<Catch> catchesMade = new List<Catch>();
+            List<TeamMemberData> teamMembers = await _fokkersDbService.GetTeamMembersAsync();
+            List<TeamData> teams = await _fokkersDbService.GetTeamsAsync();
             foreach (CatchData catchMadeData in catchesMadeData)
             {
                 Catch catchMade = catchMadeData.GetCatch();
                 catchMade.UserName = _userHelper.GetUser(catchMade.UserEmail).UserName;
 
                 // Get team
-                TeamData team = await _fokkersDbService.GetTeamByUserAsync(catchMade.UserEmail);
-                if (team != null)
+                Guid teamId = teamMembers.Where(tm => tm.UserEmail.ToLower() == catchMade.UserEmail.ToLower()).FirstOrDefault().TeamId;
+                if (teamId != null)
                 {
-                    catchMade.TeamName = team.Name;
+                    string teamName = teams.Where(team => team.RowKey == teamId.ToString()).FirstOrDefault().Name;
+                    catchMade.TeamName = teamName;
                 }
 
                 if (catchMade.RegisterUserEmail != null)

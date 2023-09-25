@@ -1,4 +1,5 @@
 ﻿@page "/"
+@using FokkersFishing.Client.Helpers;
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @using System.IO
@@ -153,6 +154,7 @@ else
 {
     <EditCatch OnCancel="CancelEdit" OnSave="SaveCatch"
                currentCatch="@newCatch"
+               editState=EditStateEnum.UserFull
                fishOptions="@fishOptions"
                dialogIsOpen="@EditDialogShown"
                users="@users" />
@@ -232,11 +234,10 @@ else
         EditDialogShown = true;
     }
 
-    private async Task SaveCatch(Dictionary<string, IMatFileUploadEntry>
-    catchFiles)
+    private async Task SaveCatch(EditDialogSaveResult saveResult)
     {
-        IMatFileUploadEntry selectedMeasureFile = catchFiles["measure"];
-        IMatFileUploadEntry selectedCatchFile = catchFiles["catch"];
+        IMatFileUploadEntry selectedMeasureFile = saveResult.UploadFiles["measure"];
+        IMatFileUploadEntry selectedCatchFile = saveResult.UploadFiles["catch"];
 
         var client = ClientFactory.CreateClient("server");
         HttpResponseMessage response = null;

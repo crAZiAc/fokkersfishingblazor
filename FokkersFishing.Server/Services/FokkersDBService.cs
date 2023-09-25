@@ -390,7 +390,7 @@ namespace FokkersFishing.Services
 
         public async Task UpdateItemAsync(CatchData item)
         {
-            await this._catchContainer.UpdateEntityAsync<CatchData>(item, item.ETag);
+            var response = await this._catchContainer.UpdateEntityAsync<CatchData>(item, item.ETag);
         }
 
         #endregion

@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace FokkersFishing.Shared.Models
+namespace FokkersFishing.Client.Helpers
 {
     public enum EditStateEnum
     {
         Admin,
         User,
-        AdminAdd
+        UserFull,
+        AdminAdd,
+        AdminEditFull
     } // end e
 } // end ns

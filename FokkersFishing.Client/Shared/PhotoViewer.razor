@@ -1,7 +1,7 @@
 ﻿@inject HttpClient HttpClient
 
 <MatDialog @bind-IsOpen="@dialogIsOpen">
-    <MatDialogTitle>#: @catchMade.CatchNumber (@catchMade.Fish - @catchMade.Length cm). <br />@catchMade.CatchDate.ToLocalTime()</MatDialogTitle>
+    <MatDialogTitle>Global #: @catchMade.GlobalCatchNumber Personal #: @catchMade.CatchNumber <br/> @catchMade.Fish - @catchMade.Length cm<br />@catchMade.CatchDate.ToLocalTime()</MatDialogTitle>
     <MatDialogContent>
         <img src="@url" width="300px" />
         <br/>
