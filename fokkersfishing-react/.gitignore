@@ -1,0 +1,21 @@
+# .NET
+bin/
+obj/
+*.user
+
+# Local SQLite identity database (copied from the original app or created fresh)
+server/app.db
+server/app.db-shm
+server/app.db-wal
+
+# Node / Vite
+client/node_modules/
+client/dist/
+
+# Built SPA emitted into the API (produced by `npm run build`)
+server/wwwroot/
+
+# Secrets / local config
+server/appsettings.*.local.json
+.env
+.env.local
