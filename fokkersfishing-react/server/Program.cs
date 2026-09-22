@@ -39,6 +39,9 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
         options.Password.RequireLowercase = true;
         options.Password.RequireUppercase = true;
         options.Password.RequiredLength = 6;
+        // UserName is a display name here (login is by email), so allow spaces and common punctuation.
+        options.User.AllowedUserNameCharacters =
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._@+ ";
     })
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()

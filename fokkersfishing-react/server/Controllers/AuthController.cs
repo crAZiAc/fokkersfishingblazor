@@ -161,13 +161,31 @@ namespace FokkersFishing.Api.Controllers
 
             await HttpContext.SignOutAsync(ExternalCookieScheme);
 
+            await EnsureSeedAdminAsync(user);
             var roles = await _userManager.GetRolesAsync(user);
             var token = _jwt.CreateToken(user, roles);
             return Redirect(BuildSpaRedirect(returnUrl, token: token));
         }
 
+        /// <summary>
+        /// Grants the Administrator role to any account whose email is listed in
+        /// Admin:SeedAdministratorEmails. Runs on login/register/external sign-in so a
+        /// seeded admin is promoted the moment they authenticate — no app restart needed.
+        /// </summary>
+        private async Task EnsureSeedAdminAsync(ApplicationUser user)
+        {
+            if (string.IsNullOrEmpty(user.Email)) return;
+            var seeds = _config.GetSection("Admin:SeedAdministratorEmails").Get<string[]>() ?? System.Array.Empty<string>();
+            if (seeds.Any(s => string.Equals(s, user.Email, System.StringComparison.OrdinalIgnoreCase))
+                && !await _userManager.IsInRoleAsync(user, "Administrator"))
+            {
+                await _userManager.AddToRoleAsync(user, "Administrator");
+            }
+        }
+
         private async Task<ActionResult<AuthResponse>> BuildAuthResponse(ApplicationUser user, string provider)
         {
+            await EnsureSeedAdminAsync(user);
             var roles = await _userManager.GetRolesAsync(user);
             var token = _jwt.CreateToken(user, roles);
             return new AuthResponse
