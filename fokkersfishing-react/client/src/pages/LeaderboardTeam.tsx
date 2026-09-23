@@ -4,6 +4,7 @@ import {
   TableHead, TableRow,
 } from '@mui/material';
 import { useSnackbar } from 'notistack';
+import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
 import { updateUserCatch, deleteTeamCatch } from '../api/catchSave';
 import type { Catch, Fish, TeamScore, User } from '../api/types';
@@ -13,6 +14,7 @@ import { ConfirmDialog } from '../components/ConfirmDialog';
 import { useCompetition } from '../context/CompetitionContext';
 
 export default function LeaderboardTeam() {
+  const { t } = useTranslation();
   const competition = useCompetition();
   const { enqueueSnackbar } = useSnackbar();
   const [catches, setCatches] = useState<Catch[] | null>(null);
@@ -40,9 +42,9 @@ export default function LeaderboardTeam() {
       setFishOptions(fish.data);
       setUsers(u.data);
     } catch (e: any) {
-      setError(e?.message ?? 'Failed to load team leaderboard.');
+      setError(e?.message ?? t('leaderboardTeam.loadFailed'));
     }
-  }, [competition.competitionId]);
+  }, [competition.competitionId, t]);
 
   useEffect(() => {
     if (!competition.loading && competition.active) void load();
@@ -52,11 +54,11 @@ export default function LeaderboardTeam() {
     setSaving(true);
     try {
       await updateUserCatch(result);
-      enqueueSnackbar('Catch saved', { variant: 'success' });
+      enqueueSnackbar(t('myCatches.saved'), { variant: 'success' });
       setEditOpen(false);
       void load();
     } catch (e: any) {
-      enqueueSnackbar(e?.response?.data?.message ?? 'Saving catch failed', { variant: 'error' });
+      enqueueSnackbar(e?.response?.data?.message ?? t('myCatches.saveFailed'), { variant: 'error' });
     } finally {
       setSaving(false);
     }
@@ -67,21 +69,21 @@ export default function LeaderboardTeam() {
     try {
       await deleteTeamCatch(deleteId);
       setCatches((prev) => (prev ?? []).filter((c) => c.id !== deleteId));
-      enqueueSnackbar('Catch deleted', { variant: 'info' });
+      enqueueSnackbar(t('myCatches.deleted'), { variant: 'info' });
     } catch {
-      enqueueSnackbar('Delete failed', { variant: 'error' });
+      enqueueSnackbar(t('myCatches.deleteFailed'), { variant: 'error' });
     } finally {
       setDeleteId(null);
     }
   };
 
   if (!competition.active) {
-    return <Alert severity="info">No competition is currently active.</Alert>;
+    return <Alert severity="info">{t('leaderboardTeam.noActive')}</Alert>;
   }
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>Team Leaderboard</Typography>
+      <Typography variant="h4" gutterBottom>{t('leaderboardTeam.title')}</Typography>
       {error && <Alert severity="error" sx={{ my: 2 }}>{error}</Alert>}
 
       {catches === null ? (
@@ -105,20 +107,20 @@ export default function LeaderboardTeam() {
         />
       )}
 
-      <Typography variant="h5" sx={{ mt: 4 }} gutterBottom>Fish scores</Typography>
+      <Typography variant="h5" sx={{ mt: 4 }} gutterBottom>{t('leaderboardTeam.fishScores')}</Typography>
       <TableContainer component={Paper}>
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell>Fish</TableCell>
-              <TableCell align="right">Total Length</TableCell>
-              <TableCell align="right">Fish Count</TableCell>
+              <TableCell>{t('catches.fish')}</TableCell>
+              <TableCell align="right">{t('leaderboard.totalCm')}</TableCell>
+              <TableCell align="right">{t('home.totalFishCaught')}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {scores.map((s) => (
               <TableRow key={s.fish} hover>
-                <TableCell>{s.fish === '_Total' ? 'Total' : s.fish}</TableCell>
+                <TableCell>{s.fish === '_Total' ? t('leaderboardTeam.total') : s.fish}</TableCell>
                 <TableCell align="right">{s.totalLength}</TableCell>
                 <TableCell align="right">{s.fishCount}</TableCell>
               </TableRow>
@@ -142,8 +144,8 @@ export default function LeaderboardTeam() {
 
       <ConfirmDialog
         open={!!deleteId}
-        title="Delete catch"
-        message="Do you want to delete this catch?"
+        title={t('myCatches.deleteTitle')}
+        message={t('myCatches.deleteMsg')}
         onConfirm={confirmDelete}
         onCancel={() => setDeleteId(null)}
       />

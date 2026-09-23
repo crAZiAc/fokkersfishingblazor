@@ -8,6 +8,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import PictureInPictureIcon from '@mui/icons-material/PictureInPicture';
 import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import ImageIcon from '@mui/icons-material/Image';
+import { useTranslation } from 'react-i18next';
 import type { Catch, Fish } from '../api/types';
 import { CatchStatus } from '../api/types';
 import { formatDateTime, statusMeta } from '../utils/format';
@@ -25,6 +26,7 @@ interface Props {
 }
 
 export function CatchTable({ catches, fishOptions, viewState, onShowEdit, onShowEditFull, onShowDelete }: Props) {
+  const { t } = useTranslation();
   const [fishFilter, setFishFilter] = useState('');
   const [fishermanFilter, setFishermanFilter] = useState('');
   const [page, setPage] = useState(0);
@@ -57,21 +59,21 @@ export function CatchTable({ catches, fishOptions, viewState, onShowEdit, onShow
     const canFullEdit = viewState === 'Admin';
     const buttons: JSX.Element[] = [];
     const fullEdit = (
-      <Tooltip title="Full edit" key="full">
+      <Tooltip title={t('catches.fullEdit')} key="full">
         <IconButton size="small" onClick={() => onShowEditFull?.(c.id)}>
           <PictureInPictureIcon fontSize="small" />
         </IconButton>
       </Tooltip>
     );
     const edit = (
-      <Tooltip title="Edit" key="edit">
+      <Tooltip title={t('common.edit')} key="edit">
         <IconButton size="small" onClick={() => onShowEdit?.(c.id)}>
           <EditIcon fontSize="small" />
         </IconButton>
       </Tooltip>
     );
     const del = (
-      <Tooltip title="Delete" key="del">
+      <Tooltip title={t('common.delete')} key="del">
         <IconButton size="small" color="error" onClick={() => onShowDelete?.(c.id)}>
           <DeleteIcon fontSize="small" />
         </IconButton>
@@ -96,14 +98,14 @@ export function CatchTable({ catches, fishOptions, viewState, onShowEdit, onShow
   return (
     <Paper sx={{ mt: 2 }}>
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ p: 2 }}>
-        <TextField select label="Fish" size="small" value={fishFilter} onChange={(e) => setFishFilter(e.target.value)} sx={{ minWidth: 180 }}>
-          <MenuItem value="">All</MenuItem>
+        <TextField select label={t('catches.fish')} size="small" value={fishFilter} onChange={(e) => setFishFilter(e.target.value)} sx={{ minWidth: 180 }}>
+          <MenuItem value="">{t('common.all')}</MenuItem>
           {fishes.map((f) => (
             <MenuItem key={f} value={f}>{f}</MenuItem>
           ))}
         </TextField>
-        <TextField select label="Fisherman" size="small" value={fishermanFilter} onChange={(e) => setFishermanFilter(e.target.value)} sx={{ minWidth: 180 }}>
-          <MenuItem value="">All</MenuItem>
+        <TextField select label={t('catches.fisherman')} size="small" value={fishermanFilter} onChange={(e) => setFishermanFilter(e.target.value)} sx={{ minWidth: 180 }}>
+          <MenuItem value="">{t('common.all')}</MenuItem>
           {fishermen.map((f) => (
             <MenuItem key={f} value={f}>{f}</MenuItem>
           ))}
@@ -114,15 +116,15 @@ export function CatchTable({ catches, fishOptions, viewState, onShowEdit, onShow
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell>Catch #</TableCell>
-              <TableCell>Catch Date</TableCell>
-              <TableCell>Fish</TableCell>
-              <TableCell align="right">Length (cm)</TableCell>
-              <TableCell>Fisherman</TableCell>
-              {showTeam && <TableCell>Team</TableCell>}
-              <TableCell>Catch</TableCell>
-              <TableCell>Measure</TableCell>
-              {showCommands && <TableCell align="right">Status / Actions</TableCell>}
+              <TableCell>{t('catches.catchNo')}</TableCell>
+              <TableCell>{t('catches.catchDate')}</TableCell>
+              <TableCell>{t('catches.fish')}</TableCell>
+              <TableCell align="right">{t('catches.lengthCm')}</TableCell>
+              <TableCell>{t('catches.fisherman')}</TableCell>
+              {showTeam && <TableCell>{t('catches.team')}</TableCell>}
+              <TableCell>{t('catches.catchCol')}</TableCell>
+              <TableCell>{t('catches.measureCol')}</TableCell>
+              {showCommands && <TableCell align="right">{t('catches.statusActions')}</TableCell>}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -164,11 +166,11 @@ export function CatchTable({ catches, fishOptions, viewState, onShowEdit, onShow
                     <TableCell align="right">
                       <Stack direction="row" spacing={0.5} justifyContent="flex-end" alignItems="center">
                         {c.caughtInCompetition && (
-                          <Tooltip title="Caught in competition">
+                          <Tooltip title={t('catches.caughtInCompetition')}>
                             <FitnessCenterIcon fontSize="small" color="action" />
                           </Tooltip>
                         )}
-                        <Chip size="small" label={meta.label} color={meta.color} />
+                        <Chip size="small" label={t(meta.labelKey)} color={meta.color} />
                         {renderActions(c)}
                       </Stack>
                     </TableCell>
@@ -179,7 +181,7 @@ export function CatchTable({ catches, fishOptions, viewState, onShowEdit, onShow
             {paged.length === 0 && (
               <TableRow>
                 <TableCell colSpan={9}>
-                  <Box sx={{ py: 3, textAlign: 'center', color: 'text.secondary' }}>No catches.</Box>
+                  <Box sx={{ py: 3, textAlign: 'center', color: 'text.secondary' }}>{t('catches.noCatches')}</Box>
                 </TableCell>
               </TableRow>
             )}
@@ -198,6 +200,12 @@ export function CatchTable({ catches, fishOptions, viewState, onShowEdit, onShow
           setPage(0);
         }}
         rowsPerPageOptions={[10, 25, 50, 100]}
+        labelRowsPerPage={t('pagination.rowsPerPage')}
+        labelDisplayedRows={({ from, to, count }) =>
+          count !== -1
+            ? t('pagination.displayedRows', { from, to, count })
+            : t('pagination.displayedRowsMany', { from, to })
+        }
       />
 
       <PhotoViewer

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Box, Typography, Alert, LinearProgress } from '@mui/material';
 import { useSnackbar } from 'notistack';
+import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
 import { updateAdminCatch, deleteAdminCatch } from '../api/catchSave';
 import type { Catch, Fish, User } from '../api/types';
@@ -11,6 +12,7 @@ import { ConfirmDialog } from '../components/ConfirmDialog';
 import { useCompetition } from '../context/CompetitionContext';
 
 export default function PendingCatches() {
+  const { t } = useTranslation();
   const competition = useCompetition();
   const { enqueueSnackbar } = useSnackbar();
   const [catches, setCatches] = useState<Catch[] | null>(null);
@@ -37,9 +39,9 @@ export default function PendingCatches() {
       const res = await api.get<Catch[]>(url);
       setCatches(res.data);
     } catch (e: any) {
-      setError(e?.message ?? 'Failed to load pending catches.');
+      setError(e?.message ?? t('pending.loadFailed'));
     }
-  }, [competition.active, competition.competitionId]);
+  }, [competition.active, competition.competitionId, t]);
 
   useEffect(() => {
     if (!competition.loading) void load();
@@ -54,10 +56,10 @@ export default function PendingCatches() {
           .map((c) => (c.id === updated.id ? { ...c, ...updated } : c))
           .filter((c) => c.status === CatchStatus.Pending),
       );
-      enqueueSnackbar('Catch updated', { variant: 'success' });
+      enqueueSnackbar(t('pending.updated'), { variant: 'success' });
       setEditOpen(false);
     } catch (e: any) {
-      enqueueSnackbar(e?.response?.data?.message ?? 'Update failed', { variant: 'error' });
+      enqueueSnackbar(e?.response?.data?.message ?? t('pending.updateFailed'), { variant: 'error' });
     } finally {
       setSaving(false);
     }
@@ -68,9 +70,9 @@ export default function PendingCatches() {
     try {
       await deleteAdminCatch(deleteId);
       setCatches((prev) => (prev ?? []).filter((c) => c.id !== deleteId));
-      enqueueSnackbar('Catch deleted', { variant: 'info' });
+      enqueueSnackbar(t('myCatches.deleted'), { variant: 'info' });
     } catch {
-      enqueueSnackbar('Delete failed', { variant: 'error' });
+      enqueueSnackbar(t('myCatches.deleteFailed'), { variant: 'error' });
     } finally {
       setDeleteId(null);
     }
@@ -78,8 +80,8 @@ export default function PendingCatches() {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>Pending Catches</Typography>
-      {competition.active && <Typography color="text.secondary">Only showing catches in this competition.</Typography>}
+      <Typography variant="h4" gutterBottom>{t('pending.title')}</Typography>
+      {competition.active && <Typography color="text.secondary">{t('myCatches.onlyCompetition')}</Typography>}
       {error && <Alert severity="error" sx={{ my: 2 }}>{error}</Alert>}
 
       {catches === null ? (
@@ -112,8 +114,8 @@ export default function PendingCatches() {
 
       <ConfirmDialog
         open={!!deleteId}
-        title="Delete catch"
-        message="Do you want to delete this catch?"
+        title={t('myCatches.deleteTitle')}
+        message={t('myCatches.deleteMsg')}
         onConfirm={confirmDelete}
         onCancel={() => setDeleteId(null)}
       />

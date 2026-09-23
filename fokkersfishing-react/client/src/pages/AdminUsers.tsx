@@ -8,11 +8,13 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import LockResetIcon from '@mui/icons-material/LockReset';
 import { useSnackbar } from 'notistack';
+import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
 import type { Role, User } from '../api/types';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 
 export default function AdminUsers() {
+  const { t } = useTranslation();
   const { enqueueSnackbar } = useSnackbar();
   const [users, setUsers] = useState<User[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -25,7 +27,7 @@ export default function AdminUsers() {
       const { data } = await api.get<User[]>('/adminuser/users');
       setUsers(data);
     } catch (e: any) {
-      setError(e?.message ?? 'Failed to load users.');
+      setError(e?.message ?? t('adminUsers.loadFailed'));
     }
   };
 
@@ -36,21 +38,21 @@ export default function AdminUsers() {
   const save = async (user: User) => {
     try {
       await api.put('/adminuser/users', user);
-      enqueueSnackbar('User saved', { variant: 'success' });
+      enqueueSnackbar(t('adminUsers.userSaved'), { variant: 'success' });
       setEditUser(null);
       void load();
     } catch {
-      enqueueSnackbar('Save failed', { variant: 'error' });
+      enqueueSnackbar(t('adminUsers.saveFailed'), { variant: 'error' });
     }
   };
 
   const resetPassword = async (email: string, newPassword: string) => {
     try {
       await api.post(`/adminuser/users/${encodeURIComponent(email)}/password`, { newPassword });
-      enqueueSnackbar('Password reset', { variant: 'success' });
+      enqueueSnackbar(t('adminUsers.passwordReset'), { variant: 'success' });
       setResetUser(null);
     } catch (e: any) {
-      enqueueSnackbar(e?.response?.data?.message ?? 'Password reset failed', { variant: 'error' });
+      enqueueSnackbar(e?.response?.data?.message ?? t('adminUsers.passwordResetFailed'), { variant: 'error' });
     }
   };
 
@@ -59,9 +61,9 @@ export default function AdminUsers() {
     try {
       await api.delete(`/adminuser/users/${encodeURIComponent(deleteEmail)}`);
       setUsers((prev) => (prev ?? []).filter((u) => u.email !== deleteEmail));
-      enqueueSnackbar('User deleted', { variant: 'info' });
+      enqueueSnackbar(t('adminUsers.deleted'), { variant: 'info' });
     } catch {
-      enqueueSnackbar('Delete failed', { variant: 'error' });
+      enqueueSnackbar(t('adminUsers.deleteFailed'), { variant: 'error' });
     } finally {
       setDeleteEmail(null);
     }
@@ -69,7 +71,7 @@ export default function AdminUsers() {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>Users</Typography>
+      <Typography variant="h4" gutterBottom>{t('adminUsers.title')}</Typography>
       {error && <Alert severity="error" sx={{ my: 2 }}>{error}</Alert>}
       {users === null ? (
         <LinearProgress />
@@ -78,11 +80,11 @@ export default function AdminUsers() {
           <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell>User Name</TableCell>
-                <TableCell>E-mail</TableCell>
-                <TableCell>Login Provider</TableCell>
-                <TableCell>Roles</TableCell>
-                <TableCell align="right">Actions</TableCell>
+                <TableCell>{t('adminUsers.userName')}</TableCell>
+                <TableCell>{t('adminUsers.email')}</TableCell>
+                <TableCell>{t('adminUsers.loginProvider')}</TableCell>
+                <TableCell>{t('adminUsers.roles')}</TableCell>
+                <TableCell align="right">{t('common.actions')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -93,17 +95,17 @@ export default function AdminUsers() {
                   <TableCell>{u.loginProvider}</TableCell>
                   <TableCell>{u.roleList}</TableCell>
                   <TableCell align="right">
-                    <Tooltip title="Edit">
+                    <Tooltip title={t('common.edit')}>
                       <IconButton size="small" onClick={() => setEditUser(u)}>
                         <EditIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
-                    <Tooltip title="Reset password">
+                    <Tooltip title={t('common.resetPassword')}>
                       <IconButton size="small" onClick={() => setResetUser(u)}>
                         <LockResetIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
-                    <Tooltip title="Delete">
+                    <Tooltip title={t('common.delete')}>
                       <IconButton size="small" color="error" onClick={() => setDeleteEmail(u.email)}>
                         <DeleteIcon fontSize="small" />
                       </IconButton>
@@ -128,8 +130,8 @@ export default function AdminUsers() {
 
       <ConfirmDialog
         open={!!deleteEmail}
-        title="Delete user"
-        message={`Do you want to delete ${deleteEmail}?`}
+        title={t('adminUsers.deleteTitle')}
+        message={t('adminUsers.deleteMsg', { email: deleteEmail })}
         onConfirm={confirmDelete}
         onCancel={() => setDeleteEmail(null)}
       />
@@ -140,29 +142,31 @@ export default function AdminUsers() {
 function ResetPasswordDialog({
   user, onCancel, onReset,
 }: { user: User; onCancel: () => void; onReset: (newPassword: string) => void }) {
+  const { t } = useTranslation();
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const mismatch = confirm.length > 0 && password !== confirm;
   return (
     <Dialog open onClose={onCancel} fullWidth maxWidth="xs">
-      <DialogTitle>Reset password — {user.userName}</DialogTitle>
+      <DialogTitle>{t('adminUsers.resetTitle', { name: user.userName })}</DialogTitle>
       <DialogContent>
         <Stack spacing={2} sx={{ mt: 1 }}>
-          <TextField label="New password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} fullWidth autoFocus
-            helperText="At least 6 chars, with upper, lower and a digit." />
-          <TextField label="Confirm password" type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} fullWidth
-            error={mismatch} helperText={mismatch ? 'Passwords do not match.' : ' '} />
+          <TextField label={t('adminUsers.newPassword')} type="password" value={password} onChange={(e) => setPassword(e.target.value)} fullWidth autoFocus
+            helperText={t('auth.passwordHelper')} />
+          <TextField label={t('adminUsers.confirmPassword')} type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} fullWidth
+            error={mismatch} helperText={mismatch ? t('adminUsers.passwordsNoMatch') : ' '} />
         </Stack>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onCancel}>Cancel</Button>
-        <Button variant="contained" disabled={!password || mismatch} onClick={() => onReset(password)}>Reset</Button>
+        <Button onClick={onCancel}>{t('common.cancel')}</Button>
+        <Button variant="contained" disabled={!password || mismatch} onClick={() => onReset(password)}>{t('adminUsers.reset')}</Button>
       </DialogActions>
     </Dialog>
   );
 }
 
 function EditUserDialog({ user, onCancel, onSave }: { user: User; onCancel: () => void; onSave: (u: User) => void }) {
+  const { t } = useTranslation();
   const [userName, setUserName] = useState(user.userName);
   const [roles, setRoles] = useState<Role[]>(user.roleArray ?? user.roles ?? []);
 
@@ -171,13 +175,13 @@ function EditUserDialog({ user, onCancel, onSave }: { user: User; onCancel: () =
 
   return (
     <Dialog open onClose={onCancel} fullWidth maxWidth="xs">
-      <DialogTitle>Edit user</DialogTitle>
+      <DialogTitle>{t('adminUsers.editTitle')}</DialogTitle>
       <DialogContent>
         <Stack spacing={2} sx={{ mt: 1 }}>
-          <TextField label="Email" value={user.email} disabled fullWidth />
-          <TextField label="User name" value={userName} onChange={(e) => setUserName(e.target.value)} fullWidth />
+          <TextField label={t('adminUsers.email')} value={user.email} disabled fullWidth />
+          <TextField label={t('adminUsers.userName')} value={userName} onChange={(e) => setUserName(e.target.value)} fullWidth />
           <Box>
-            <Typography variant="subtitle2">Roles</Typography>
+            <Typography variant="subtitle2">{t('adminUsers.roles')}</Typography>
             {roles.map((r) => (
               <FormControlLabel
                 key={r.name}
@@ -189,9 +193,9 @@ function EditUserDialog({ user, onCancel, onSave }: { user: User; onCancel: () =
         </Stack>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onCancel}>Cancel</Button>
+        <Button onClick={onCancel}>{t('common.cancel')}</Button>
         <Button variant="contained" onClick={() => onSave({ ...user, userName, roles })}>
-          Save
+          {t('common.save')}
         </Button>
       </DialogActions>
     </Dialog>

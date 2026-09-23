@@ -5,6 +5,7 @@ import {
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { useSnackbar } from 'notistack';
+import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
 import { createCatch } from '../api/catchSave';
 import type { BigThree, Catch, CompetitionStats, Fish, FisherMan, User } from '../api/types';
@@ -41,6 +42,7 @@ function FishCard({ label, c }: { label: string; c: Catch | null }) {
 }
 
 export default function Home() {
+  const { t } = useTranslation();
   const competition = useCompetition();
   const { isUser } = useAuth();
   const { enqueueSnackbar } = useSnackbar();
@@ -98,10 +100,10 @@ export default function Home() {
     setSaving(true);
     try {
       await createCatch(result);
-      enqueueSnackbar('Catch saved', { variant: 'success' });
+      enqueueSnackbar(t('myCatches.saved'), { variant: 'success' });
       setAddOpen(false);
     } catch (e: any) {
-      enqueueSnackbar(e?.response?.data?.message ?? 'Saving catch failed', { variant: 'error' });
+      enqueueSnackbar(e?.response?.data?.message ?? t('myCatches.saveFailed'), { variant: 'error' });
     } finally {
       setSaving(false);
     }
@@ -116,41 +118,41 @@ export default function Home() {
 
       {canAdd && (
         <Button variant="contained" size="large" startIcon={<AddIcon />} onClick={openAdd} sx={{ mb: 3 }}>
-          Add new catch
+          {t('home.addNewCatch')}
         </Button>
       )}
 
       {competition.active ? (
         <Box>
-          <Typography variant="h4" gutterBottom>Fokkers Competition: {competition.competitionName}</Typography>
+          <Typography variant="h4" gutterBottom>{t('home.competitionPrefix', { name: competition.competitionName })}</Typography>
           {competition.competitionEnded ? (
             <>
-              <Typography variant="h6" color="secondary">Competition ended.</Typography>
+              <Typography variant="h6" color="secondary">{t('home.ended')}</Typography>
               {stats && (
-                <Typography>Catches made: {stats.fishCaught}. Total length caught: {stats.totalLength} cm</Typography>
+                <Typography>{t('home.stats', { count: stats.fishCaught, length: stats.totalLength })}</Typography>
               )}
             </>
           ) : competition.competitionNotStarted ? (
             <>
-              <Typography variant="h6" color="secondary">Competition has not started</Typography>
+              <Typography variant="h6" color="secondary">{t('home.notStarted')}</Typography>
               <Typography color="text.secondary">
-                Starts in {start.days} days, {start.hours} hours, {start.minutes} minutes
+                {t('home.startsIn', { days: start.days, hours: start.hours, minutes: start.minutes })}
               </Typography>
             </>
           ) : (
             <>
               <Typography variant="h6" color="secondary">
-                Competition active. Top-catches overview is disabled during the competition.
+                {t('home.activeNote')}
               </Typography>
               <Typography color="text.secondary">
-                Ends in {end.days} days, {end.hours} hours, {end.minutes} minutes
+                {t('home.endsIn', { days: end.days, hours: end.hours, minutes: end.minutes })}
               </Typography>
             </>
           )}
         </Box>
       ) : (
         <Box>
-          <Typography variant="h4" gutterBottom>Big Three</Typography>
+          <Typography variant="h4" gutterBottom>{t('home.bigThree')}</Typography>
           {bigThree === null ? (
             <LinearProgress />
           ) : (
@@ -159,21 +161,21 @@ export default function Home() {
               .sort((a, b) => b.totalLength - a.totalLength)
               .map((big, i) => (
                 <Box key={`${big.name}-${i}`} sx={{ mb: 3 }}>
-                  <Typography variant="h6">#{i + 1} — {big.name}</Typography>
+                  <Typography variant="h6">{t('home.place', { n: i + 1, name: big.name })}</Typography>
                   <Typography variant="body2" color="text.secondary" gutterBottom>
-                    Total length: {big.totalLength} cm
+                    {t('home.totalLength', { length: big.totalLength })}
                   </Typography>
                   <Grid container spacing={2}>
-                    <FishCard label="Pike" c={big.pike} />
-                    <FishCard label="Bass" c={big.bass} />
-                    <FishCard label="Zander" c={big.zander} />
+                    <FishCard label={t('home.pike')} c={big.pike} />
+                    <FishCard label={t('home.bass')} c={big.bass} />
+                    <FishCard label={t('home.zander')} c={big.zander} />
                   </Grid>
                   <Divider sx={{ mt: 2 }} />
                 </Box>
               ))
           )}
 
-          <Typography variant="h5" sx={{ mt: 4 }} gutterBottom>Top Fishermen</Typography>
+          <Typography variant="h5" sx={{ mt: 4 }} gutterBottom>{t('home.topFishermen')}</Typography>
           {fishermen === null ? (
             <LinearProgress />
           ) : (
@@ -181,9 +183,9 @@ export default function Home() {
               <Table size="small">
                 <TableHead>
                   <TableRow>
-                    <TableCell>Fisherman</TableCell>
-                    <TableCell align="right">Total Fish Length</TableCell>
-                    <TableCell align="right">Total Fish Caught</TableCell>
+                    <TableCell>{t('home.fisherman')}</TableCell>
+                    <TableCell align="right">{t('home.totalFishLength')}</TableCell>
+                    <TableCell align="right">{t('home.totalFishCaught')}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>

@@ -1,33 +1,35 @@
 import { CatchStatus } from '../api/types';
+import { currentLocale } from '../i18n';
 
 export function formatDateTime(value: string | Date | null | undefined): string {
   if (!value) return '';
   const d = typeof value === 'string' ? new Date(value) : value;
   if (Number.isNaN(d.getTime())) return '';
-  return d.toLocaleString();
+  return d.toLocaleString(currentLocale());
 }
 
 export function formatDate(value: string | Date | null | undefined): string {
   if (!value) return '';
   const d = typeof value === 'string' ? new Date(value) : value;
   if (Number.isNaN(d.getTime())) return '';
-  return d.toLocaleDateString();
+  return d.toLocaleDateString(currentLocale());
 }
 
 export interface StatusMeta {
-  label: string;
+  /** i18n key, e.g. "catches.status.approved" — pass through t(). */
+  labelKey: string;
   color: 'success' | 'warning' | 'error' | 'default';
 }
 
 export function statusMeta(status: CatchStatus): StatusMeta {
   switch (status) {
     case CatchStatus.Approved:
-      return { label: 'Approved', color: 'success' };
+      return { labelKey: 'catches.status.approved', color: 'success' };
     case CatchStatus.Pending:
-      return { label: 'Pending', color: 'warning' };
+      return { labelKey: 'catches.status.pending', color: 'warning' };
     case CatchStatus.Rejected:
-      return { label: 'Rejected', color: 'error' };
+      return { labelKey: 'catches.status.rejected', color: 'error' };
     default:
-      return { label: 'Unknown', color: 'default' };
+      return { labelKey: 'catches.status.unknown', color: 'default' };
   }
 }

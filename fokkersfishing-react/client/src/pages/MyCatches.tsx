@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Box, Button, Typography, Alert, LinearProgress } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { useSnackbar } from 'notistack';
+import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
 import { createCatch, updateUserCatch, deleteUserCatch } from '../api/catchSave';
 import type { Catch, Fish, User } from '../api/types';
@@ -38,6 +39,7 @@ function newCatch(competitionId: string): Catch {
 const EMPTY_ID = '00000000-0000-0000-0000-000000000000';
 
 export default function MyCatches() {
+  const { t } = useTranslation();
   const competition = useCompetition();
   const { enqueueSnackbar } = useSnackbar();
   const [catches, setCatches] = useState<Catch[] | null>(null);
@@ -64,9 +66,9 @@ export default function MyCatches() {
       const catchesRes = await api.get<Catch[]>(url);
       setCatches(catchesRes.data);
     } catch (e: any) {
-      setError(e?.message ?? 'Failed to load catches.');
+      setError(e?.message ?? t('myCatches.loadFailed'));
     }
-  }, [competition.active, competition.competitionId]);
+  }, [competition.active, competition.competitionId, t]);
 
   useEffect(() => {
     if (!competition.loading) void load();
@@ -99,10 +101,10 @@ export default function MyCatches() {
         const updated = await updateUserCatch(result);
         setCatches((prev) => (prev ?? []).map((c) => (c.id === updated.id ? updated : c)));
       }
-      enqueueSnackbar('Catch saved', { variant: 'success' });
+      enqueueSnackbar(t('myCatches.saved'), { variant: 'success' });
       setEditOpen(false);
     } catch (e: any) {
-      enqueueSnackbar(e?.response?.data?.message ?? 'Saving catch failed', { variant: 'error' });
+      enqueueSnackbar(e?.response?.data?.message ?? t('myCatches.saveFailed'), { variant: 'error' });
     } finally {
       setSaving(false);
     }
@@ -113,9 +115,9 @@ export default function MyCatches() {
     try {
       await deleteUserCatch(deleteId);
       setCatches((prev) => (prev ?? []).filter((c) => c.id !== deleteId));
-      enqueueSnackbar('Catch deleted', { variant: 'info' });
+      enqueueSnackbar(t('myCatches.deleted'), { variant: 'info' });
     } catch {
-      enqueueSnackbar('Delete failed', { variant: 'error' });
+      enqueueSnackbar(t('myCatches.deleteFailed'), { variant: 'error' });
     } finally {
       setDeleteId(null);
     }
@@ -125,13 +127,13 @@ export default function MyCatches() {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>My Catches</Typography>
-      {competition.active && <Typography color="text.secondary">Only showing catches in this competition.</Typography>}
+      <Typography variant="h4" gutterBottom>{t('myCatches.title')}</Typography>
+      {competition.active && <Typography color="text.secondary">{t('myCatches.onlyCompetition')}</Typography>}
       {error && <Alert severity="error" sx={{ my: 2 }}>{error}</Alert>}
 
       {canAdd && (
         <Button variant="contained" startIcon={<AddIcon />} onClick={openAdd} sx={{ mt: 2 }}>
-          Add new catch
+          {t('home.addNewCatch')}
         </Button>
       )}
 
@@ -163,8 +165,8 @@ export default function MyCatches() {
 
       <ConfirmDialog
         open={!!deleteId}
-        title="Delete catch"
-        message="Do you want to delete this catch?"
+        title={t('myCatches.deleteTitle')}
+        message={t('myCatches.deleteMsg')}
         onConfirm={confirmDelete}
         onCancel={() => setDeleteId(null)}
       />

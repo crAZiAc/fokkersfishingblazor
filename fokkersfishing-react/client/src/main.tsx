@@ -11,6 +11,7 @@ import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
 
 import App from './App';
+import './i18n';
 import { theme } from './theme';
 import { AuthProvider } from './auth/AuthContext';
 import { CompetitionProvider } from './context/CompetitionContext';

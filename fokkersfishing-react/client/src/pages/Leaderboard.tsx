@@ -4,6 +4,7 @@ import {
   TableHead, TableRow, Chip,
 } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
 import type { BigThree, Catch, FisherMan, Ranking } from '../api/types';
 import { formatDateTime, statusMeta } from '../utils/format';
@@ -11,6 +12,7 @@ import { useAuth } from '../auth/AuthContext';
 import { useCompetition } from '../context/CompetitionContext';
 
 export default function Leaderboard() {
+  const { t } = useTranslation();
   const competition = useCompetition();
   const { isAuthenticated, isUser } = useAuth();
 
@@ -44,31 +46,31 @@ export default function Leaderboard() {
           }
         }
       } catch (e: any) {
-        setError(e?.message ?? 'Failed to load leaderboard.');
+        setError(e?.message ?? t('leaderboard.loadFailed'));
       }
     })();
-  }, [competition.loading, competition.active, competition.competitionEnded, competition.competitionId, isUser]);
+  }, [competition.loading, competition.active, competition.competitionEnded, competition.competitionId, isUser, t]);
 
   if (competition.active) {
     if (!isAuthenticated) {
-      return <Alert severity="info">Log in to view the competition leaderboard.</Alert>;
+      return <Alert severity="info">{t('leaderboard.mustLogin')}</Alert>;
     }
     return (
       <Box>
-        <Typography variant="h4" gutterBottom>{competition.competitionName} — Team Leaderboard</Typography>
+        <Typography variant="h4" gutterBottom>{t('leaderboard.teamTitle', { name: competition.competitionName })}</Typography>
         {error && <Alert severity="error" sx={{ my: 2 }}>{error}</Alert>}
 
         {competition.competitionEnded && rankings.length > 0 && (
           <>
-            <Typography variant="h5" sx={{ mt: 2 }} gutterBottom>Team Ranking</Typography>
+            <Typography variant="h5" sx={{ mt: 2 }} gutterBottom>{t('leaderboard.teamRanking')}</Typography>
             <TableContainer component={Paper} sx={{ mb: 4 }}>
               <Table size="small">
                 <TableHead>
                   <TableRow>
-                    <TableCell>Rank</TableCell>
-                    <TableCell>Team</TableCell>
-                    <TableCell align="right">Score</TableCell>
-                    <TableCell align="center">Big 3</TableCell>
+                    <TableCell>{t('leaderboard.rank')}</TableCell>
+                    <TableCell>{t('leaderboard.team')}</TableCell>
+                    <TableCell align="right">{t('leaderboard.score')}</TableCell>
+                    <TableCell align="center">{t('leaderboard.big3')}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -86,16 +88,16 @@ export default function Leaderboard() {
           </>
         )}
 
-        <Typography variant="h5" gutterBottom>Team Big Three</Typography>
+        <Typography variant="h5" gutterBottom>{t('leaderboard.teamBigThree')}</Typography>
         <TableContainer component={Paper}>
           <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell>Position</TableCell>
-                <TableCell align="right">Pike (cm)</TableCell>
-                <TableCell align="right">Bass (cm)</TableCell>
-                <TableCell align="right">Zander (cm)</TableCell>
-                <TableCell align="right">Total (cm)</TableCell>
+                <TableCell>{t('leaderboard.position')}</TableCell>
+                <TableCell align="right">{t('home.pike')} (cm)</TableCell>
+                <TableCell align="right">{t('home.bass')} (cm)</TableCell>
+                <TableCell align="right">{t('home.zander')} (cm)</TableCell>
+                <TableCell align="right">{t('leaderboard.totalCm')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -111,7 +113,7 @@ export default function Leaderboard() {
               {teamBig3.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={5}>
-                    <Box sx={{ py: 2, textAlign: 'center', color: 'text.secondary' }}>No team data yet.</Box>
+                    <Box sx={{ py: 2, textAlign: 'center', color: 'text.secondary' }}>{t('leaderboard.noTeamData')}</Box>
                   </TableCell>
                 </TableRow>
               )}
@@ -124,10 +126,10 @@ export default function Leaderboard() {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>Leaderboard</Typography>
+      <Typography variant="h4" gutterBottom>{t('leaderboard.title')}</Typography>
       {error && <Alert severity="error" sx={{ my: 2 }}>{error}</Alert>}
 
-      <Typography variant="h5" gutterBottom>Top Catches</Typography>
+      <Typography variant="h5" gutterBottom>{t('leaderboard.topCatches')}</Typography>
       {catches === null ? (
         <LinearProgress />
       ) : (
@@ -135,12 +137,12 @@ export default function Leaderboard() {
           <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell>Catch #</TableCell>
-                <TableCell>Catch Date</TableCell>
-                <TableCell>Fish</TableCell>
-                <TableCell align="right">Length (cm)</TableCell>
-                <TableCell>Fisherman</TableCell>
-                <TableCell align="right">Status</TableCell>
+                <TableCell>{t('catches.catchNo')}</TableCell>
+                <TableCell>{t('catches.catchDate')}</TableCell>
+                <TableCell>{t('catches.fish')}</TableCell>
+                <TableCell align="right">{t('catches.lengthCm')}</TableCell>
+                <TableCell>{t('catches.fisherman')}</TableCell>
+                <TableCell align="right">{t('leaderboard.status')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -153,7 +155,7 @@ export default function Leaderboard() {
                     <TableCell>{c.fish}</TableCell>
                     <TableCell align="right">{c.length}</TableCell>
                     <TableCell>{c.userName}</TableCell>
-                    <TableCell align="right"><Chip size="small" label={meta.label} color={meta.color} /></TableCell>
+                    <TableCell align="right"><Chip size="small" label={t(meta.labelKey)} color={meta.color} /></TableCell>
                   </TableRow>
                 );
               })}
@@ -162,7 +164,7 @@ export default function Leaderboard() {
         </TableContainer>
       )}
 
-      <Typography variant="h5" gutterBottom>Top Fishermen</Typography>
+      <Typography variant="h5" gutterBottom>{t('home.topFishermen')}</Typography>
       {fishermen === null ? (
         <LinearProgress />
       ) : (
@@ -170,9 +172,9 @@ export default function Leaderboard() {
           <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell>Fisherman</TableCell>
-                <TableCell align="right">Total Fish Length</TableCell>
-                <TableCell align="right">Total Fish Caught</TableCell>
+                <TableCell>{t('home.fisherman')}</TableCell>
+                <TableCell align="right">{t('home.totalFishLength')}</TableCell>
+                <TableCell align="right">{t('home.totalFishCaught')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>

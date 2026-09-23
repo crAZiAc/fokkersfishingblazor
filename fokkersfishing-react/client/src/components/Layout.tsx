@@ -15,8 +15,10 @@ import PendingActionsIcon from '@mui/icons-material/PendingActions';
 import EventIcon from '@mui/icons-material/Event';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import { useTheme } from '@mui/material/styles';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../auth/AuthContext';
 import { useCompetition } from '../context/CompetitionContext';
+import { LanguageSwitcher } from './LanguageSwitcher';
 
 const drawerWidth = 240;
 
@@ -30,6 +32,7 @@ interface NavItem {
 
 export function Layout() {
   const theme = useTheme();
+  const { t } = useTranslation();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
@@ -38,16 +41,16 @@ export function Layout() {
   const competition = useCompetition();
 
   const items: NavItem[] = [
-    { label: 'Home', to: '/', icon: <HomeIcon /> },
-    { label: 'Leaderboard', to: '/leaders', icon: <LeaderboardIcon /> },
-    { label: 'My Catches', to: '/catches', icon: <PhishingIcon />, roles: ['Administrator', 'User'] },
-    { label: 'Team Leaderboard', to: '/leaders/team', icon: <EmojiEventsIcon />, roles: ['Administrator', 'User'], requiresCompetition: true },
-    { label: 'Competition Leads', to: '/leaders/competition', icon: <LeaderboardIcon />, roles: ['Administrator'], requiresCompetition: true },
-    { label: 'Users', to: '/adminusers', icon: <PeopleIcon />, roles: ['Administrator'] },
-    { label: 'Teams', to: '/adminteams', icon: <GroupsIcon />, roles: ['Administrator'] },
-    { label: 'All Catches', to: '/admincatches', icon: <ListAltIcon />, roles: ['Administrator'] },
-    { label: 'Pending Catches', to: '/pendingcatches', icon: <PendingActionsIcon />, roles: ['Administrator'] },
-    { label: 'Competitions', to: '/admincompetitions', icon: <EventIcon />, roles: ['Administrator'] },
+    { label: t('nav.home'), to: '/', icon: <HomeIcon /> },
+    { label: t('nav.leaderboard'), to: '/leaders', icon: <LeaderboardIcon /> },
+    { label: t('nav.myCatches'), to: '/catches', icon: <PhishingIcon />, roles: ['Administrator', 'User'] },
+    { label: t('nav.teamLeaderboard'), to: '/leaders/team', icon: <EmojiEventsIcon />, roles: ['Administrator', 'User'], requiresCompetition: true },
+    { label: t('nav.competitionLeads'), to: '/leaders/competition', icon: <LeaderboardIcon />, roles: ['Administrator'], requiresCompetition: true },
+    { label: t('nav.users'), to: '/adminusers', icon: <PeopleIcon />, roles: ['Administrator'] },
+    { label: t('nav.teams'), to: '/adminteams', icon: <GroupsIcon />, roles: ['Administrator'] },
+    { label: t('nav.allCatches'), to: '/admincatches', icon: <ListAltIcon />, roles: ['Administrator'] },
+    { label: t('nav.pendingCatches'), to: '/pendingcatches', icon: <PendingActionsIcon />, roles: ['Administrator'] },
+    { label: t('nav.competitions'), to: '/admincompetitions', icon: <EventIcon />, roles: ['Administrator'] },
   ];
 
   const visible = items.filter((item) => {
@@ -99,23 +102,24 @@ export function Layout() {
           <Typography variant="h6" sx={{ flexGrow: 1 }} noWrap>
             FVD 2026
           </Typography>
+          <LanguageSwitcher />
           {isAuthenticated ? (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 1 }}>
               <Avatar sx={{ width: 30, height: 30 }}>{user?.name?.[0]?.toUpperCase() ?? '?'}</Avatar>
               <Typography variant="body2" sx={{ display: { xs: 'none', sm: 'block' } }}>
                 {user?.name}
               </Typography>
               <Button color="inherit" onClick={logout}>
-                Sign out
+                {t('common.signOut')}
               </Button>
             </Box>
           ) : (
-            <Box sx={{ display: 'flex', gap: 1 }}>
+            <Box sx={{ display: 'flex', gap: 1, ml: 1 }}>
               <Button color="inherit" onClick={() => navigate('/login')}>
-                Log in
+                {t('common.logIn')}
               </Button>
               <Button color="inherit" onClick={() => navigate('/register')}>
-                Register
+                {t('common.register')}
               </Button>
             </Box>
           )}

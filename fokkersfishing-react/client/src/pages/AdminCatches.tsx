@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Box, Button, Typography, Alert, LinearProgress } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { useSnackbar } from 'notistack';
+import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
 import { createCatch, updateUserCatch, updateAdminCatch, deleteAdminCatch } from '../api/catchSave';
 import type { Catch, Fish, User } from '../api/types';
@@ -24,6 +25,7 @@ function newCatch(competitionId: string): Catch {
 }
 
 export default function AdminCatches() {
+  const { t } = useTranslation();
   const competition = useCompetition();
   const { enqueueSnackbar } = useSnackbar();
   const [catches, setCatches] = useState<Catch[] | null>(null);
@@ -49,9 +51,9 @@ export default function AdminCatches() {
       const catchesRes = await api.get<Catch[]>(url);
       setCatches(catchesRes.data);
     } catch (e: any) {
-      setError(e?.message ?? 'Failed to load catches.');
+      setError(e?.message ?? t('myCatches.loadFailed'));
     }
-  }, [competition.active, competition.competitionId]);
+  }, [competition.active, competition.competitionId, t]);
 
   useEffect(() => {
     if (!competition.loading) void load();
@@ -86,12 +88,12 @@ export default function AdminCatches() {
         const updated = await updateAdminCatch(result);
         setCatches((prev) => (prev ?? []).map((c) => (c.id === updated.id ? { ...c, ...updated } : c)));
       }
-      enqueueSnackbar('Catch saved', { variant: 'success' });
+      enqueueSnackbar(t('myCatches.saved'), { variant: 'success' });
       setEditOpen(false);
       // Refresh to reflect server-side recalculation (catch numbers, enrichment).
       void load();
     } catch (e: any) {
-      enqueueSnackbar(e?.response?.data?.message ?? 'Saving catch failed', { variant: 'error' });
+      enqueueSnackbar(e?.response?.data?.message ?? t('myCatches.saveFailed'), { variant: 'error' });
     } finally {
       setSaving(false);
     }
@@ -102,9 +104,9 @@ export default function AdminCatches() {
     try {
       await deleteAdminCatch(deleteId);
       setCatches((prev) => (prev ?? []).filter((c) => c.id !== deleteId));
-      enqueueSnackbar('Catch deleted', { variant: 'info' });
+      enqueueSnackbar(t('myCatches.deleted'), { variant: 'info' });
     } catch {
-      enqueueSnackbar('Delete failed', { variant: 'error' });
+      enqueueSnackbar(t('myCatches.deleteFailed'), { variant: 'error' });
     } finally {
       setDeleteId(null);
     }
@@ -112,10 +114,10 @@ export default function AdminCatches() {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>All Catches</Typography>
+      <Typography variant="h4" gutterBottom>{t('adminCatches.title')}</Typography>
       {error && <Alert severity="error" sx={{ my: 2 }}>{error}</Alert>}
       <Button variant="contained" startIcon={<AddIcon />} onClick={openAdd} sx={{ mt: 1 }}>
-        Add new catch
+        {t('home.addNewCatch')}
       </Button>
 
       {catches === null ? (
@@ -146,8 +148,8 @@ export default function AdminCatches() {
 
       <ConfirmDialog
         open={!!deleteId}
-        title="Delete catch"
-        message="Do you want to delete this catch?"
+        title={t('myCatches.deleteTitle')}
+        message={t('myCatches.deleteMsg')}
         onConfirm={confirmDelete}
         onCancel={() => setDeleteId(null)}
       />

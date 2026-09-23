@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, CircularProgress, Alert, Typography } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../auth/AuthContext';
 
 /**
@@ -8,6 +9,7 @@ import { useAuth } from '../auth/AuthContext';
  * `#token=...&returnUrl=...` (or `#error=...`). We stash the token and go home.
  */
 export default function AuthCallback() {
+  const { t } = useTranslation();
   const { applyToken } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
@@ -20,15 +22,15 @@ export default function AuthCallback() {
     const returnUrl = params.get('returnUrl') || '/';
 
     if (err) {
-      setError(`External sign-in failed (${err}).`);
+      setError(t('auth.externalFailed', { error: err }));
       return;
     }
     if (token) {
       applyToken(token).then(() => navigate(returnUrl, { replace: true }));
     } else {
-      setError('No token received.');
+      setError(t('auth.noToken'));
     }
-  }, [applyToken, navigate]);
+  }, [applyToken, navigate, t]);
 
   if (error) {
     return (
@@ -41,7 +43,7 @@ export default function AuthCallback() {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 8, gap: 2 }}>
       <CircularProgress />
-      <Typography>Signing you in…</Typography>
+      <Typography>{t('auth.signingIn')}</Typography>
     </Box>
   );
 }

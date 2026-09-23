@@ -11,12 +11,14 @@ import CheckIcon from '@mui/icons-material/Check';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import dayjs, { Dayjs } from 'dayjs';
 import { useSnackbar } from 'notistack';
+import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
 import type { Competition } from '../api/types';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { formatDateTime } from '../utils/format';
 
 export default function AdminCompetitions() {
+  const { t } = useTranslation();
   const { enqueueSnackbar } = useSnackbar();
   const [items, setItems] = useState<Competition[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +30,7 @@ export default function AdminCompetitions() {
       const { data } = await api.get<Competition[]>('/competition');
       setItems(data);
     } catch (e: any) {
-      setError(e?.message ?? 'Failed to load competitions.');
+      setError(e?.message ?? t('adminCompetitions.loadFailed'));
     }
   };
 
@@ -53,11 +55,11 @@ export default function AdminCompetitions() {
     try {
       if (isNew) await api.post('/competition', competition);
       else await api.put(`/competition/${competition.id}`, competition);
-      enqueueSnackbar('Competition saved', { variant: 'success' });
+      enqueueSnackbar(t('adminCompetitions.saved'), { variant: 'success' });
       setEdit(null);
       void load();
     } catch {
-      enqueueSnackbar('Save failed', { variant: 'error' });
+      enqueueSnackbar(t('adminCompetitions.saveFailed'), { variant: 'error' });
     }
   };
 
@@ -66,9 +68,9 @@ export default function AdminCompetitions() {
     try {
       await api.delete(`/competition/${deleteId}`);
       setItems((prev) => (prev ?? []).filter((c) => c.id !== deleteId));
-      enqueueSnackbar('Competition deleted', { variant: 'info' });
+      enqueueSnackbar(t('adminCompetitions.deleted'), { variant: 'info' });
     } catch {
-      enqueueSnackbar('Delete failed', { variant: 'error' });
+      enqueueSnackbar(t('adminCompetitions.deleteFailed'), { variant: 'error' });
     } finally {
       setDeleteId(null);
     }
@@ -76,10 +78,10 @@ export default function AdminCompetitions() {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>Competitions</Typography>
+      <Typography variant="h4" gutterBottom>{t('adminCompetitions.title')}</Typography>
       {error && <Alert severity="error" sx={{ my: 2 }}>{error}</Alert>}
       <Button variant="contained" startIcon={<AddIcon />} onClick={openAdd} sx={{ mb: 2 }}>
-        Add new competition
+        {t('adminCompetitions.addNew')}
       </Button>
 
       {items === null ? (
@@ -89,12 +91,12 @@ export default function AdminCompetitions() {
           <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell>Name</TableCell>
-                <TableCell>Start</TableCell>
-                <TableCell>End</TableCell>
-                <TableCell align="center">Active</TableCell>
-                <TableCell align="center">Show leaderboard after end</TableCell>
-                <TableCell align="right">Actions</TableCell>
+                <TableCell>{t('adminCompetitions.name')}</TableCell>
+                <TableCell>{t('adminCompetitions.start')}</TableCell>
+                <TableCell>{t('adminCompetitions.end')}</TableCell>
+                <TableCell align="center">{t('adminCompetitions.active')}</TableCell>
+                <TableCell align="center">{t('adminCompetitions.showLbAfterEnd')}</TableCell>
+                <TableCell align="right">{t('common.actions')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -106,12 +108,12 @@ export default function AdminCompetitions() {
                   <TableCell align="center">{c.active ? <CheckIcon color="success" fontSize="small" /> : ''}</TableCell>
                   <TableCell align="center">{c.showLeaderboardAfterCompetitionEnds ? <CheckIcon color="success" fontSize="small" /> : ''}</TableCell>
                   <TableCell align="right">
-                    <Tooltip title="Edit">
+                    <Tooltip title={t('common.edit')}>
                       <IconButton size="small" onClick={() => setEdit({ competition: c, isNew: false })}>
                         <EditIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
-                    <Tooltip title="Delete">
+                    <Tooltip title={t('common.delete')}>
                       <IconButton size="small" color="error" onClick={() => setDeleteId(c.id)}>
                         <DeleteIcon fontSize="small" />
                       </IconButton>
@@ -135,8 +137,8 @@ export default function AdminCompetitions() {
 
       <ConfirmDialog
         open={!!deleteId}
-        title="Delete competition"
-        message="Do you want to delete this competition?"
+        title={t('adminCompetitions.deleteTitle')}
+        message={t('adminCompetitions.deleteMsg')}
         onConfirm={confirmDelete}
         onCancel={() => setDeleteId(null)}
       />
@@ -147,6 +149,7 @@ export default function AdminCompetitions() {
 function EditCompetitionDialog({
   competition, isNew, onCancel, onSave,
 }: { competition: Competition; isNew: boolean; onCancel: () => void; onSave: (c: Competition) => void }) {
+  const { t } = useTranslation();
   const [name, setName] = useState(competition.competitionName);
   const [active, setActive] = useState(competition.active);
   const [showLb, setShowLb] = useState(competition.showLeaderboardAfterCompetitionEnds);
@@ -155,21 +158,21 @@ function EditCompetitionDialog({
 
   return (
     <Dialog open onClose={onCancel} fullWidth maxWidth="sm">
-      <DialogTitle>{isNew ? 'New competition' : 'Edit competition'}</DialogTitle>
+      <DialogTitle>{isNew ? t('adminCompetitions.newComp') : t('adminCompetitions.editComp')}</DialogTitle>
       <DialogContent>
         <Stack spacing={2} sx={{ mt: 1 }}>
-          <TextField label="Competition name" value={name} onChange={(e) => setName(e.target.value)} fullWidth />
-          <DateTimePicker label="Start date" value={start} onChange={setStart} ampm={false} format="DD-MM-YYYY HH:mm" />
-          <DateTimePicker label="End date" value={end} onChange={setEnd} ampm={false} format="DD-MM-YYYY HH:mm" />
-          <FormControlLabel control={<Checkbox checked={active} onChange={(e) => setActive(e.target.checked)} />} label="Active" />
+          <TextField label={t('adminCompetitions.competitionName')} value={name} onChange={(e) => setName(e.target.value)} fullWidth />
+          <DateTimePicker label={t('adminCompetitions.startDate')} value={start} onChange={setStart} ampm={false} format="L HH:mm" />
+          <DateTimePicker label={t('adminCompetitions.endDate')} value={end} onChange={setEnd} ampm={false} format="L HH:mm" />
+          <FormControlLabel control={<Checkbox checked={active} onChange={(e) => setActive(e.target.checked)} />} label={t('adminCompetitions.active')} />
           <FormControlLabel
             control={<Checkbox checked={showLb} onChange={(e) => setShowLb(e.target.checked)} />}
-            label="Show leaderboard after competition has ended"
+            label={t('adminCompetitions.showLbAfterEndFull')}
           />
         </Stack>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onCancel}>Cancel</Button>
+        <Button onClick={onCancel}>{t('common.cancel')}</Button>
         <Button
           variant="contained"
           onClick={() =>
@@ -183,7 +186,7 @@ function EditCompetitionDialog({
             })
           }
         >
-          Save
+          {t('common.save')}
         </Button>
       </DialogActions>
     </Dialog>

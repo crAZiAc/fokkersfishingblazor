@@ -9,11 +9,13 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import { useSnackbar } from 'notistack';
+import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
 import type { Team, User } from '../api/types';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 
 export default function AdminTeams() {
+  const { t } = useTranslation();
   const { enqueueSnackbar } = useSnackbar();
   const [teams, setTeams] = useState<Team[] | null>(null);
   const [users, setUsers] = useState<User[]>([]);
@@ -31,7 +33,7 @@ export default function AdminTeams() {
       setTeams(teamsRes.data);
       setUsers(usersRes.data);
     } catch (e: any) {
-      setError(e?.message ?? 'Failed to load teams.');
+      setError(e?.message ?? t('adminTeams.loadFailed'));
     }
   };
 
@@ -50,11 +52,11 @@ export default function AdminTeams() {
   const saveTeam = async (team: Team, isNew: boolean) => {
     try {
       await persistTeam(team, isNew);
-      enqueueSnackbar('Team saved', { variant: 'success' });
+      enqueueSnackbar(t('adminTeams.saved'), { variant: 'success' });
       setEdit(null);
       void load();
     } catch {
-      enqueueSnackbar('Save failed', { variant: 'error' });
+      enqueueSnackbar(t('adminTeams.saveFailed'), { variant: 'error' });
     }
   };
 
@@ -62,11 +64,11 @@ export default function AdminTeams() {
     try {
       const updated: Team = { ...team, users: [...team.users, user] };
       await api.put(`/team/${team.id}`, updated);
-      enqueueSnackbar('Member added', { variant: 'success' });
+      enqueueSnackbar(t('adminTeams.memberAdded'), { variant: 'success' });
       setAddMemberTeam(null);
       void load();
     } catch {
-      enqueueSnackbar('Add member failed', { variant: 'error' });
+      enqueueSnackbar(t('adminTeams.addMemberFailed'), { variant: 'error' });
     }
   };
 
@@ -74,10 +76,10 @@ export default function AdminTeams() {
     try {
       const updated: Team = { ...team, users: team.users.filter((u) => u.email !== email) };
       await api.put(`/team/${team.id}`, updated);
-      enqueueSnackbar('Member removed', { variant: 'info' });
+      enqueueSnackbar(t('adminTeams.memberRemoved'), { variant: 'info' });
       void load();
     } catch {
-      enqueueSnackbar('Remove member failed', { variant: 'error' });
+      enqueueSnackbar(t('adminTeams.removeMemberFailed'), { variant: 'error' });
     }
   };
 
@@ -85,10 +87,10 @@ export default function AdminTeams() {
     if (!deleteId) return;
     try {
       await api.delete(`/team/${deleteId}`);
-      setTeams((prev) => (prev ?? []).filter((t) => t.id !== deleteId));
-      enqueueSnackbar('Team deleted', { variant: 'info' });
+      setTeams((prev) => (prev ?? []).filter((tm) => tm.id !== deleteId));
+      enqueueSnackbar(t('adminTeams.deleted'), { variant: 'info' });
     } catch {
-      enqueueSnackbar('Delete failed', { variant: 'error' });
+      enqueueSnackbar(t('adminTeams.deleteFailed'), { variant: 'error' });
     } finally {
       setDeleteId(null);
     }
@@ -96,7 +98,7 @@ export default function AdminTeams() {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>Teams</Typography>
+      <Typography variant="h4" gutterBottom>{t('adminTeams.title')}</Typography>
       {error && <Alert severity="error" sx={{ my: 2 }}>{error}</Alert>}
       <Button
         variant="contained"
@@ -104,7 +106,7 @@ export default function AdminTeams() {
         sx={{ mb: 2 }}
         onClick={() => setEdit({ isNew: true, team: { id: crypto.randomUUID(), name: '', description: '', users: [] } })}
       >
-        Add new team
+        {t('adminTeams.addNew')}
       </Button>
 
       {teams === null ? (
@@ -114,25 +116,25 @@ export default function AdminTeams() {
           <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell>Team Name</TableCell>
-                <TableCell>Description</TableCell>
-                <TableCell>Members</TableCell>
-                <TableCell align="right">Actions</TableCell>
+                <TableCell>{t('adminTeams.teamName')}</TableCell>
+                <TableCell>{t('adminTeams.description')}</TableCell>
+                <TableCell>{t('adminTeams.members')}</TableCell>
+                <TableCell align="right">{t('common.actions')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {teams.map((t) => (
-                <TableRow key={t.id} hover>
-                  <TableCell>{t.name}</TableCell>
-                  <TableCell>{t.description}</TableCell>
+              {teams.map((tm) => (
+                <TableRow key={tm.id} hover>
+                  <TableCell>{tm.name}</TableCell>
+                  <TableCell>{tm.description}</TableCell>
                   <TableCell>
                     <List dense disablePadding>
-                      {t.users.map((u) => (
+                      {tm.users.map((u) => (
                         <ListItem
                           key={u.email}
                           disableGutters
                           secondaryAction={
-                            <IconButton size="small" color="error" onClick={() => removeMember(t, u.email)}>
+                            <IconButton size="small" color="error" onClick={() => removeMember(tm, u.email)}>
                               <DeleteIcon fontSize="small" />
                             </IconButton>
                           }
@@ -140,22 +142,22 @@ export default function AdminTeams() {
                           <ListItemText primary={u.userName} secondary={u.email} />
                         </ListItem>
                       ))}
-                      {t.users.length === 0 && <Typography variant="body2" color="text.secondary">No members</Typography>}
+                      {tm.users.length === 0 && <Typography variant="body2" color="text.secondary">{t('adminTeams.noMembers')}</Typography>}
                     </List>
                   </TableCell>
                   <TableCell align="right">
-                    <Tooltip title="Add member">
-                      <IconButton size="small" onClick={() => setAddMemberTeam(t)}>
+                    <Tooltip title={t('adminTeams.addMember')}>
+                      <IconButton size="small" onClick={() => setAddMemberTeam(tm)}>
                         <PersonAddIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
-                    <Tooltip title="Edit">
-                      <IconButton size="small" onClick={() => setEdit({ team: t, isNew: false })}>
+                    <Tooltip title={t('common.edit')}>
+                      <IconButton size="small" onClick={() => setEdit({ team: tm, isNew: false })}>
                         <EditIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
-                    <Tooltip title="Delete">
-                      <IconButton size="small" color="error" onClick={() => setDeleteId(t.id)}>
+                    <Tooltip title={t('common.delete')}>
+                      <IconButton size="small" color="error" onClick={() => setDeleteId(tm.id)}>
                         <DeleteIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
@@ -187,8 +189,8 @@ export default function AdminTeams() {
 
       <ConfirmDialog
         open={!!deleteId}
-        title="Delete team"
-        message="Do you want to delete this team?"
+        title={t('adminTeams.deleteTitle')}
+        message={t('adminTeams.deleteMsg')}
         onConfirm={confirmDelete}
         onCancel={() => setDeleteId(null)}
       />
@@ -198,21 +200,22 @@ export default function AdminTeams() {
 
 function EditTeamDialog({
   team, isNew, onCancel, onSave,
-}: { team: Team; isNew: boolean; onCancel: () => void; onSave: (t: Team) => void }) {
+}: { team: Team; isNew: boolean; onCancel: () => void; onSave: (team: Team) => void }) {
+  const { t } = useTranslation();
   const [name, setName] = useState(team.name);
   const [description, setDescription] = useState(team.description);
   return (
     <Dialog open onClose={onCancel} fullWidth maxWidth="xs">
-      <DialogTitle>{isNew ? 'New team' : 'Edit team'}</DialogTitle>
+      <DialogTitle>{isNew ? t('adminTeams.newTeam') : t('adminTeams.editTeam')}</DialogTitle>
       <DialogContent>
         <Stack spacing={2} sx={{ mt: 1 }}>
-          <TextField label="Team name" value={name} onChange={(e) => setName(e.target.value)} fullWidth />
-          <TextField label="Description" value={description} onChange={(e) => setDescription(e.target.value)} fullWidth multiline />
+          <TextField label={t('adminTeams.teamName')} value={name} onChange={(e) => setName(e.target.value)} fullWidth />
+          <TextField label={t('adminTeams.description')} value={description} onChange={(e) => setDescription(e.target.value)} fullWidth multiline />
         </Stack>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onCancel}>Cancel</Button>
-        <Button variant="contained" onClick={() => onSave({ ...team, name, description })}>Save</Button>
+        <Button onClick={onCancel}>{t('common.cancel')}</Button>
+        <Button variant="contained" onClick={() => onSave({ ...team, name, description })}>{t('common.save')}</Button>
       </DialogActions>
     </Dialog>
   );
@@ -221,20 +224,21 @@ function EditTeamDialog({
 function AddMemberDialog({
   team, users, onCancel, onAdd,
 }: { team: Team; users: User[]; onCancel: () => void; onAdd: (u: User) => void }) {
+  const { t } = useTranslation();
   const available = users.filter((u) => !team.users.some((tu) => tu.email === u.email));
   const [email, setEmail] = useState('');
   return (
     <Dialog open onClose={onCancel} fullWidth maxWidth="xs">
-      <DialogTitle>Add member to {team.name}</DialogTitle>
+      <DialogTitle>{t('adminTeams.addMemberTitle', { team: team.name })}</DialogTitle>
       <DialogContent>
-        <TextField select label="User" value={email} onChange={(e) => setEmail(e.target.value)} fullWidth sx={{ mt: 1 }}>
+        <TextField select label={t('adminTeams.user')} value={email} onChange={(e) => setEmail(e.target.value)} fullWidth sx={{ mt: 1 }}>
           {available.map((u) => (
             <MenuItem key={u.email} value={u.email}>{u.userName} ({u.email})</MenuItem>
           ))}
         </TextField>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onCancel}>Cancel</Button>
+        <Button onClick={onCancel}>{t('common.cancel')}</Button>
         <Button
           variant="contained"
           disabled={!email}
@@ -243,7 +247,7 @@ function AddMemberDialog({
             if (u) onAdd(u);
           }}
         >
-          Add
+          {t('common.add')}
         </Button>
       </DialogActions>
     </Dialog>
